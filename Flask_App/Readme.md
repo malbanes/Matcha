@@ -1,3 +1,17 @@
+
+Install Dependency:
+
+- install python3.9
+- sudo easy_install pip 
+- sudo pip install pipenv
+- pipenv --python /usr/local/bin/python3
+- pipenv shell
+- pip install Flask
+- pip install flask_login
+- pip install flask_sqlalchemy
+
+##front dependency
+
 Activate VirtualEnv:
 - pipenv shell
 - python3 main.py
