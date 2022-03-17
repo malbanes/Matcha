@@ -14,6 +14,7 @@
 
   <body>
     <!-- Navigation //-->
+    <div class="d-flex flex-column min-vh-100">
   <div class="container-fluid bg-light">
   <div class="row justify-content-between">
     <!-- Left Navigation //-->
@@ -92,9 +93,27 @@
   </div> <!--navigation end //-->
 
     
-
-    <div class="container">
+<div class="flex-fill">
         {% block content %} {% endblock %}
+</div>
+
+
+    <footer class="container-fluid bg-dark text-light py-3">
+        <div class="row">
+            <div class="col-sm-4">
+                <p>PART OF 42.STUD UNIVERSE</p>
+                <p> The Matcha company of love and find love.<br> Import image, search a mate of interest. </p>
+            </div>
+            <div class="col-sm-4">
+                <p>About</p>
+                <p>Students Project by<br>Malbanes<br>Arguerin<br></p>
+            </div>
+            <div class="col-sm-4">
+                <p>© 2021 Copyright. All rights reserved
+            </div>
+        </div>
+    </footer>
+
     </div>
 
     <!-- Optional JavaScript -->

@@ -1,10 +1,55 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-    Matcha Login System
-</h1>
-<h2 class="subtitle">
-    Welcome to Matcha
-</h2>
+<div class="container-fluid no-padding">
+
+<!-- Background image -->
+<div class="bg-image" style="background-image: url({{url_for('static', filename='bg-home.jpeg')}});height: 60vh;">
+    <div class="row h-75 justify-content-md-center align-items-center">
+        <div class="col-md-auto text-center">
+            <h1 class="title font-weight-bold text-white">
+                Matcha
+            </h1>
+            </br>
+            <h2 class="subtitle text-white">
+                Crazy Dating, Funny Love
+            </h2>
+        </div>
+    </div>
+</div>
+
+<div container>
+    <div class="row h-75 justify-content-md-center align-items-center bg-light">
+        <div class="col-md-auto text-center">
+            </br>
+            <h2 class="title text-pink">
+                Pourquoi Matcha ?
+            </h1>
+            </br>
+            <h3 class="subtitle">
+                Trouvez l’amour auprès d’une personne qui vous correspond
+            </h2>
+            <p>Nos membres sont à la recherche de belles histoires et nous mettons tout en œuvre pour leur permettre de les vivre.</p>
+        </div>
+    </div>
+
+<div class="row h-75 justify-content-md-center align-items-center">
+    <div class="col-sm-6 text-center">
+    </br>
+        <img src="{{url_for('static', filename='tel-home.png')}}" width="auto" height="350px" alt="">
+    </br></br>
+    </div>
+    <div class="col-sm-6 text-center">
+        </br>
+        <h3 class="subtitle">
+            Bye bye routine, hello surprise.
+        </h2>
+        <p>Venez rencontrer les célibataires de votre région qui vous corredpondent avec notre système de matching personnalisé.</p>
+    </div>
+</div>
+
+</div>
+</div>
+
+
 {% endblock %}
