@@ -14,6 +14,10 @@ def index():
 def profile():
     return render_template('profile.html', name=current_user.name)
 
+# match page that return 'match'
+@main.route('/match') 
+def match():
+    return render_template('match.html')
 
 # we initialize our flask app using the  __init__.py function 
 app = create_app()          

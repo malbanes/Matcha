@@ -9,8 +9,12 @@ Install Dependency:
 - pip install Flask
 - pip install flask_login
 - pip install flask_sqlalchemy
+- pip install flask-jsonpify
 
 ##front dependency
+
+- install nodejs
+- npm init vue@latest (champ a remplir)
 
 Activate VirtualEnv:
 - pipenv shell

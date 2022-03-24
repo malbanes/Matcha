@@ -3,9 +3,90 @@
 {% block content %}
 <div class="container">
 
-<h1 class="title">
-    Welcome, {{name}}!
-</h1>
+    <!--Show Profile-->
+    <div class="container">
+    <row class="row justify-content-start">
+        <!--left side-->
+        <div class="col-sm" style="max-width:270px;">
+            <div class="rounded-square-picture">
+                <div class="rounded-square-picture__content" data-test="profile-rounded-square-picture" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+            </div>
+        </div>
+        <!--right side-->
+        <div class="col-sm">
+            <div>
+                <h1 class="title" style="font-size: 2.75rem; line-height: 1;">{{name}}</h1>
+                <span class="profil_info"> 29 ans, Paris 17e Arrondissement </span>
+            </div>
+            <!--Hashtag list-->
+        </br>
+        <ul class="list-inline">
+            <li class="list-inline-item dealbreaker">#Animaux</li>
+            <li class="list-inline-item dealbreaker">#Music</li>
+            <li class="list-inline-item dealbreaker">#Sport</li>
+            <li class="list-inline-item dealbreaker">#Voyage</li>
+            <li class="list-inline-item dealbreaker">#Grandetekezef</li>
+            <li class="list-inline-item dealbreaker">#foot</li>
+            <li class="list-inline-item dealbreaker">#zEFzefzEFzef</li>
+            <li class="list-inline-item dealbreaker">#zeFz</li>
+            <li class="list-inline-item dealbreaker">#zFEzefz FzefzefzefzeqzemifuqmzeiufmqzieubfmqziebfmqizbefmiqzjebfmqizjefbqmizefbqmzbfFzefzEFzf</li>
+        </ul>
+
+            <!--text presentation-->
+            <div>
+            biographie text
+            </div>
+        </br>
+            <!--Ref list-->
+            <div class="reflist">
+                <!-- Reflist Title -->
+                <ul class="nav nav-tabs" style="flex-wrap: nowrap;" id="refTab" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link link dark active" id="me-tab" data-toggle="tab" href="#me" role="tab" aria-controls="me" aria-selected="true">Je suis</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link link purple" id="search-tab" data-toggle="tab" href="#search" role="tab" aria-controls="search" aria-selected="false">Je cherche</a>
+                    </li>
+                  </ul>
+                <!-- Reflist Content -->
+                  <div class="tab-content" id="refTabContent">
+                    <!-- Reflist Panel Me Info-->
+                    <div class="tab-pane fade show active" id="me" role="tabpanel" aria-labelledby="me-tab">
+                    <!-- Reflist list Item-->
+                      <div class="reflist-list__item">
+                        <div class="reflist-content">
+                            <div class="reflist-field">Mon signe astrologique</div>
+                            <div class="reflist-value">Cancer</div>
+                        </div>
+                      </div> 
+                      <div class="reflist-list__item">
+                        <div class="reflist-content">
+                            <div class="reflist-field">Ma religion</div>
+                            <div class="reflist-value">Athée</div>
+                        </div>
+                      </div>
+
+                    </div><!--End Panel Me info-->
+                    <!-- Reflist Panel Search Info-->
+                    <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="search-tab">
+                        <!-- Reflist list Item-->
+                        <div class="reflist-list__item">
+                            <div class="reflist-content">
+                                <div class="reflist-field">Son âge</div>
+                                <div class="reflist-value">de 26 à 32 ans</div>
+                            </div>
+                        </div>
+
+                    </div>
+                  </div><!--End Panel Search Info-->
+
+            </div>
+
+
+        </div>
+    </row>
+    </div>
 
 </div>
+
 {% endblock %}
