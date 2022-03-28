@@ -24,3 +24,10 @@ The modifications will be automatically reloaded.
 The 'Debug' mode is activated
 
 - exit to quit the virtual env
+
+
+##DB Postgre
+- interact with postgre: sudo psql -U agu postgres  
+- \c flask_db
+- SELECT title, path FROM images;
+- \q

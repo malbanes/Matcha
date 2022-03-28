@@ -1,8 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User
+#from models import User
 from flask_login import login_user, logout_user, login_required, current_user
-from __init__ import db
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -63,3 +62,12 @@ def signup():
 def logout():
     logout_user()
     return redirect(url_for('main.index'))
+
+    #    if request.method == 'POST':
+    #    name = request.form['name']
+    #    age = request.form['age']
+    #    cursor = mysql.connection.cursor()
+    #    cursor.execute(''' INSERT INTO info_table VALUES(%s,%s)''',(name,age))
+    #    mysql.connection.commit()
+    #    cursor.close()
+    #    return f"Done!!"
