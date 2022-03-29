@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, flash
 from flask_login import login_required, current_user
-from __init__ import create_app, db
+
+from __init__ import create_app, get_db_connection
 
 # home page that return 'index'
 main = Blueprint('main', __name__)
@@ -12,6 +13,7 @@ def index():
 @main.route('/profile') 
 @login_required
 def profile():
+    print(current_user)
     return render_template('profile.html', name=current_user.name)
 
 # match page that return 'match'
@@ -22,5 +24,5 @@ def match():
 # we initialize our flask app using the  __init__.py function 
 app = create_app()          
 if __name__ == '__main__':
-    db.create_all(app=create_app())
+    ##db.create_all(app=create_app())
     app.run(debug=True)
