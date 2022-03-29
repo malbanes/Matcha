@@ -13,6 +13,7 @@ def index():
 @main.route('/profile') 
 @login_required
 def profile():
+    print(current_user)
     return render_template('profile.html', name=current_user.name)
 
 # match page that return 'match'

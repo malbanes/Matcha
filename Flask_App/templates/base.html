@@ -45,7 +45,7 @@
     <!-- Right Navigation //-->
     <div class="col-xs">
         <ul class="list-inline nav_margin">
-            {% if not current_user.is_authenticated %}
+            {% if not current_user.is_authenticated %}>
             <li class="list-inline-item">
                 <a class="nav-link" href="{{ url_for('auth.signup') }}">Sign up</a>
             </li>
@@ -54,6 +54,7 @@
             </li>
             {% endif %}
             {% if current_user.is_authenticated %}
+
             <li class="list-inline-item">
                 <a href="#" class="">
                     <svg xmlns="http://www.w3.org/2000/svg" class="myicon" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">

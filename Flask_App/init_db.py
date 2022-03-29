@@ -15,7 +15,11 @@ cur.execute('DROP TABLE IF EXISTS users;')
 cur.execute('CREATE TABLE users (id serial PRIMARY KEY,'
                                  'username varchar (255) NOT NULL,'
                                  'password varchar (255) NOT NULL,'
-                                 'date_added date DEFAULT CURRENT_TIMESTAMP);'
+                                 'date_added date DEFAULT CURRENT_TIMESTAMP),'
+                                 'first_name varchar (255),'
+                                 'last_name varchar (255),'
+                                 'email varchar (255) NOT NULL;'
+
                                  )
 cur.execute('DROP TABLE IF EXISTS books;')
 cur.execute('CREATE TABLE images (id serial PRIMARY KEY,'
@@ -35,7 +39,7 @@ cur.execute('INSERT INTO images (title, path, profil_id)'
             )
 
 cur.execute('CREATE EXTENSION pgcrypto;')
-cur.execute("INSERT INTO users (username, password) VALUES ('test@test.com',crypt('test', gen_salt('bf')));")
+cur.execute("INSERT INTO users (username, password, first_name, last_name, email) VALUES ('test@test.com',crypt('test', gen_salt('bf')),'sammy','test','test@test.com');")
 
 conn.commit()
 

@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
 import psycopg2
+from models import User
 #sammy-test
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
@@ -39,11 +40,10 @@ def create_app():
         cur = conn.cursor()
         cur.execute('SELECT * FROM users WHERE id=(%s);', (user_id))
         user = cur.fetchall()
-        print(user)
         cur.close()
-        conn.close() 
+        conn.close()
         #reload user object from the user ID stored in the session since the user_id is just the primary key of our user table, use it in the query for the user
-        return user
+        return (User(user[0]))
     
     
     # blueprint for auth routes in our app, it allows you to organize your flask app

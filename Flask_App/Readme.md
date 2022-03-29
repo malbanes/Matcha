@@ -17,6 +17,8 @@ Install Dependency:
 - npm init vue@latest (champ a remplir)
 
 Activate VirtualEnv:
+- export DB_USERNAME="sammy"
+- export DB_PASSWORD="test"  
 - pipenv shell
 - python3 main.py
 - Access the IP address on your browser - Ctrl C to exit
