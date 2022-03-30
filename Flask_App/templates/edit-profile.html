@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block title %} Edit Profile {% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!--Section Photo-->
+    <div class="h2 text-deepblue">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-camera section-icon" viewBox="0 0 16 16">
+            <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/>
+            <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+          </svg>
+        Mes photos
+    </div>
+
+    <div class="container">
+
+    <row class="row justify-content-start">
+        <!--left side-->
+        <div class="col" style="max-width:270px;">
+            <div class="rounded-square-picture mymedium">
+                <div class="rounded-square-picture__content" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="row">
+                <div class="rounded-square-picture mysmall">
+                    <div class="rounded-square-picture__content" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                </div>
+                <div class="rounded-square-picture mysmall">
+                    <div class="rounded-square-picture__content" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                </div>
+                <div class="rounded-square-picture mysmall">
+                    <div class="rounded-square-picture__content" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                </div>
+                <div class="rounded-square-picture mysmall">
+                    <div class="rounded-square-picture__content" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                </div>
+            </div>
+        </div>
+    </row>
+    <row class="row justify-content-end" style="max-width: 756px;">
+        <button type="submit" class="btn btn-secondary mb-2 mr-2">annuler</button>
+        <button type="submit" class="btn btn-primary mb-2">Confirm</button>
+    </row>
+
+    </div>
+
+    <!-- Modal image-->
+    <div class="row py-4">
+        <div class="col-lg-6 mx-auto">
+            <!-- Upload image input-->
+            <div class="input-group mb-3 px-2 py-2 rounded-pill bg-white shadow-sm">
+                <input id="upload" type="file" onchange="readURL(this);" class="form-control border-0">
+                <label id="upload-label" for="upload" class="font-weight-light text-muted">Choose file</label>
+                <div class="input-group-append">
+                    <label for="upload" class="btn btn-light m-0 rounded-pill px-4"> <i class="fa fa-cloud-upload mr-2 text-muted"></i><small class="text-uppercase font-weight-bold text-muted">Choose file</small></label>
+                </div>
+            </div>
+            <!-- Uploaded image area-->
+            <p class="font-italic text-white text-center">The image uploaded will be rendered inside the box below.</p>
+            <div class="image-area mt-4"><img id="imageResult" src="#" alt="" class="img-fluid rounded shadow-sm mx-auto d-block"></div>
+        </div>
+    </div> <!-- End modal image-->
+
+    <div class="container">
+        <row class="row justify-content-start">
+        </row>
+    </div>
+
+    <!--Section Description-->
+    <div class="h2 text-deepblue mt-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-quote section-icon" viewBox="0 0 16 16">
+            <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388c0-.351.021-.703.062-1.054.062-.372.166-.703.31-.992.145-.29.331-.517.559-.683.227-.186.516-.279.868-.279V3c-.579 0-1.085.124-1.52.372a3.322 3.322 0 0 0-1.085.992 4.92 4.92 0 0 0-.62 1.458A7.712 7.712 0 0 0 9 7.558V11a1 1 0 0 0 1 1h2Zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612c0-.351.021-.703.062-1.054.062-.372.166-.703.31-.992.145-.29.331-.517.559-.683.227-.186.516-.279.868-.279V3c-.579 0-1.085.124-1.52.372a3.322 3.322 0 0 0-1.085.992 4.92 4.92 0 0 0-.62 1.458A7.712 7.712 0 0 0 3 7.558V11a1 1 0 0 0 1 1h2Z"/>
+          </svg>
+        Ma description
+    </div>
+    <form>
+        <div class="form-group w-75">
+            <label for="exampleFormControlTextarea1">Example textarea</label>
+            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+          </div>
+    <div class="row">
+        <div class="col">
+            <div class="counter">8/100</div>
+        </div>
+        <div class="col">
+            <button type="submit" class="btn btn-secondary mb-2">annuler</button>
+            <button type="submit" class="btn btn-primary mb-2">Confirm</button>
+        </div>
+    </div>
+    </form>
+
+
+    <!--Section Je suis-->
+    <div class="h2 text-deepblue mt-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-card-list section-icon" viewBox="0 0 16 16">
+            <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
+            <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+          </svg>
+        Je suis
+    </div>
+    <!--Sub Section Hashtags-->
+    <div class="subtitle text-deepblue">
+        Mes interets
+    </div>
+    <ul class="list-inline">
+        <li class="list-inline-item dealbreaker">#Animaux</li>
+        <li class="list-inline-item dealbreaker">#Music</li>
+        <li class="list-inline-item dealbreaker">#Sport</li>
+        <li class="list-inline-item dealbreaker">#Voyage</li>
+        <li class="list-inline-item dealbreaker">#Grandetekezef</li>
+        <li class="list-inline-item dealbreaker">#foot</li>
+        <li class="list-inline-item dealbreaker">#zEFzefzEFzef</li>
+        <li class="list-inline-item dealbreaker">#zeFz</li>
+        <li class="list-inline-item dealbreaker">#zFEzefz FzefzefzefzeqzemifuqmzeiufmqzieubfmqziebfmqizbefmiqzjebfmqizjefbqmizefbqmzbfFzefzEFzf</li>
+    </ul>
+    <div class="subtitle text-deepblue">
+        Informations principales
+    </div>
+    <div class="reflist-list__item">
+        <div class="reflist-content">
+            <div class="reflist-field">Mon signe astrologique</div>
+            <div class="reflist-value">Cancer</div>
+        </div>
+      </div> 
+      <div class="reflist-list__item">
+        <div class="reflist-content">
+            <div class="reflist-field">Ma religion</div>
+            <div class="reflist-value">Athée</div>
+        </div>
+      </div>
+
+    <!--Section Je cherche-->
+    <div class="h2 text-deepblue mt-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-card-list section-icon" viewBox="0 0 16 16">
+            <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
+            <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+          </svg>
+        Je cherche
+    </div>
+    <div class="reflist-list__item">
+        <div class="reflist-content">
+            <div class="reflist-field">Son signe astrologique</div>
+            <div class="reflist-value">Cancer</div>
+        </div>
+      </div> 
+      <div class="reflist-list__item">
+        <div class="reflist-content">
+            <div class="reflist-field">Sa religion</div>
+            <div class="reflist-value">Athée</div>
+        </div>
+      </div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+    
+            reader.onload = function (e) {
+                $('#imageResult')
+                    .attr('src', e.target.result);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    $(function () {
+        $('#upload').on('change', function () {
+            readURL(input);
+        });
+    });
+    var input = document.getElementById( 'upload' );
+    var infoArea = document.getElementById( 'upload-label' );
+    
+    input.addEventListener( 'change', showFileName );
+    function showFileName( event ) {
+      var input = event.srcElement;
+      var fileName = input.files[0].name;
+      infoArea.textContent = 'File name: ' + fileName;
+    }
+            </script>
+{% endblock %}
+
+
+
