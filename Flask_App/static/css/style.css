@@ -39,10 +39,35 @@
     color: white;
   }
 
-  .container {
-      padding-top:1.5em;
-      padding-bottom: 1.5em;
-  }
+.yellow-color {
+    color:yellow;
+}
+
+.gray-color {
+    color:rgb(160, 159, 159);
+}
+
+.green-color {
+    color:#00c2ab;
+}
+
+.bg-dark-gray {
+    background-color: rgb(87, 86, 86)!important;
+}
+
+.bg-red {
+    background-color: rgb(251, 236, 239);
+}
+
+.container {
+    padding-top:1.5em;
+    padding-bottom: 1.5em;
+}
+
+.center {
+    text-align: center;
+}
+
 
 
 /********************************/

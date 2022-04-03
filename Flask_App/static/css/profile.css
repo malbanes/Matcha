@@ -24,6 +24,31 @@
     height: 100px;
     margin: 0.4rem;
   }
+
+  .nophoto {
+    background-image: url('../img/no-photo.png')
+  }
+
+  .addphoto {
+    background-image: url('../img/add-photo.png')
+  }
+
+  .edit-icon {
+    cursor: pointer;
+    width: 2rem;
+    height: 2rem;
+    background-color: rgb(238, 240, 245);
+    border-top-left-radius: 50%;
+    border-top-right-radius: 50%;
+    border-bottom-right-radius: 50%;
+    border-bottom-left-radius: 50%;
+    display: flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: center;
+    margin-left: 1rem;
+  }
   
   .rounded-square-picture__content {
     position: absolute;
@@ -95,6 +120,7 @@
     display: flex;
     margin: 1rem 0;
   }
+
   
   .reflist-content {
     display: flex;
@@ -106,7 +132,7 @@
     display: block;
     margin: 0.4375rem 1rem 0 0;
     border-radius: 50%;
-    background: var(--springbok-brand-color);
+    background-image: url('../img/star.png');
     width: 0.5rem;
     height: 0.5rem;
     content: "";
@@ -132,6 +158,11 @@
     color:white;
   }
 
+  .carousel-inner-icon {
+    max-width: 600px;
+    width:80%;
+  }
+
   .carousel {
     max-width: 700px;
     margin: auto;
@@ -142,21 +173,21 @@
     margin: auto;
   }
 
-  .modal-dialog {
+  .modal-dialog-preview {
     width: 100%;
     max-width: none;
     height: 100%;
     margin: 0;
   }
   
-  .modal-content {
+  .modal-content-preview {
     background-color: #1f2f49;
     height: 100%;
     border: 0;
     border-radius: 0;
   }
   
-  .modal-body {
+  .modal-body-preview {
     overflow-y: auto;
   }
 
@@ -229,4 +260,10 @@
 .image-area img {
     z-index: 2;
     position: relative;
+}
+
+.text-small {
+  text-align: center;
+  color: #8491a4;
+  font-size: .8rem;
 }

@@ -6,10 +6,13 @@ Install Dependency:
 - sudo pip install pipenv
 - pipenv --python /usr/local/bin/python3
 - pipenv shell
+- python3 -m pip install werkzeug==2.0.0
+
 - pip install Flask
 - pip install flask_login
 - pip install flask_sqlalchemy
 - pip install flask-jsonpify
+- pip install bcrypt
 
 ##front dependency
 
@@ -20,6 +23,7 @@ Activate VirtualEnv:
 - export DB_USERNAME="sammy"
 - export DB_PASSWORD="test"  
 - pipenv shell
+- Python3 init_db.py
 - python3 main.py
 - Access the IP address on your browser - Ctrl C to exit
 The modifications will be automatically reloaded.
@@ -30,6 +34,10 @@ The 'Debug' mode is activated
 
 ##DB Postgre
 - interact with postgre: sudo psql -U agu postgres  
+- CREATE DATABASE testdb;
 - \c flask_db
 - SELECT title, path FROM images;
 - \q
+
+-------- outils ---------
+##DBata grid
