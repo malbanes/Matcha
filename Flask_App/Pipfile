@@ -9,6 +9,8 @@ flask-sqlalchemy = "*"
 flask-login = "*"
 werkzeug = "*"
 pandas = "*"
+itsdangerous = "*"
+flask-mail = "*"
 
 [dev-packages]
 

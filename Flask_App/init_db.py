@@ -19,7 +19,7 @@ cur.execute('CREATE TABLE users (id serial PRIMARY KEY,'
                                  'first_name varchar (255),'
                                  'last_name varchar (255),'
                                  'email varchar (255) NOT NULL;'
-
+                                 'confirmed boolean DEFAULT false NOT NULL;'
                                  )
 cur.execute('DROP TABLE IF EXISTS books;')
 cur.execute('CREATE TABLE images (id serial PRIMARY KEY,'

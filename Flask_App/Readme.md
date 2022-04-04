@@ -30,7 +30,8 @@ The modifications will be automatically reloaded.
 The 'Debug' mode is activated
 
 - exit to quit the virtual env
-
+os.environ['APP_MAIL_USERNAME']
+os.environ['APP_MAIL_PASSWORD']
 
 ##DB Postgre
 - interact with postgre: sudo psql -U agu postgres  

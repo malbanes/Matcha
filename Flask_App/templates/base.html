@@ -36,9 +36,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.match'}}" href="{{ url_for('main.match') }}">Match</a></li>
-                <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.profile'}}" href="{{ url_for('main.profile') }}">profile</a></li>
+                {% if current_user.confirmed and current_user.is_authenticated %}
+                <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.profile'}}" href="{{ url_for('main.profile') }}">Profile</a></li>
+                {% elif current_user.is_authenticated %}
+                <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='auth.unconfirmed'}}" href="{{ url_for('auth.unconfirmed') }}">Confirm</a></li>
+                {% endif %}
                 <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.editprofile'}}" href="{{ url_for('main.editprofile') }}">edit</a></li>
-                <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.account'}}" href="{{ url_for('main.account') }}">account</a></li>
+                <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.account'}}" href="{{ url_for('main.account') }}">Account</a></li>
             </ul>
         </div>
     </nav>

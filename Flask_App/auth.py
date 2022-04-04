@@ -9,6 +9,9 @@ from passlib.hash import bcrypt
 
 from models import User
 
+from token_gen import generate_confirmation_token, confirm_token
+from email_mngr import send_email
+
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
 
@@ -68,12 +71,70 @@ def signup():
             flash('Email or User Name address already exists')
             return redirect(url_for('auth.signup'))
         # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        cur.execute("INSERT INTO users (email, first_name, last_name, username, password) VALUES ('{0}','{1}','{2}','{3}',crypt('{4}', gen_salt('bf')));".format(email, first_name, last_name,username,password))
+        cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES ('{0}', '{1}', '{2}', '{3}', crypt('{4}', gen_salt('bf')), false);".format(email, first_name, last_name,username,password))
         conn.commit()
         # add the new user to the database
+        new_user = cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+        new_user = cur.fetchone()
         cur.close()
-        conn.close() 
-        return redirect(url_for('auth.login'))
+        conn.close()
+        
+        token = generate_confirmation_token(email)
+        confirm_url = url_for('auth.confirm_email', token=token, _external=True)
+        html = render_template('activate.html', confirm_url=confirm_url)
+        subject = "Please confirm your email"
+        send_email(email, subject, html)
+        login_user(User(new_user))
+        flash('A confirmation email has been sent via email.', 'success')
+        
+        return redirect(url_for('auth.unconfirmed'))
+
+# confirm email page that return 'confirm/<token>'
+@auth.route('/confirm/<token>')
+@login_required
+def confirm_email(token):
+    try:
+        email = confirm_token(token)
+    except:
+        flash('The confirmation link is invalid or has expired.', 'danger')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+    user = cur.fetchone()
+    print(user)
+    if user[7] == True:
+        flash('Account already confirmed. Please login.', 'success')
+    else:
+        cur.execute("UPDATE users SET confirmed = true WHERE email='{0}';".format(email))
+        conn.commit()
+        flash('You have confirmed your account. Thanks!', 'success')
+    cur.close()
+    conn.close()
+    return redirect(url_for('main.index'))
+
+# unconfirmed email page that return 'unconfirmed'
+@auth.route('/unconfirmed')
+@login_required
+def unconfirmed():
+    if current_user.confirmed:
+        return redirect('main.index')
+    flash('Please confirm your account!', 'warning')
+    return render_template('unconfirmed.html')
+
+# resend email page that return 'resend'
+
+@auth.route('/resend')
+@login_required
+def resend_confirmation():
+    token = generate_confirmation_token(current_user.email)
+    confirm_url = url_for('auth.confirm_email', token=token, _external=True)
+    html = render_template('activate.html', confirm_url=confirm_url)
+    subject = "Please confirm your email"
+    send_email(current_user.email, subject, html)
+    flash('A new confirmation email has been sent.', 'success')
+    return redirect(url_for('auth.unconfirmed'))
+
 
 # define logout path
 @auth.route('/logout') 
