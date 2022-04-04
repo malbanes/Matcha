@@ -11,6 +11,7 @@ from models import User
 
 from token_gen import generate_confirmation_token, confirm_token
 from email_mngr import send_email
+from password_checker import password_check
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -70,24 +71,40 @@ def signup():
         if user: 
             flash('Email or User Name address already exists')
             return redirect(url_for('auth.signup'))
-        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES ('{0}', '{1}', '{2}', '{3}', crypt('{4}', gen_salt('bf')), false);".format(email, first_name, last_name,username,password))
-        conn.commit()
-        # add the new user to the database
-        new_user = cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
-        new_user = cur.fetchone()
-        cur.close()
-        conn.close()
-        
-        token = generate_confirmation_token(email)
-        confirm_url = url_for('auth.confirm_email', token=token, _external=True)
-        html = render_template('activate.html', confirm_url=confirm_url)
-        subject = "Please confirm your email"
-        send_email(email, subject, html)
-        login_user(User(new_user))
-        flash('A confirmation email has been sent via email.', 'success')
-        
-        return redirect(url_for('auth.unconfirmed'))
+        pass_complexity = password_check(password)
+        if pass_complexity['password_ok'] == False:
+            error_to_return = ""
+            if pass_complexity['length_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 8 characters. "
+            if pass_complexity['digit_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 digit. "
+            if pass_complexity['uppercase_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 uppercase character. "
+            if pass_complexity['lowercase_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 lowercase character. "
+            if pass_complexity['symbol_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 special character. "
+            flash('password not enough complex:\n' + error_to_return)
+            return redirect(url_for('auth.signup'))
+        else:
+            # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+            cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES ('{0}', '{1}', '{2}', '{3}', crypt('{4}', gen_salt('bf')), false);".format(email, first_name, last_name,username,password))
+            conn.commit()
+            # add the new user to the database
+            new_user = cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+            new_user = cur.fetchone()
+            cur.close()
+            conn.close()
+
+            token = generate_confirmation_token(email)
+            confirm_url = url_for('auth.confirm_email', token=token, _external=True)
+            html = render_template('activate.html', confirm_url=confirm_url)
+            subject = "Please confirm your email"
+            send_email(email, subject, html)
+            login_user(User(new_user))
+            flash('A confirmation email has been sent via email.', 'success')
+
+            return redirect(url_for('auth.unconfirmed'))
 
 # confirm email page that return 'confirm/<token>'
 @auth.route('/confirm/<token>')
