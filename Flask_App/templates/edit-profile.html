@@ -45,7 +45,7 @@
         </div>
     </row>
     <row class="row justify-content-end" style="max-width: 756px;">
-        <button type="submit" class="btn btn-secondary mb-2 mr-2">Modifier</button>
+        <button type="submit" class="btn btn-secondary mb-2 mr-2" data-toggle="modal" data-target="#modal-fullscreen-xl">Modifier</button>
         <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#photoModal">
             Ajouter
         </button>
@@ -64,7 +64,6 @@
     </div>
     <form>
         <div class="form-group w-75">
-            <label for="exampleFormControlTextarea1">Example textarea</label>
             <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
           </div>
     <div class="row">
@@ -100,17 +99,21 @@
         <li class="list-inline-item dealbreaker">#foot</li>
         <li class="list-inline-item dealbreaker">#zEFzefzEFzef</li>
         <li class="list-inline-item dealbreaker">#zeFz</li>
-        <li class="list-inline-item dealbreaker">#zFEzefz FzefzefzefzeqzemifuqmzeiufmqzieubfmqziebfmqizbefmiqzjebfmqizjefbqmizefbqmzbfFzefzEFzf</li>
+        <li class="list-inline-item dealbreaker">#zFE Fzf</li>
     </ul>
-    <div class="subtitle text-deepblue">
+        <button type="submit" class="dealbreaker btn btn-primary mb-2">
+            <strong>" + "</strong>
+        </button>
+    <div class="subtitle text-deepblue mb-0 mt-4">
         Informations principales
     </div>
+    <small class="form-text text-muted mb-2"> Champs obligatoire pour que nous trouvons des personnes qui vous correspondent.</small>
     <div class="row justify-content-between">
         <div class="col">
             <div class="reflist-list__item">
                 <div class="reflist-content">
-                    <div class="reflist-field">Mon signe astrologique</div>
-                    <div class="reflist-value">Cancer</div>
+                    <div class="reflist-field">Mon Genre</div>
+                    <div class="reflist-value">Femme</div>
                 </div>
             </div> 
         </div>
@@ -126,8 +129,8 @@
         <div class="col">
             <div class="reflist-list__item">
                 <div class="reflist-content">
-                    <div class="reflist-field">Ma religion</div>
-                    <div class="reflist-value">Athée</div>
+                    <div class="reflist-field">Mon orientation sexuelle</div>
+                    <div class="reflist-value">Homosexuel</div>
                 </div>
             </div> 
         </div>
@@ -152,8 +155,8 @@
         <div class="col">
             <div class="reflist-list__item">
                 <div class="reflist-content">
-                    <div class="reflist-field">Son signe astrologique</div>
-                    <div class="reflist-value">Lion</div>
+                    <div class="reflist-field">Son Genre</div>
+                    <div class="reflist-value">Femme</div>
                 </div>
             </div> 
         </div>
@@ -161,12 +164,6 @@
             <div class="edit-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
                     <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
-                  </svg>
-            </div>
-            <div class="edit-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
                   </svg>
             </div>
         </div>
@@ -175,8 +172,8 @@
         <div class="col">
             <div class="reflist-list__item">
                 <div class="reflist-content">
-                    <div class="reflist-field">Sa religion</div>
-                    <div class="reflist-value">Athée</div>
+                    <div class="reflist-field">Son orientation sexuelle</div>
+                    <div class="reflist-value">Homosexuel</div>
                 </div>
             </div> 
         </div>
@@ -184,12 +181,6 @@
             <div class="edit-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
                     <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
-                  </svg>
-            </div>
-            <div class="edit-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
                   </svg>
             </div>
         </div>
@@ -203,7 +194,7 @@
             <div class="modal-content-preview">
             <div class="modal-header">
                 <h5 class="modal-title text-white">Photo</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close close-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>

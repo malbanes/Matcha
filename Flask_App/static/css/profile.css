@@ -150,11 +150,11 @@
     font-size: 1rem;
   }
 
-  .close {
+  .close-white {
     color:white;
   }
 
-  .close:hover {
+  .close-white:hover {
     color:white;
   }
 
