@@ -22,6 +22,7 @@ Install Dependency:
 Activate VirtualEnv:
 - export DB_USERNAME="sammy"
 - export DB_PASSWORD="test"  
+- add email password in __init.py file -> app.config['MAIL_PASSWORD']
 - pipenv shell
 - Python3 init_db.py
 - python3 main.py
@@ -30,8 +31,6 @@ The modifications will be automatically reloaded.
 The 'Debug' mode is activated
 
 - exit to quit the virtual env
-os.environ['APP_MAIL_USERNAME']
-os.environ['APP_MAIL_PASSWORD']
 
 ##DB Postgre
 - interact with postgre: sudo psql -U agu postgres  

@@ -18,3 +18,19 @@ def confirm_token(token, expiration=3600):
     except:
         return False
     return email
+
+def generate_email_token(email):
+    serializer = URLSafeTimedSerializer('secret-key-goes-here')
+    return serializer.dumps(email, salt='my_precious_three')
+
+def confirm_email_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer('secret-key-goes-here')
+    try:
+        email = serializer.loads(
+            token,
+            salt='my_precious_three',
+            max_age=expiration
+        )
+    except:
+        return False
+    return email

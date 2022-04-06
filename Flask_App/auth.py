@@ -9,9 +9,10 @@ from passlib.hash import bcrypt
 
 from models import User
 
-from token_gen import generate_confirmation_token, confirm_token
+from token_gen import generate_confirmation_token, confirm_token, generate_email_token, confirm_email_token
 from email_mngr import send_email
 from password_checker import password_check
+import re
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -152,6 +153,81 @@ def resend_confirmation():
     flash('A new confirmation email has been sent.', 'success')
     return redirect(url_for('auth.unconfirmed'))
 
+# reset password class that return 'resetpassword'
+@auth.route('/reset_page', methods=['GET', 'POST'])
+def reset_page():
+    if request.method=='GET': 
+        return render_template('reset_page.html')
+    else:
+        if current_user.is_authenticated:
+            return redirect(url_for('main.index'))
+        email = request.form.get('email')
+        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if not (re.fullmatch(email_regex, email)):
+            flash('Email structure not valid!')
+            return redirect(url_for('auth.reset_page'))
+        else:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+            user = cur.fetchone()
+            if user:
+                token = generate_email_token(user[6])
+                reset_url = url_for('auth.reset_password', token=token, _external=True)
+                html = render_template('reset_password_request.html', reset_url=reset_url)
+                subject = "A password reset request has been initiated"
+                send_email(user[6], subject, html)
+            cur.close()
+            conn.close()
+            flash('Check your email for the instructions to reset your password')
+            return redirect(url_for('auth.login'))
+        return render_template('reset_page.html')
+
+# reset password validation page that return 'confirm/<token>'
+@auth.route('/reset_password/<token>', methods=['GET','POST'])
+def reset_password(token):
+    email = confirm_email_token(token)
+    if email != False:
+        print(email)
+    else:
+        flash('The reset link is invalid or has expired.', 'danger')
+        return redirect(url_for('auth.login'))
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    if  request.method=='POST': 
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(confirm_email_token(token)))
+        user = cur.fetchone()
+        print(user)
+        password = request.form.get('password')
+        pass_complexity = password_check(password)
+        if pass_complexity['password_ok'] == False:
+            error_to_return = ""
+            if pass_complexity['length_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 8 characters. "
+            if pass_complexity['digit_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 digit. "
+            if pass_complexity['uppercase_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 uppercase character. "
+            if pass_complexity['lowercase_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 lowercase character. "
+            if pass_complexity['symbol_error'] == True:
+                error_to_return = error_to_return + "\nPassword must contain at least 1 special character. "
+            flash('Password not enough complex:\n' + error_to_return + ' Reset your password again')
+            return render_template('reset_password.html', token=token)
+        else:
+            if user and user[7] == True:
+                cur.execute("UPDATE users SET password = crypt('{0}', gen_salt('bf')) WHERE email='{1}';".format(password, email))
+                conn.commit()
+                flash('Your password has been reset. Thanks!', 'success')
+            else:
+                flash('There was an issue in the reset procedure, try again.', 'danger')
+        cur.close()
+        conn.close()
+        logout_user()
+        return redirect(url_for('auth.login'))
+    return render_template('reset_password.html', token=token)
 
 # define logout path
 @auth.route('/logout') 

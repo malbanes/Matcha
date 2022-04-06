@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %} Reset Password {% endblock %}
+
+{% block content %}
+<div class="container-fluid bg-dark">
+    <div class="container">
+
+    <h3 class="title text-white">Reset Password</h3>
+
+    <div class="container bg-light">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="notification is-danger">
+                    {{ messages[0] }}<br> Go to <a href="{{ url_for('auth.login') }}">login page</a>.
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="/reset_page">
+            
+            <div class="form-group">
+                    <input class="form-control" type="email" name="email" placeholder="Email" autofocus="">
+            </div>
+            <button type="submit" class="btn btn-primary">Reset Password</button>
+        </form>
+    </div>
+    </div>
+</div>
+
+{% endblock %}
