@@ -11,14 +11,19 @@
     <div class="row justify-content-start">
         <!--left side-->
         <div class="col position-fixe bg-deepblue" style="max-width:70px;z-index: 5;">
-            <ul class="list-group mt-4" style="position:fixed;">
+            <ul class="list-group mt-4 mb-4" style="position:fixed;">
                 <li class="text-white mb-4">
-                    <button type="button" class="btn btn-outline-light"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                    <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#searchModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                   </svg></button>
                 </li>
                 <li class="text-white mt-4">
-                    <button type="button" class="btn btn-outline-light"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                    <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#triModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
+                      <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                    </svg></button>
+                </li>
+                <li class="text-white mt-4">
+                    <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#filterModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z"/>
                     </svg></button>
                 </li>
@@ -58,5 +63,272 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Search -->
+<div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="searchModalLabel">Search</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Filtre Form-->
+          <form>
+            <!-- Age -->
+            <div class="h5 no-margin text-deepblue">Age</div>
+            <p class="no-margin">
+              <label for="ageRange">Entre </label>
+              <input type="text" id="ageRange" readonly style="border:0;">
+            </p>
+            <div id="slider-range"></div>
+            <!-- Localisation -->
+            <div class="h5 no-margin text-deepblue mt-4">Location</div>
+            <label for="city">City</label>
+            <input id="city" type="text"></br>
+              <label for="locRange">Distance: </label> <p id="locRangeLabel" class="no-margin d-inline">5 Km</p>
+              <input onchange="changeLocRange(this.value)" type="range" class="custom-range small-bar d-inline align-middle" min="5" max="100" step="1" id="locRange">
+            <!-- Score interval -->
+            <p class="no-margin">
+              <div class="h5 no-margin text-deepblue mt-4">Score</div>
+              <label for="scoreRange">Entre </label>
+              <input type="text" id="scoreRange" readonly style="border:0;">
+            </p>
+            <div id="slider-score-range"></div>
+            <!-- Hashtags -->
+            <div class="h5 no-margin text-deepblue mt-4">Hashtags</div>
+  
+            <div class="input-group mb-3">
+              <input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon2">
+              <div class="input-group-append">
+                <span class="input-group-text" id="basic-addon2">Search</span>
+              </div>
+            </div>
+  
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+  
+          </form>
+        </div>
+        <div class="modal-footer">
+          <div class="col-auto mr-auto">
+            <p class="no-padding">Reset</p>
+          </div>
+          <div class="col-auto">
+            <button type="buton" class="btn btn-primary" data-dismiss="modal">Validate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal Filtre -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filterModalLabel">Filtre</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Filtre Form-->
+          <form>
+            <!-- Age -->
+            <div class="h5 no-margin text-deepblue">Age</div>
+            <p class="no-margin">
+              <label for="ageRange">Entre </label>
+              <input type="text" id="ageRange" readonly style="border:0;">
+            </p>
+            <div id="slider-range"></div>
+            <!-- Localisation -->
+            <div class="h5 no-margin text-deepblue mt-4">Location</div>
+            <label for="city">City</label>
+            <input id="city" type="text"></br>
+              <label for="locRange">Distance: </label> <p id="locRangeLabel" class="no-margin d-inline">5 Km</p>
+              <input onchange="changeLocRange(this.value)" type="range" class="custom-range small-bar d-inline align-middle" min="5" max="100" step="1" id="locRange">
+            <!-- Score interval -->
+            <p class="no-margin">
+              <div class="h5 no-margin text-deepblue mt-4">Score</div>
+              <label for="scoreRange">Entre </label>
+              <input type="text" id="scoreRange" readonly style="border:0;">
+            </p>
+            <div id="slider-score-range"></div>
+            <!-- Hashtags -->
+            <div class="h5 no-margin text-deepblue mt-4">Hashtags</div>
+  
+            <div class="input-group mb-3">
+              <input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon2">
+              <div class="input-group-append">
+                <span class="input-group-text" id="basic-addon2">Search</span>
+              </div>
+            </div>
+  
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+              <input type="checkbox" class="custom-control-input" id="hashtag1">
+              <label class="custom-control-label" for="hashtag1">#Music</label>
+            </div>
+  
+          </form>
+        </div>
+        <div class="modal-footer">
+          <div class="col-auto mr-auto">
+            <p class="no-padding">Reset</p>
+          </div>
+          <div class="col-auto">
+            <button type="buton" class="btn btn-primary" data-dismiss="modal">Validate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- Modal Tri -->
+  <div class="modal fade" id="triModal" tabindex="-1" aria-labelledby="triModalLabel" aria-hidden="true">
+  
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="triModalLabel">Tri</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Tri Form-->
+          <form>
+            <!-- Age -->
+            <div class="h5 text-deepblue">Trier par: </div>
+              <div class="form-check d-inline">
+                <input class="form-check-input" type="checkbox" id="ageCheck">
+                <label class="form-check-label align-top" for="ageCheck">Age</label>
+              </div>
+              <div class="form-check d-inline no-padding">
+                <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+                  <input onchange="changeIt(this)" id="ageCheckOrder" type="checkbox" checked="checked">
+                  <span class="checkmark"></span>
+                </label>
+              </div></br></br>
+            <!-- Distance -->
+              <div class="form-check d-inline">
+                <input class="form-check-input" type="checkbox" id="ageCheck">
+                <label class="form-check-label align-top" for="ageCheck">Distance</label>
+              </div>
+              <div class="form-check d-inline no-padding">
+                <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+                  <input onchange="changeIt(this)" id="ageCheckOrder" type="checkbox" checked="checked">
+                  <span class="checkmark"></span>
+                </label>
+              </div></br></br>
+            <!-- Score -->
+            <div class="form-check d-inline">
+              <input class="form-check-input" type="checkbox" id="ageCheck">
+              <label class="form-check-label align-top" for="ageCheck">Score</label>
+            </div>
+            <div class="form-check d-inline no-padding">
+              <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+                <input onchange="changeIt(this)" id="ageCheckOrder" type="checkbox" checked="checked">
+                <span class="checkmark"></span>
+              </label>
+            </div></br></br>
+            <!-- Hashtags -->
+            <div class="form-check d-inline">
+              <input class="form-check-input" type="checkbox" id="ageCheck">
+              <label class="form-check-label align-top" for="ageCheck">Hashtag</label>
+            </div>
+            <div class="form-check d-inline no-padding">
+              <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+                <input onchange="changeIt(this)" id="ageCheckOrder" type="checkbox" checked="checked">
+                <span class="checkmark"></span>
+              </label>
+            </div>
+  
+          </form>
+        </div>
+        <div class="modal-footer">
+          <div class="col-auto mr-auto">
+            <p class="no-padding">Reset</p>
+          </div>
+          <div class="col-auto">
+            <button type="buton" class="btn btn-primary" data-dismiss="modal">Validate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="{{url_for('static', filename='js/match.js')}}"></script>  
 
 {% endblock %}

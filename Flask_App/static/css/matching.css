@@ -182,3 +182,69 @@
   .rounded-demi-invert {
     border-radius: 0 0 10% 10%!important;
   }
+
+  .small-bar {
+    width: 30%;
+  }
+
+  /* Customize the label (the container) */
+.mycontainer {
+  display: block;
+  position: relative;
+  padding-left: 20px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+  /* Hide the browser's default checkbox */
+.mycontainer input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 18px;
+  width: 18px;
+  background-color: white;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  border-width: 1px;
+  border-color: gray;
+  border-style:solid;
+  border-radius: 20%;
+  background-image: url('../img/chevron-double-down.svg');
+
+}
+
+/* On mouse-over, add a grey background color */
+.mycontainer:hover input ~ .checkmark {
+  background-color: lightgray;
+}
+
+/* When the checkbox is checked, add a blue background */
+.mycontainer input:checked ~ .checkmark {
+  background-image: url('../img/chevron-double-up.svg');
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.mycontainer input:checked ~ .checkmark:after {
+  display: block;
+}
