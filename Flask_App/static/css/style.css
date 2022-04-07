@@ -75,7 +75,7 @@
 /********************************/
 
 /* Navigation Custom */
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 440px) {
     .myicon {
         width : 12px;
         height : 12px;
@@ -88,4 +88,11 @@
     }
   }
 
+  @media screen and (max-width: 620px) {
+
+    .navbar-brand, .list-inline-item {
+        margin-right: 0px!important;
+    }
+
+  }
 
