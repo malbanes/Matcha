@@ -10,6 +10,10 @@
     margin-top: 0.7em;
 }
 
+ul {
+    list-style-type: none;
+  }
+
 .myicon {
     width : 24px;
     height : 24px;
@@ -28,7 +32,11 @@
     /*background-image: url('/static/img/bg-home.jpeg');*/
     /* Full height */
     height: 100%; 
-  
+    <a href="{{ url_for('main.profile') }}">
+    <div class="rounded-square-mini">
+        <div class="rounded-square-picture__content nophoto" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+    </div>
+</a>
     /* Center and scale the image nicely */
     background-position: center;
     background-repeat: no-repeat;
@@ -65,6 +73,10 @@
 
 .bg-red {
     background-color: rgb(251, 236, 239);
+}
+
+.bg-blue {
+    background-color: rgb(205, 229, 250);
 }
 
 .container {

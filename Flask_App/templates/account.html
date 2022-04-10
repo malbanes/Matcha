@@ -2,6 +2,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+
 {% endblock %}
 
 {% block title %} Account {% endblock %}
@@ -31,7 +32,7 @@
           <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
             <a class="nav-link active" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
             <a class="nav-link" id="v-pills-param-tab" data-toggle="pill" href="#v-pills-param" role="tab" aria-controls="v-pills-param" aria-selected="false">Parameters</a>
-            <a class="nav-link" id="v-pills-param-tab" data-toggle="pill" href="#v-pills-param" role="tab" aria-controls="v-pills-param" aria-selected="false">Historique</a>
+            <a class="nav-link" id="v-pills-histo-tab" data-toggle="pill" href="#v-pills-histo" role="tab" aria-controls="v-pills-histo" aria-selected="false">Historique</a>
 
             <a class="nav-link" id="v-pills-del-tab" data-toggle="pill" href="#v-pills-del" role="tab" aria-controls="v-pills-del" aria-selected="false">Delete account</a>
             <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
@@ -161,13 +162,109 @@
             </div> <!--End Account Section-->
             <!--Parameters Section-->
             <div class="tab-pane fade" id="v-pills-param" role="tabpanel" aria-labelledby="v-pills-param-tab">...</div>
+            <!--Historique Section-->
+            <div class="tab-pane fade" id="v-pills-histo" role="tabpanel" aria-labelledby="v-pills-histo-tab">
+              <div class="reflist">
+                <!-- Reflist Title -->
+                <ul class="nav nav-tabs" style="flex-wrap: nowrap;" id="refTab" role="tablist">
+                  <li class="nav-item">
+                    <a class="nav-link link dark active" id="like-tab" data-toggle="tab" href="#like" role="tab" aria-controls="like" aria-selected="true">Like</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link link dark" id="visit-tab" data-toggle="tab" href="#visit" role="tab" aria-controls="visit" aria-selected="false">Visite</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link link dark" id="blocked-tab" data-toggle="tab" href="#blocked" role="tab" aria-controls="blocked" aria-selected="false">Blocked</a>
+                  </li>
+                </ul>
+                <div class="tab-content" id="refTabContent">
+                <!--Like Sub-Section-->
+                <div class="tab-pane fade show active" id="like" role="tabpanel" aria-labelledby="like-tab">
+                  <div class="h4 text-deepblue mt-3 ml-3">
+                    <strong>Person who like you </strong>
+                  </div>
+                  <div class="">
+                    {% for i in range(1,5) %}
+                    <div class="d-inline-flex">
+                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
+                        <a href="{{ url_for('main.profile')}}">
+                          <div class="card-img-top">
+                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match1" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                          </div>
+                        </a>
+                        <div class="card-body center">
+                          <h4 class="card-title mb-0">Elise</h5>
+                            <small><p class="card-text text-muted mb-2">24 ans . Paris</p></small>
+                            <a href="#" class="mt-2">Like back</a>
+                        </div>
+                      </div>
+                    </div>
+                      
+                    {% endfor %}
+                  </div>
+                </div>   
+                <!--Visit Sub-Section-->
+                <div class="tab-pane fade show" id="visit" role="tabpanel" aria-labelledby="visit-tab">
+                  <div class="h4 text-deepblue mt-3 ml-3">
+                    <strong>Person who visit your profil</strong>
+                  </div>
+                  <div class="">
+                    {% for i in range(1,9) %}
+                    <div class="d-inline-flex">
+                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
+                        <a href="{{ url_for('main.profile')}}">
+                          <div class="card-img-top">
+                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match2" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                          </div>
+                        </a>
+                        <div class="card-body center">
+                          <h4 class="card-title mb-0">Elise</h5>
+                            <small><p class="card-text text-muted mb-2">24 ans . Paris</p></small>
+                            <a href="#" class="mt-2">Like</a>
+                        </div>
+                      </div>
+                    </div>
+                      
+                    {% endfor %}
+                  </div>
+                </div>
+                <!--Blocked Sub-Section-->
+                <div class="tab-pane fade show" id="blocked" role="tabpanel" aria-labelledby="blocked-tab">
+                  <div class="h4 text-deepblue mt-3 ml-3">
+                    <strong>Person you blocked</strong>
+                  </div>
+                  <div class="">
+                    {% for i in range(1,2) %}
+                    <div class="d-inline-flex">
+                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
+                        <a href="{{ url_for('main.profile')}}">
+                          <div class="card-img-top">
+                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match3" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                          </div>
+                        </a>
+                        <div class="card-body center">
+                          <h4 class="card-title mb-0">Elise</h5>
+                          <small><p class="card-text text-muted mb-2">24 ans . Paris</p></small>
+                          <a href="#" class="mt-2">Unblock</a>
+                        </div>
+                      </div>
+                    </div>
+                      
+                    {% endfor %}
+                  </div>
+                </div>
+                      
+                </div>
+              </div>  
+            
+            </div>
             <!--Delete account Section-->
             <div class="tab-pane fade" id="v-pills-del" role="tabpanel" aria-labelledby="v-pills-del-tab">
               <div class="container">
                 <div class="h2 text-deepblue">
                     <strong>Delete my account</strong>
                 </div>
-                <p class="small">Pour vous désinscrire de Meetic, veuillez confirmer votre identité :</p>
+                <p class="small">Pour vous désinscrire de Matcha, veuillez confirmer votre identité :</p>
               </div>
               <!--Form > email/mdp > Valider -->
               <!--Forgot password link -->
@@ -260,7 +357,7 @@
           <div class="form-group">
             <input class="form-control" type="text" name="oldpassword" placeholder="Old password" autofocus="">
             <div class="text-right">
-              <a href="#" class="link-primary">Forgot password ?</a>
+              <a href="{{ url_for('auth.reset_page')}}" class="link-primary">Forgot password ?</a>
             </div>
           </div>
 

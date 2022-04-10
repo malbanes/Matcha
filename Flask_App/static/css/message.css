@@ -1,0 +1,22 @@
+.rounded-square-mini {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+}
+
+.rounded-square-picture__content {
+    position: absolute;
+    left: 0;
+    border-radius: 28%;
+    background-color: #eef0f5;
+    background-position: center;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+  }
+
+  .message-container {
+    border-radius: calc(.7rem - 1px);
+    padding:0.3rem;
+  }
