@@ -15,13 +15,13 @@ cur.execute('DROP TABLE IF EXISTS users;')
 cur.execute('CREATE TABLE users (id serial PRIMARY KEY,'
                                  'username varchar (255) NOT NULL,'
                                  'password varchar (255) NOT NULL,'
-                                 'date_added date DEFAULT CURRENT_TIMESTAMP),'
+                                 'date_added date DEFAULT CURRENT_TIMESTAMP,'
                                  'first_name varchar (255),'
                                  'last_name varchar (255),'
-                                 'email varchar (255) NOT NULL;'
-                                 'confirmed boolean DEFAULT false NOT NULL;'
+                                 'email varchar (255) NOT NULL,'
+                                 'confirmed boolean DEFAULT false NOT NULL);'
                                  )
-cur.execute('DROP TABLE IF EXISTS books;')
+cur.execute('DROP TABLE IF EXISTS images;')
 cur.execute('CREATE TABLE images (id serial PRIMARY KEY,'
                                  'title varchar (255) NOT NULL,'
                                  'path varchar (255) NOT NULL,'
