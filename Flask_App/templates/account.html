@@ -61,6 +61,13 @@
                       <!--right side-->
                       <!--Edit Form-->
                       <div class="col-sm">
+                          {% with messages = get_flashed_messages() %}
+                          {% if messages %}
+                              <div class="notification is-danger">
+                                  {{ messages[0] }}
+                              </div>
+                          {% endif %}
+                          {% endwith %}
                         <!--Edit Username-->
                         <div class="row justify-content-between mb-3">
                           <div class="col">

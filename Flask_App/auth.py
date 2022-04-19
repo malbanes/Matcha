@@ -108,7 +108,6 @@ def signup():
             new_user = cur.fetchone()
             cur.close()
             conn.close()
-
             token = generate_confirmation_token(email)
             confirm_url = url_for('auth.confirm_email', token=token, _external=True)
             html = render_template('activate.html', confirm_url=confirm_url)

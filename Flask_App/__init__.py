@@ -26,7 +26,7 @@ def create_app():
 
     # gmail authentication
     app.config['MAIL_USERNAME'] = "noreply42project@gmail.com"
-    app.config['MAIL_PASSWORD'] = "hA$8eNztAnjDD&69"
+    app.config['MAIL_PASSWORD'] = ""
 
     # it is used #by Flask and extensions to keep data safe
     ###app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite' 

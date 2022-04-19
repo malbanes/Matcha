@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "02d6b26459b1f80600fda29ee15b235ce9bdfd85ab732f664e83b8851f61d3ae"
+            "sha256": "a23efdad0c9a7435e94b8582d733412ed475e74b0f0eb7b8453ac164a05f7fbb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -99,6 +99,21 @@
             ],
             "index": "pypi",
             "version": "==2.5.1"
+        },
+        "geographiclib": {
+            "hashes": [
+                "sha256:8f441c527b0b8a26cd96c965565ff0513d1e4d9952b704bf449409e5015c77b7",
+                "sha256:ac400d672b8954b0306bca890b088bb8ba2a757dc8133cca0b878f34b33b2740"
+            ],
+            "version": "==1.52"
+        },
+        "geopy": {
+            "hashes": [
+                "sha256:58b7edf526b8c32e33126570b5f4fcdfaa29d4416506064777ae8d84cd103fdd",
+                "sha256:8f1f949082b964385de61fcc3a667a6a9a6e242beb1ae8972449f164b2ba0e89"
+            ],
+            "index": "pypi",
+            "version": "==2.2.0"
         },
         "greenlet": {
             "hashes": [

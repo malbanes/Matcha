@@ -12,6 +12,8 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
 from age_calc import age
+from localization import localize_text
+from datetime import date
 
 # home page that return 'index'
 main = Blueprint('main', __name__)
@@ -58,32 +60,63 @@ def editprofile():
 @login_required
 @check_confirmed
 def account():
-    if request.method=='GET': 
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
-        profil = cur.fetchone()
-        cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
-        localisation = cur.fetchone()[0]
-        username = current_user.username
-        email = current_user.email
-        firstname = current_user.firstname
-        lastname = current_user.lastname
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    profil = cur.fetchone()
+    cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
+    localisation = cur.fetchone()[0]
+    username = current_user.username
+    email = current_user.email
+    firstname = current_user.firstname
+    lastname = current_user.lastname
+    if request.method=='GET':
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation)
     else:
-        print("post")
-        #email = request.form.get('email')
-        #firstname = request.form.get('first_name')
-        #lastname = request.form.get('last_name')
-        #username = request.form.get('username')
-        #password = request.form.get('password')
-        ## if this returns a user, then the email already exists in database
-        ##user = User.query.filter_by(email=email).first()
-        #conn = get_db_connection()
-        #cur = conn.cursor()
-        #cur.execute("SELECT email FROM users WHERE email='{0}' OR username = '{1}';".format(email, username))
-        #user = cur.fetchall()
-
+        if 'username' in request.form:
+            print("post")
+            firstname1 = request.form.get('first_name')
+            lastname1 = request.form.get('last_name')
+            username1 = request.form.get('username')
+            localisation1 = request.form.get('location')
+            cur.execute("SELECT * FROM users WHERE username='{0}';".format(username1))
+            username_check = cur.fetchall()
+            print(username_check)
+            if username1 != "" and username_check != []:
+                flash('User Name address already exists')
+            elif username1 != "":
+                cur.execute("UPDATE users SET username = '{0}' WHERE id='{1}';".format(username1,current_user.id))
+                conn.commit()
+                username = username1
+            if firstname1 != "":
+                cur.execute("UPDATE users SET first_name = '{0}' WHERE id='{1}';".format(firstname1,current_user.id))
+                conn.commit()
+                firstname = firstname1           
+            if lastname1 != "":
+                cur.execute("UPDATE users SET last_name = '{0}' WHERE id='{1}';".format(lastname1,current_user.id))
+                conn.commit()
+                lastname = lastname1           
+            if localisation1 != "":
+                lat, lont, display_loc = localize_text(str(localisation1))
+                today = date.today()
+                print(lat)
+                print(lont)
+                print(display_loc)
+                if  display_loc != "ERROR - WRONG LOCALISATION":
+                    cur.execute("UPDATE location SET latitude = '{0}', longitude = '{1}', date_modif = '{2}', city = '{3}' WHERE id='{4}';".format(lat,lont,today,display_loc,profil[4]))
+                    conn.commit()
+                    localisation = display_loc
+                else:
+                    flash('New location not found')
+        elif 'oldpassword' in request.form:
+            print("password")
+        elif 'email' in request.form:
+            print("email")
+        else: 
+            print("No modal implemented")
+        cur.close()
+        conn.close()
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation)
 
 # match page that return 'match'
 @main.route('/match') 
