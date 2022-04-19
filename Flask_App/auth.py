@@ -12,7 +12,9 @@ from models import User
 from token_gen import generate_confirmation_token, confirm_token, generate_email_token, confirm_email_token
 from email_mngr import send_email
 from password_checker import password_check
+from localization import localize_user
 import re
+from datetime import date
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -88,8 +90,18 @@ def signup():
             flash('password not enough complex:\n' + error_to_return)
             return redirect(url_for('auth.signup'))
         else:
+            localisation, latitude, longitude = localize_user()
+            today = date.today()
+            cur.execute("INSERT INTO location (latitude, longitude, date_modif, city) VALUES ('{0}', '{1}', '{2}', '{3}') RETURNING id;".format(latitude, longitude, today, localisation))
+            loc_id = cur.fetchone()[0]
+            conn.commit()
+            print(loc_id)
             # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-            cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES ('{0}', '{1}', '{2}', '{3}', crypt('{4}', gen_salt('bf')), false);".format(email, first_name, last_name,username,password))
+            cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES ('{0}', '{1}', '{2}', '{3}', crypt('{4}', gen_salt('bf')), false) RETURNING id;".format(email, first_name, last_name,username,password))
+            user_id = cur.fetchone()[0]
+            print(user_id)
+            conn.commit()
+            cur.execute("INSERT INTO profil (user_id, location_id, last_log) VALUES ('{0}', '{1}', '{2}');".format(user_id, loc_id, today))
             conn.commit()
             # add the new user to the database
             new_user = cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))

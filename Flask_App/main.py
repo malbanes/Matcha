@@ -11,6 +11,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 
 from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
+from age_calc import age
 
 # home page that return 'index'
 main = Blueprint('main', __name__)
@@ -23,8 +24,29 @@ def index():
 @login_required
 @check_confirmed
 def profile():
-    print(current_user)
-    return render_template('profile.html', name=current_user.name)
+    print(current_user.name)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    profil = cur.fetchone()
+    print(profil)
+    age_num = str(age(profil[5]))
+    description = profil[6]
+    score = ""
+    image_profil = ""
+    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+    interest = cur.fetchall()
+    print(interest)
+    interest_list = []
+    for id in interest:
+        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
+        interest_list.append(cur.fetchone()[0].rstrip())
+        print(interest_list)
+    cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
+    localisation = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    return render_template('profile.html', name=current_user.name, age=age_num, desc=description, interest_list=interest_list, localisation=localisation)
 
 # edit profile page that return 'edit-profile'
 @main.route('/edit-profile') 
@@ -32,9 +54,36 @@ def editprofile():
     return render_template('edit-profile.html')
 
 # account profile page that return 'account'
-@main.route('/account') 
+@main.route('/account', methods=['GET', 'POST'])
+@login_required
+@check_confirmed
 def account():
-    return render_template('account.html')
+    if request.method=='GET': 
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+        profil = cur.fetchone()
+        cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
+        localisation = cur.fetchone()[0]
+        username = current_user.username
+        email = current_user.email
+        firstname = current_user.firstname
+        lastname = current_user.lastname
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation)
+    else:
+        print("post")
+        #email = request.form.get('email')
+        #firstname = request.form.get('first_name')
+        #lastname = request.form.get('last_name')
+        #username = request.form.get('username')
+        #password = request.form.get('password')
+        ## if this returns a user, then the email already exists in database
+        ##user = User.query.filter_by(email=email).first()
+        #conn = get_db_connection()
+        #cur = conn.cursor()
+        #cur.execute("SELECT email FROM users WHERE email='{0}' OR username = '{1}';".format(email, username))
+        #user = cur.fetchall()
+
 
 # match page that return 'match'
 @main.route('/match') 
@@ -91,5 +140,5 @@ def test_broadcast_message(message):
 mail = Mail(app)     
 if __name__ == '__main__':
     ##db.create_all(app=create_app())
-    #app.run(debug=True)
+    app.run(debug=True)
     socketio.run(app)

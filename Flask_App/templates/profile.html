@@ -27,29 +27,19 @@
         <div class="col-sm">
             <div>
                 <h1 class="title" style="font-size: 2.75rem; line-height: 1;">{{name}}</h1>
-                <span class="profil_info"> 29 ans, Paris 17e Arrondissement </span>
+                <span class="profil_info"> {{age}} ans, {{localisation}} </span>
             </div>
             <!--Hashtag list-->
         </br>
         <ul class="list-inline">
-            <li class="list-inline-item dealbreaker">#Animaux</li>
-            <li class="list-inline-item dealbreaker">#Music</li>
-            <li class="list-inline-item dealbreaker">#Sport</li>
-            <li class="list-inline-item dealbreaker">#Voyage</li>
-            <li class="list-inline-item dealbreaker">#Grandetekezef</li>
-            <li class="list-inline-item dealbreaker">#foot</li>
-            <li class="list-inline-item dealbreaker">#zEFzefzEFzef</li>
-            <li class="list-inline-item dealbreaker">#zeFz</li>
-            <li class="list-inline-item dealbreaker">#zFEzefz FzefzefzefzeqzemifuqmzeiufmqzieubfmqziebfmqizbefmiqzjebfmqizjefbqmizefbqmzbfFzefzEFzf</li>
+          {% for i in interest_list %}
+            <li class="list-inline-item dealbreaker">#{{i}}</li>
+          {% endfor %}
         </ul>
 
             <!--text presentation-->
             <div>
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-          
+              {{desc}}
             </div>
         </br>
             <!--Ref list-->
