@@ -5,7 +5,13 @@
 {% block content %}
 
 <div class="container-fluid no-padding">
-
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="notification is-danger">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+{% endwith %}
 <!-- Background image -->
 <div class="bg-image" style="background-image: url({{url_for('static', filename='img/bg-home.jpeg')}});height: 60vh;">
     <div class="row h-75 justify-content-md-center align-items-center">

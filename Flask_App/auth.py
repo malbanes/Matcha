@@ -37,11 +37,11 @@ def login():
         
         # check if the user actually exists + take the user-supplied password, hash it, and compare it to the hashed password in the database
         if not user:
-            flash('Please sign up before!')
-            return redirect(url_for('auth.signup'))
+            flash('Please check your login details and try again, or sign up')
+            return redirect(url_for('auth.login')) 
         # if the user doesn't exist or password is wrong, reload the page
         elif not bcrypt.verify(password,user[2]):
-            flash('Please check your login details and try again.')
+            flash('Please check your login details and try again, or sign up')
             return redirect(url_for('auth.login')) 
         # if the above check passes, then we know the user has the right credentials
         login_user(User(user), remember=remember)
@@ -132,12 +132,15 @@ def confirm_email(token):
     cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
     user = cur.fetchone()
     print(user)
-    if user[7] == True:
-        flash('Account already confirmed. Please login.', 'success')
-    else:
-        cur.execute("UPDATE users SET confirmed = true WHERE email='{0}';".format(email))
-        conn.commit()
-        flash('You have confirmed your account. Thanks!', 'success')
+    try:
+        if user[7] == True:
+            flash('Account already confirmed. Please login.', 'success')
+        else:
+            cur.execute("UPDATE users SET confirmed = true WHERE email='{0}';".format(email))
+            conn.commit()
+            flash('You have confirmed your account. Thanks!', 'success')
+    except:
+        flash('The confirmation link is invalid or has expired.', 'danger')
     cur.close()
     conn.close()
     return redirect(url_for('main.index'))
@@ -147,9 +150,10 @@ def confirm_email(token):
 @login_required
 def unconfirmed():
     if current_user.confirmed:
-        return redirect('main.index')
-    flash('Please confirm your account!', 'warning')
-    return render_template('unconfirmed.html')
+        return redirect(url_for('main.index'))
+    else:
+        flash('Please confirm your account!', 'warning')
+        return render_template('unconfirmed.html')
 
 # resend email page that return 'resend'
 

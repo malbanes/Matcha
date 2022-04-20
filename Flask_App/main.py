@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, flash
+from flask import Blueprint, render_template, flash, url_for, redirect
 from flask_login import login_required, current_user
 
 from flask_mail import Mail
@@ -7,13 +7,17 @@ from flask import Flask, session, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
       close_room, rooms, disconnect                                  
 
-
-
 from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
 from age_calc import age
 from localization import localize_text
 from datetime import date
+from token_gen import generate_confirmation_token, confirm_token, generate_email_token, confirm_email_token
+from email_mngr import send_email
+
+from passlib.hash import md5_crypt
+from passlib.hash import bcrypt
+from password_checker import password_check
 
 # home page that return 'index'
 main = Blueprint('main', __name__)
@@ -58,7 +62,6 @@ def editprofile():
 # account profile page that return 'account'
 @main.route('/account', methods=['GET', 'POST'])
 @login_required
-@check_confirmed
 def account():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -71,9 +74,15 @@ def account():
     firstname = current_user.firstname
     lastname = current_user.lastname
     if request.method=='GET':
+        if current_user.confirmed is False:
+            flash('Please confirm your account!', 'warning')
+            return redirect(url_for('main.index'))
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation)
     else:
         if 'username' in request.form:
+            if current_user.confirmed is False:
+                flash('Please confirm your account!', 'warning')
+                return redirect(url_for('main.index'))
             print("post")
             firstname1 = request.form.get('first_name')
             lastname1 = request.form.get('last_name')
@@ -110,8 +119,56 @@ def account():
                     flash('New location not found')
         elif 'oldpassword' in request.form:
             print("password")
+            if current_user.confirmed is False:
+                flash('Please confirm your account!', 'warning')
+                return redirect(url_for('main.index'))
+            else:
+                oldpassword = request.form.get('oldpassword')
+                password1 = request.form.get('password1')
+                password2 = request.form.get('password2')
+                cur.execute("SELECT * FROM users WHERE id='{0}' LIMIT 1;".format(current_user.id))
+                user = cur.fetchone()
+                pass_complexity = password_check(password1)
+                if password1 != password2:
+                    flash('new passwords don\'t match, try again', 'warning')
+                elif not bcrypt.verify(oldpassword,user[2]):
+                    flash('Please check your login details and try again.','warning')
+                elif pass_complexity['password_ok'] == False:
+                    error_to_return = ""
+                    if pass_complexity['length_error'] == True:
+                        error_to_return = error_to_return + "\nPassword must contain at least 8 characters. "
+                    if pass_complexity['digit_error'] == True:
+                        error_to_return = error_to_return + "\nPassword must contain at least 1 digit. "
+                    if pass_complexity['uppercase_error'] == True:
+                        error_to_return = error_to_return + "\nPassword must contain at least 1 uppercase character. "
+                    if pass_complexity['lowercase_error'] == True:
+                        error_to_return = error_to_return + "\nPassword must contain at least 1 lowercase character. "
+                    if pass_complexity['symbol_error'] == True:
+                        error_to_return = error_to_return + "\nPassword must contain at least 1 special character. "
+                    flash('password not enough complex:\n' + error_to_return, 'warning')
+                else:
+                    cur.execute("UPDATE users SET password = crypt('{0}', gen_salt('bf')) WHERE id='{1}';".format(password1, current_user.id))
+                    conn.commit()
+                    flash('password updated', 'success')
         elif 'email' in request.form:
             print("email")
+            email1 = request.form.get('email')
+            cur.execute("SELECT * FROM users WHERE email='{0}';".format(email1))
+            email_check = cur.fetchall()
+            print(email_check)
+            email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            if email1 != "" and email_check == [] and re.fullmatch(email_regex, email):
+                cur.execute("UPDATE users SET email = '{0}', confirmed = false WHERE id='{1}';".format(email1,current_user.id))
+                conn.commit()
+                token = generate_confirmation_token(email1)
+                confirm_url = url_for('auth.confirm_email', token=token, _external=True)
+                html = render_template('activate.html', confirm_url=confirm_url)
+                subject = "Please confirm your email"
+                send_email(email1, subject, html)
+                flash('A confirmation email has been sent via email.', 'success')
+                email = email1
+            else:
+                flash('Email structure not valid or email address already exists')
         else: 
             print("No modal implemented")
         cur.close()
