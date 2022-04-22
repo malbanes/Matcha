@@ -25,6 +25,78 @@ def profile():
 def editprofile():
     return render_template('edit-profile.html')
 
+
+@main.route('/uploadajax', methods = ['POST'])
+def upldfile():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('There is no file')
+            return ("KO")
+        file1 = request.files['file']
+        if file1 :
+            path = os.path.join('./static/public', file1.filename)
+            file1.save(path)
+            print(path)
+            return ("OK")
+        else:
+            return ("KO")
+
+@main.route('/updatebio', methods = ['POST'])
+def updbio():
+    if request.method == 'POST':
+        if 'newBio' not in request.form:
+            flash('There is no bio')
+            return ("KO")
+        bio = request.form['newBio']
+        if bio :
+            return (bio)
+        else:
+            return ("KO")
+
+@main.route('/updateprimary', methods = ['POST'])
+def updprim():
+    if request.method == 'POST':
+        if 'newGender' not in request.form:
+            flash('There is no gender')
+            return ("KO")
+        gender = request.form['newGender']
+        orient = request.form['newOrient']
+
+        if (gender) :
+            return {
+            'gender': gender,
+            'orient': orient
+        }
+        if (orient) :
+            return {
+            'gender': gender,
+            'orient': orient
+        }
+        else:
+            return ("KO")
+
+@main.route('/newhashtag', methods = ['POST'])
+def addhash():
+    if request.method == 'POST':
+        if 'hashtag' not in request.form:
+            flash('There is no tag')
+            return ("KO")
+        else:
+            tag = request.form['hashtag']
+            return (tag)
+
+@main.route('/updatehashtag', methods = ['POST'])
+def updhash():
+    if request.method == 'POST':
+        cknames = request.form.getlist("check")
+        if (cknames):
+            for ckname in cknames:
+                print (ckname)
+            if (ckname) :
+                return (ckname)
+        else:
+            return ("KO")
+
 # account profile page that return 'account'
 @main.route('/account') 
 def account():
