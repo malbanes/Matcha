@@ -29,18 +29,11 @@
         </div>
         <div class="col">
             <div class="row">
+            {% for i in images_urls %}
                 <div class="rounded-square-picture mysmall">
-                    <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                    <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{i}})"></div>
                 </div>
-                <div class="rounded-square-picture mysmall">
-                    <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture-empty" data-toggle="modal" data-target="#photoModal"></div>
-                </div>
-                <div class="rounded-square-picture mysmall">
-                    <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture-empty" data-toggle="modal" data-target="#photoModal"></div>
-                </div>
-                <div class="rounded-square-picture mysmall">
-                    <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture-empty" data-toggle="modal" data-target="#photoModal"></div>
-                </div>
+            {% endfor %}
             </div>
         </div>
     </row>
@@ -62,21 +55,23 @@
           </svg>
         Ma description
     </div>
-    <form>
-        <div class="form-group w-75">
-            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-          </div>
-    <div class="row">
+    <div id="bio-error" class="invalid-feedback" style="display:none;">
+        Une erreur est survenue
+    </div>
+    <div class="row justify-content-between">
         <div class="col">
-            <div class="counter">8/100</div>
+                <div class="reflist-content">
+                    <div class="reflist-field" id="bio"></div>
+                </div>
         </div>
-        <div class="col">
-            <button type="submit" class="btn btn-secondary mb-2">annuler</button>
-            <button type="submit" class="btn btn-primary mb-2">Confirm</button>
+        <div class="col align-self-center" style="display:flex;">
+            <div class="edit-icon" data-toggle="modal" data-target="#editBioModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                    <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                </svg>
+            </div>
         </div>
     </div>
-    </form>
-
 
     <!--Section Je suis-->
     <div class="h2 text-deepblue mt-5">
@@ -90,35 +85,34 @@
     <div class="subtitle text-deepblue">
         Mes interets
     </div>
-    <ul class="list-inline">
+    <div id="interest-error" class="invalid-feedback" style="display:none;">
+        Une erreur est survenue
+    </div>
+    <ul class="list-inline" id="hashtagList">
         <li class="list-inline-item dealbreaker">#Animaux</li>
-        <li class="list-inline-item dealbreaker">#Music</li>
-        <li class="list-inline-item dealbreaker">#Sport</li>
-        <li class="list-inline-item dealbreaker">#Voyage</li>
-        <li class="list-inline-item dealbreaker">#Grandetekezef</li>
-        <li class="list-inline-item dealbreaker">#foot</li>
-        <li class="list-inline-item dealbreaker">#zEFzefzEFzef</li>
-        <li class="list-inline-item dealbreaker">#zeFz</li>
-        <li class="list-inline-item dealbreaker">#zFE Fzf</li>
+
     </ul>
-        <button type="submit" class="dealbreaker btn btn-primary mb-2">
+        <button type="submit" class="dealbreaker btn btn-primary mb-2" data-toggle="modal" data-target="#editHashtagModal">
             <strong>" + "</strong>
         </button>
     <div class="subtitle text-deepblue mb-0 mt-4">
         Informations principales
     </div>
     <small class="form-text text-muted mb-2"> Champs obligatoire pour que nous trouvons des personnes qui vous correspondent.</small>
+    <div id="primary-error" class="invalid-feedback" style="display:none;">
+        Une erreur est survenue
+    </div>
     <div class="row justify-content-between">
         <div class="col">
             <div class="reflist-list__item">
                 <div class="reflist-content">
                     <div class="reflist-field">Mon Genre</div>
-                    <div class="reflist-value">Femme</div>
+                    <div class="reflist-value" id="my-gender">Femme</div>
                 </div>
             </div> 
         </div>
         <div class="col align-self-center" style="display:flex;">
-            <div class="edit-icon">
+            <div class="edit-icon" data-toggle="modal" data-target="#editPrimaryModal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
                     <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
                   </svg>
@@ -130,55 +124,12 @@
             <div class="reflist-list__item">
                 <div class="reflist-content">
                     <div class="reflist-field">Mon orientation sexuelle</div>
-                    <div class="reflist-value">Homosexuel</div>
+                    <div class="reflist-value" id="my-orient">Homosexuel</div>
                 </div>
             </div> 
         </div>
         <div class="col align-self-center" style="display:flex;">
-            <div class="edit-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
-                    <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
-                  </svg>
-            </div>
-        </div>
-    </div>
-
-    <!--Section Je cherche-->
-    <div class="h2 text-deepblue mt-5">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-card-list section-icon" viewBox="0 0 16 16">
-            <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
-            <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
-          </svg>
-        Je cherche
-    </div>
-    <div class="row justify-content-between">
-        <div class="col">
-            <div class="reflist-list__item">
-                <div class="reflist-content">
-                    <div class="reflist-field">Son Genre</div>
-                    <div class="reflist-value">Femme</div>
-                </div>
-            </div> 
-        </div>
-        <div class="col align-self-center" style="display:flex;">
-            <div class="edit-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
-                    <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
-                  </svg>
-            </div>
-        </div>
-    </div>
-    <div class="row justify-content-between">
-        <div class="col">
-            <div class="reflist-list__item">
-                <div class="reflist-content">
-                    <div class="reflist-field">Son orientation sexuelle</div>
-                    <div class="reflist-value">Homosexuel</div>
-                </div>
-            </div> 
-        </div>
-        <div class="col align-self-center" style="display:flex;">
-            <div class="edit-icon">
+            <div class="edit-icon" data-toggle="modal" data-target="#editPrimaryModal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
                     <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
                   </svg>
@@ -248,14 +199,18 @@
   <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
+        <form method="post" id="upload-file" enctype="multipart/form-data">
         <div class="modal-body center">
             <span class="text-small">Ajoutez une photo pour attirer l'attention des membres.</span>
                 <!-- Modal image-->
+                <div id="upload-error" class="invalid-feedback" style="display:none;">
+                    Une erreur est survenue
+                </div>
             <div class="row">
                 <div class="col mx-auto">
                 <!-- Upload image input-->
                     <div class="input-group mb-3 px-2 py-2 rounded-pill bg-white shadow-sm">
-                        <input id="upload" type="file" accept="image/*" onchange="readURL(this);" class="form-control border-0">
+                        <input id="upload" name="file" type="file" accept="image/*" onchange="readURL(this);" class="form-control border-0">
                         <label id="upload-label" for="upload" class="font-weight-light text-muted">...</label>
                         <div class="input-group-append">
                             <label for="upload" class="btn btn-light m-0 rounded-pill px-4"> <i class="fa fa-cloud-upload mr-2 text-muted"></i><small class="text-uppercase font-weight-bold text-muted">Choose file</small></label>
@@ -269,8 +224,134 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">retour</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button id="upload-file-btn" type="button" class="btn btn-primary">Save changes</button>
         </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Biographie Modal -->
+<div class="modal fade" id="editBioModal" tabindex="-1" role="dialog" aria-labelledby="editBioModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editBioModalLabel">Biographie</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="bio-form" method="POST">
+            <div class="form-group">
+                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100"></textarea>
+                <div class="row">
+                    <div class="col">
+                        <div class="counter" id="counter"></div>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-secondary mb-2 mt-2" data-dismiss="modal">annuler</button>
+                        <button id="bio-btn" type="button" class="btn btn-primary mb-2 mt-2" data-dismiss="modal" >Confirm</button>
+                    </div>
+                </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- Edit Hashtag Modal -->
+<div class="modal fade" id="editHashtagModal" tabindex="-1" role="dialog" aria-labelledby="editHashtagModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editHashtagModalLabel">My Interests</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" id="interest-form">
+              <div class="form-group">
+                <div class="input-group mb-3">
+                    <input type="text" class="live-search-box form-control" placeholder="search here" />
+                </div>
+                    <ul class="live-search-list list-inline" type="None">
+                        <li class="list-inline-item">
+                            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+                                <input type="checkbox" class="custom-control-input" id="hashtag1" name="check" value="hashtag1">
+                                <label class="custom-control-label" for="hashtag1">Music</label>
+                            </div>
+                        </li>
+                        <li class="list-inline-item" style="display: none;">
+                            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+                                <input type="checkbox" class="custom-control-input" id="hashtag2" name="check" value="hashtag2">
+                                <label class="custom-control-label" for="hashtag2">Voyage</label>
+                            </div>
+                        </li>
+
+                    </ul>
+                  
+              </div>
+              <div class="center">
+                <button type="submit" class="btn btn-primary center" id="interest-btn" data-dismiss="modal">Save change</button>
+              </div>
+            </form>
+            <form method="POST" id="new-hashtag-form">
+            <div id="add-interest-error" class="invalid-feedback" style="display:none;">
+                Tag already exist
+            </div>
+            <div class="form-group">
+                <div class="form-text mt-2">Can't find what you're looking for ? </br> Add a new hashtag here :</div>
+                <input class="form-control" type="text" name="hashtag" placeholder="New hashtag" autofocus="">
+            </div>
+            <button type="submit" class="btn btn-primary" id="new-hashtag-btn">Save change</button>
+            </form>
+    
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Edit my gender Modal -->
+<div class="modal fade" id="editPrimaryModal" tabindex="-1" role="dialog" aria-labelledby="editPrimaryModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editPrimaryModalLabel">Primary info</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" id="primary-form">
+              <div class="form-group">
+                <bold class="form-text text-muted">Your gender :</bold>
+                <select class="form-select form-select-sm mb-3" name="newGender" aria-label="gender select">
+                    <option value="1">Male</option>
+                    <option value="2">Female</option>
+                    <option selected value="3">None</option>
+                    <option value="4">Male Trans</option>
+                    <option value="5">Female Trans</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <bold class="form-text text-muted">Your sexual orientation :</bold>
+                <select class="form-select form-select-sm" name="newOrient" aria-label="orientation select">
+                    <option value="1">Hetero</option>
+                    <option value="2">Homo</option>
+                    <option selected value="3">Bi</option>
+                </select>
+              </div>
+              <div class="center">
+                <button type="submit" class="btn btn-primary center" id="primary-btn" data-dismiss="modal">Save change</button>
+              </div>
+            </form>
+    
+          </div>
       </div>
     </div>
   </div>
@@ -279,6 +360,7 @@
 
 {% block script %}
 <script>
+    //Image Ajax Gesture
     function readURL(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -301,12 +383,188 @@
     
     input.addEventListener( 'change', showFileName );
     function showFileName( event ) {
+      document.getElementById("upload-error").style.display = "none";
       var input = event.srcElement;
       var fileName = input.files[0].name;
       infoArea.textContent = fileName;
     }
-            </script>
+
+    $(function() {
+    $('#upload-file-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#upload-file')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/uploadajax',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'OK') {
+                    document.getElementById("upload-error").style.display = "none";
+                    $('#photoModal').modal('hide');
+                }
+                else {
+                    document.getElementById("upload-error").style.display = "block";
+                }
+            },
+        });
+    });
+});
+
+//Bio Ajax Gesture
+    $(function() {
+    $('#bio-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#bio-form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/updatebio',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'KO') {
+                    document.getElementById("bio-error").style.display = "block";
+                }
+                else {
+                    document.getElementById("bio-error").style.display = "none";
+                    document.getElementById("bio").innerHTML = data;
+                }
+            },
+        });
+    });
+});
+
+    function charCounter(input) {
+        txt = input.value;
+        if (txt == '') {
+            document.getElementById("counter").innerHTML = "0/100";
+        }
+        else {
+            var size = txt.length;
+            document.getElementById("counter").innerHTML = size + "/100";
+        }
+    }
+
+    $(function () {
+        $("#exampleFormControlTextarea1").on("keyup", function() {
+            charCounter(document.getElementById("exampleFormControlTextarea1"));
+        });
+    });
+
+    // Hashtags Gesture
+    $(function() {
+    $('#interest-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#interest-form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/updatehashtag',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'KO') {
+                    document.getElementById("interest-error").style.display = "block";
+                }
+                else {
+                    document.getElementById("interest-error").style.display = "none";
+                    var li = document.createElement("li");
+                    li.innerHTML = "#" + data;
+                    li.classList.add("list-inline-item");
+                    li.classList.add("dealbreaker");
+                    document.getElementById("hashtagList").appendChild(li);
+                }
+            },
+        });
+    });
+});
+
+$(function() {
+    $('#new-hashtag-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#new-hashtag-form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/newhashtag',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'KO') {
+                    document.getElementById("add-interest-error").style.display = "block";
+                }
+                else {
+                    document.getElementById("add-interest-error").style.display = "none";
+                    var li = document.createElement("li");
+                    li.innerHTML = "#" + data;
+                    li.classList.add("list-inline-item");
+                    li.classList.add("dealbreaker");
+                    document.getElementById("hashtagList").appendChild(li);
+                    $('#editHashtagModal').modal('hide');
+                }
+            },
+        });
+    });
+});
+
+
+
+    //Bio Primary info Gesture
+    $(function() {
+    $('#primary-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#primary-form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/updateprimary',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'KO') {
+                    document.getElementById("primary-error").style.display = "block";
+                }
+                else {
+                    document.getElementById("primary-error").style.display = "none";
+                    document.getElementById("my-gender").innerHTML = data['gender'];
+                    document.getElementById("my-orient").innerHTML = data['orient'];
+                }
+            },
+        });
+    });
+});
+
+jQuery(document).ready(function($){
+  
+$('.live-search-list li').each(function(){
+$(this).attr('data-search-term', $(this).text().toLowerCase());
+});
+  
+$('.live-search-box').on('keyup', function(){
+  
+var searchTerm = $(this).val().toLowerCase();
+  
+    $('.live-search-list li').each(function(){
+  
+        if ($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+  
+    });
+  
+});
+  
+});
+
+
+</script>
 {% endblock %}
-
-
-

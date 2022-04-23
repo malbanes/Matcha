@@ -20,6 +20,7 @@ python-socketio = "4.6.0"
 datetime = "*"
 requests = "*"
 geopy = "*"
+boto3 = "*"
 
 [dev-packages]
 

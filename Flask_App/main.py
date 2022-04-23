@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, flash, url_for, redirect
+from flask import Blueprint, render_template, flash, url_for, redirect, current_app
 from flask_login import login_required, current_user
 
 from flask_mail import Mail
@@ -18,6 +18,9 @@ from email_mngr import send_email
 from passlib.hash import md5_crypt
 from passlib.hash import bcrypt
 from password_checker import password_check
+from img_upload import upload_file_to_s3, create_presigned_url
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import  FileStorage
 
 # home page that return 'index'
 main = Blueprint('main', __name__)
@@ -57,7 +60,106 @@ def profile():
 # edit profile page that return 'edit-profile'
 @main.route('/edit-profile') 
 def editprofile():
-    return render_template('edit-profile.html')
+    image_path = []
+    images_urls = []
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    all_images = cur.fetchall()
+    print("blablabla")
+    cur.close()
+    conn.close()
+    for imgpth in all_images:
+        image_path.append(imgpth[0])
+    total_img = len(image_path)
+    while total_img != 5:
+        image_path.append("test/no-photo.png")
+        total_img += 1
+    print(image_path)
+    for  path_details in image_path:
+        images_urls.append(create_presigned_url(current_app.config["S3_BUCKET"], path_details))
+
+    return render_template('edit-profile.html', images_urls=images_urls)
+
+@main.route('/uploadajax', methods = ['POST'])
+def upldfile():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('There is no file')
+            return ("KO")
+        file1 = request.files['file']
+        if file1.filename == "":
+            return "Please select a file"
+        if file1 :
+            file1.filename = secure_filename(file1.filename)
+            path = str(current_user.email) + str(current_user.id)
+            output, file_path = upload_file_to_s3(file1, app.config["S3_BUCKET"], path)
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(file1.filename, file_path, current_user.id, date.today()))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return ("OK")
+        else:
+            return ("KO")
+
+
+@main.route('/updatebio', methods = ['POST'])
+def updbio():
+    if request.method == 'POST':
+        if 'newBio' not in request.form:
+            flash('There is no bio')
+            return ("KO")
+        bio = request.form['newBio']
+        if bio :
+            return (bio)
+        else:
+            return ("KO")
+
+@main.route('/updateprimary', methods = ['POST'])
+def updprim():
+    if request.method == 'POST':
+        if 'newGender' not in request.form:
+            flash('There is no gender')
+            return ("KO")
+        gender = request.form['newGender']
+        orient = request.form['newOrient']
+
+        if (gender) :
+            return {
+            'gender': gender,
+            'orient': orient
+        }
+        if (orient) :
+            return {
+            'gender': gender,
+            'orient': orient
+        }
+        else:
+            return ("KO")
+
+@main.route('/newhashtag', methods = ['POST'])
+def addhash():
+    if request.method == 'POST':
+        if 'hashtag' not in request.form:
+            flash('There is no tag')
+            return ("KO")
+        else:
+            tag = request.form['hashtag']
+            return (tag)
+
+@main.route('/updatehashtag', methods = ['POST'])
+def updhash():
+    if request.method == 'POST':
+        cknames = request.form.getlist("check")
+        if (cknames):
+            for ckname in cknames:
+                print (ckname)
+            if (ckname) :
+                return (ckname)
+        else:
+            return ("KO")
 
 # account profile page that return 'account'
 @main.route('/account', methods=['GET', 'POST'])
