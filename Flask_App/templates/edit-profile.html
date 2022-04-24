@@ -61,7 +61,7 @@
     <div class="row justify-content-between">
         <div class="col">
                 <div class="reflist-content">
-                    <div class="reflist-field" id="bio"></div>
+                    <div class="reflist-field" id="bio">{{ bio }}</div>
                 </div>
         </div>
         <div class="col align-self-center" style="display:flex;">
@@ -89,8 +89,9 @@
         Une erreur est survenue
     </div>
     <ul class="list-inline" id="hashtagList">
-        <li class="list-inline-item dealbreaker">#Animaux</li>
-
+        {% for i in interest %}
+        <li class="list-inline-item dealbreaker">#{{ i }}</li>
+        {% endfor %}
     </ul>
         <button type="submit" class="dealbreaker btn btn-primary mb-2" data-toggle="modal" data-target="#editHashtagModal">
             <strong>" + "</strong>
@@ -107,7 +108,7 @@
             <div class="reflist-list__item">
                 <div class="reflist-content">
                     <div class="reflist-field">Mon Genre</div>
-                    <div class="reflist-value" id="my-gender">Femme</div>
+                    <div class="reflist-value" id="my-gender">{{ genre }}</div>
                 </div>
             </div> 
         </div>
@@ -124,7 +125,7 @@
             <div class="reflist-list__item">
                 <div class="reflist-content">
                     <div class="reflist-field">Mon orientation sexuelle</div>
-                    <div class="reflist-value" id="my-orient">Homosexuel</div>
+                    <div class="reflist-value" id="my-orient">{{ orientation }}</div>
                 </div>
             </div> 
         </div>
@@ -164,6 +165,8 @@
                     </svg>
                 </div>
             </div>
+            {% for i in images_urls %}
+
                 <div id="carouselExampleIndicators{{ i }}" class="carousel slide" data-interval="false" data-ride="carousel">
                 <ol class="carousel-indicators">
                     <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
@@ -172,13 +175,7 @@
                 </ol>
                 <div class="carousel-inner">
                     <div class="carousel-item active">
-                    <img class="d-block w-100" src="{{url_for('static', filename='public/tabi-1.jpeg')}}" alt="First slide">
-                    </div>
-                  <div class="carousel-item">
-                    <img class="d-block w-100" src="{{url_for('static', filename='public/tabi-2.jpeg')}}" alt="Second slide">
-                  </div>
-                  <div class="carousel-item">
-                    <img class="d-block w-100" src="{{url_for('static', filename='public/tabi-3.jpeg')}}" alt="Third slide">
+                    <img class="d-block w-100" src={{i}} alt="Slide">
                     </div>
                 </div>
                 <a class="carousel-control-prev" href="#carouselExampleIndicators{{ i }}" role="button" data-slide="prev">
@@ -189,7 +186,8 @@
                   <span class="carousel-control-next-icon" aria-hidden="true"></span>
                   <span class="sr-only">Next</span>
                 </a>
-              </div>        
+              </div>
+            {% endfor %}
             </div> <!-- End Caroussel Modal -->
           </div>
         </div>

@@ -22,6 +22,9 @@ from img_upload import upload_file_to_s3, create_presigned_url
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
 
+GENRE = ["Undefined", "Femme", "Homme", "Non-binaire"]
+ORIENTATION = ["Undefined", "Hétérosexuel", "Homosexuel", "Bisexuel"]
+
 # home page that return 'index'
 main = Blueprint('main', __name__)
 @main.route('/') 
@@ -66,6 +69,20 @@ def editprofile():
     cur = conn.cursor()
     cur.execute("SELECT path FROM images WHERE profil_id='{0}';".format(current_user.id))
     all_images = cur.fetchall()
+    cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    i_am = cur.fetchone()
+    i_am_bio = str(i_am[0])
+    i_am_genre = GENRE[i_am[1]]
+    i_am_orientation = ORIENTATION[i_am[2]]
+    print(i_am)
+    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+    interest = cur.fetchall()
+    print(interest)
+    interest_list = []
+    for id in interest:
+        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
+        interest_list.append(cur.fetchone()[0].rstrip())
+        print(interest_list)
     print("blablabla")
     cur.close()
     conn.close()
@@ -79,7 +96,7 @@ def editprofile():
     for  path_details in image_path:
         images_urls.append(create_presigned_url(current_app.config["S3_BUCKET"], path_details))
 
-    return render_template('edit-profile.html', images_urls=images_urls)
+    return render_template('edit-profile.html', images_urls=images_urls, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation)
 
 @main.route('/uploadajax', methods = ['POST'])
 def upldfile():
