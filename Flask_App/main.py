@@ -130,6 +130,13 @@ def updbio():
             return ("KO")
         bio = request.form['newBio']
         if bio :
+            bio = bio.replace("'", "`")
+            print(bio)
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("UPDATE profil SET bio='{0}' WHERE user_id={1};".format(bio,current_user.id))
+            conn.commit()
+            cur.close()
             return (bio)
         else:
             return ("KO")
@@ -142,16 +149,21 @@ def updprim():
             return ("KO")
         gender = request.form['newGender']
         orient = request.form['newOrient']
-
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE profil SET genre_id='{0}', orientation_id={1} WHERE user_id={2};".format(gender, orient, current_user.id))
+        conn.commit()
+        cur.close()
+        conn.close()
         if (gender) :
             return {
-            'gender': gender,
-            'orient': orient
+            'gender': GENRE[gender],
+            'orient': ORIENTATION[orient]
         }
         if (orient) :
             return {
-            'gender': gender,
-            'orient': orient
+            'gender': GENRE[gender],
+            'orient': ORIENTATION[orient]
         }
         else:
             return ("KO")
