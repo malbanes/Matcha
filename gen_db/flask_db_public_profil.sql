@@ -33,4 +33,5 @@ create unique index profil_user_id_uindex
 grant delete, insert, references, select, trigger, truncate, update on profil to sammy;
 
 INSERT INTO public.profil (id, user_id, genre_id, orientation_id, location_id, age, bio, image_profil, score, is_online, last_log) VALUES (1, 3, 1, 2, 0, '2007-04-01', '"hey . hey hey"', 0, null, false, '2022-04-17');
-INSERT INTO public.profil (id, user_id, genre_id, orientation_id, location_id, age, bio, image_profil, score, is_online, last_log) VALUES (3, 27, 0, 0, 3, null, null, 0, null, false, '2022-04-19');
+INSERT INTO public.profil (id, user_id, genre_id, orientation_id, location_id, age, bio, image_profil, score, is_online, last_log) VALUES (3, 27, 1, 1, 3, null, 'c`est un nouveau test', 0, null, false, '2022-04-19');
+INSERT INTO public.profil (id, user_id, genre_id, orientation_id, location_id, age, bio, image_profil, score, is_online, last_log) VALUES (4, 28, 2, 2, 4, null, 'Je suis l`ex test', 0, null, false, '2022-04-25');

@@ -243,7 +243,7 @@ def account():
                 print(lont)
                 print(display_loc)
                 if  display_loc != "ERROR - WRONG LOCALISATION":
-                    cur.execute("UPDATE location SET latitude = '{0}', longitude = '{1}', date_modif = '{2}', city = '{3}' WHERE id='{4}';".format(lat,lont,today,display_loc,profil[4]))
+                    cur.execute("UPDATE location SET latitude = '{0}', longitude = '{1}', date_modif = '{2}', city = '{3}' WHERE id='{4}';".format(lat,lont,today,display_loc.strip(),profil[4]))
                     conn.commit()
                     localisation = display_loc
                 else:
@@ -324,7 +324,26 @@ def notification():
 # search page that return 'match'
 @main.route('/search') 
 def search():
-    return render_template('research.html')
+    final_users = []
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, first_name FROM users;")
+    profil_list = cur.fetchall()
+    for user in profil_list:
+        cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(user[0]))
+        user_details = cur.fetchone()
+        print(user_details)
+        if user_details != None:
+            user_age = str(age(user_details[1]))
+            cur.execute("SELECT city FROM location WHERE id='{0}' LIMIT 1;".format(user_details[2]))
+            user_location = cur.fetchone()[0]
+            final_users.append([user[1], user_age, user_location])
+            print(final_users)
+            print(len(final_users))
+    print(profil_list)
+    cur.close()
+    conn.close()
+    return render_template('research.html', all_users = final_users, user_num=len(final_users))
     
 
 # we initialize our flask app using the  __init__.py function 

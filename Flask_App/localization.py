@@ -17,9 +17,9 @@ def localize_text(loc):
         print(new_loc['lon'])
         print(new_loc['display_name'])
         if ", " in new_loc['display_name']:
-            city_name = new_loc['display_name'].split(", ")[0]
+            city_name = new_loc['display_name'].split(", ")[0].strip()
         else:
-            city_name = new_loc['display_name']
+            city_name = new_loc['display_name'].strip()
         return float(new_loc['lat']), float(new_loc['lon']), str(city_name)
     except:
         return 0.0, 0.0, "ERROR - WRONG LOCALISATION"

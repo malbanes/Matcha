@@ -21,6 +21,5 @@ create unique index profilinterest_id_uindex
 
 grant delete, insert, references, select, trigger, truncate, update on "ProfilInterest" to sammy;
 
-INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (1, 3, 7);
-INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (2, 3, 12);
-INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (3, 3, 3);
+INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (2, 28, 10);
+INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (3, 28, 4);
