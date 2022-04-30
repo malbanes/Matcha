@@ -28,6 +28,12 @@ def create_app():
     app.config['MAIL_USERNAME'] = "noreply42project@gmail.com"
     app.config['MAIL_PASSWORD'] = ""
 
+    # S3 upload
+    app.config['S3_BUCKET'] = ""
+    app.config['S3_KEY'] = ""
+    app.config['S3_SECRET'] = ""
+    app.config['S3_LOCATION'] = 'http://{}.s3.amazonaws.com/'.format(app.config['S3_BUCKET'])
+
     # it is used #by Flask and extensions to keep data safe
     ###app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite' 
     #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:&hBDpRr5ztxas9Xx@localhost/users' 
