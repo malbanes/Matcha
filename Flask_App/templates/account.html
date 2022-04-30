@@ -14,7 +14,7 @@
         <div class="col-3">
             <div class="row justify-content-between align-items-center">
                 <div class="col d-flex col-auto mr-auto">
-                    <p class="mt-2">Momo</p>
+                    <p class="mt-2">{{username}}</p>
                     <svg class="green-color" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-dot" viewBox="0 0 16 16">
                         <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
                     </svg>
@@ -25,7 +25,7 @@
                     <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
                     </svg>
                     <div class="dropdown-menu text-danger bg-red">
-                        <p class="px-3"><small>Vous devez remplir votre profil étendu pour acceder à tous les services.</small></p>
+                        <p class="px-3"><small>Fill your profil to access match and search.</small></p>
                       </div>
                 </div>
             </div>
@@ -53,19 +53,30 @@
                       <!--left side-->
                       <div class="col-sm mb-2" style="max-width:270px;">
                         <a href="{{ url_for('main.profile') }}">
-                        <div class="rounded-square-picture">
-                              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                          <div class="rounded-square-picture">
+                            {% if image_profil == 0 %}
+                              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/no-photo.png')}})"></div>
+                            {% else %}
+                              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil}})"></div>
+                            {% endif %}
                           </div>
                         </a>
                       </div>
                       <!--right side-->
                       <!--Edit Form-->
                       <div class="col-sm">
+                          {% with messages = get_flashed_messages() %}
+                          {% if messages %}
+                              <div class="notification is-danger">
+                                  {{ messages[0] }}
+                              </div>
+                          {% endif %}
+                          {% endwith %}
                         <!--Edit Username-->
                         <div class="row justify-content-between mb-3">
                           <div class="col">
                             <div class="reflist-field">Username : </div>
-                            <div class="reflist-value">Momo</div>
+                            <div class="reflist-value">{{username}}</div>
                           </div>
                           <div class="col align-self-center" style="display:flex;">
                               <div class="edit-icon" data-toggle="modal" data-target="#editInfoModal">
@@ -79,7 +90,7 @@
                         <div class="row justify-content-between mb-3">
                           <div class="col">
                             <div class="reflist-field">Location : </div>
-                            <div class="reflist-value">Paris, 17e</div>
+                            <div class="reflist-value">{{localisation}}</div>
                           </div>
                           <div class="col align-self-center" style="display:flex;">
                               <div class="edit-icon" data-toggle="modal" data-target="#editInfoModal">
@@ -93,7 +104,7 @@
                         <div class="row justify-content-between mb-3">
                           <div class="col">
                             <div class="reflist-field">Email : </div>
-                            <div class="reflist-value">toto@free.fr</div>
+                            <div class="reflist-value">{{email}}</div>
                           </div>
                           <div class="col align-self-center" style="display:flex;">
                             <div class="edit-icon" data-toggle="modal" data-target="#editEmailModal">
@@ -121,7 +132,7 @@
                         <div class="row justify-content-between mb-3">
                           <div class="col">
                             <div class="reflist-field">Firstname : </div>
-                            <div class="reflist-value">Morgane</div>
+                            <div class="reflist-value">{{firstname}}</div>
                           </div>
                           <div class="col align-self-center" style="display:flex;">
                               <div class="edit-icon" data-toggle="modal" data-target="#editInfoModal">
@@ -135,7 +146,7 @@
                         <div class="row justify-content-between mb-3">
                           <div class="col">
                             <div class="reflist-field">Lastname : </div>
-                            <div class="reflist-value">Toto</div>
+                            <div class="reflist-value">{{lastname}}</div>
                           </div>
                           <div class="col align-self-center" style="display:flex;">
                               <div class="edit-icon" data-toggle="modal" data-target="#editInfoModal">
@@ -292,19 +303,19 @@
             
           <div class="form-group">
             <small class="form-text text-muted">Your Username :</small>
-            <input class="form-control" type="text" name="username" placeholder="User Name" autofocus="">
+            <input class="form-control" type="text" name="username" value="{{username}}" placeholder="Your Username" autofocus="">
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your location :</small>
-            <input class="form-control" type="text" name="location" placeholder="Location" autofocus="">
+            <input class="form-control" type="text" name="location" value="{{localisation}}" placeholder="Your Localisation" autofocus="">
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your first name :</small>
-            <input class="form-control" type="text" name="first_name" placeholder="First Name" autofocus="">
+            <input class="form-control" type="text" name="first_name" value="{{firstname}}" placeholder="Your First Name" autofocus="">
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your last name :</small>
-            <input class="form-control" type="text" name="last_name" placeholder="Last Name" autofocus="">
+            <input class="form-control" type="text" name="last_name" value="{{lastname}}" placeholder="Your Last Name" autofocus="">
           </div>
           <div class="center">
             <button type="submit" class="btn btn-primary center">Save change</button>
