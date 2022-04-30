@@ -3,6 +3,11 @@
 /*          Show Profil         */
 /********************************/
 
+.error {
+  background-color: rgb(192, 143, 143);
+  text-align:center;
+}
+
 .title {
     color: #1f2f49;
   }
@@ -40,6 +45,10 @@
 
   .nophoto {
     background-image: url('../img/no-photo.png')
+  }
+
+  .no-cursor {
+    cursor: default!important;
   }
 
   .addphoto {
@@ -175,21 +184,6 @@
     color:white;
   }
 
-  .carousel-inner-icon {
-    max-width: 600px;
-    width:80%;
-  }
-
-  .carousel {
-    max-width: 700px;
-    margin: auto;
-  }
-
-  .carousel-inner {
-    width: 80%;
-    margin: auto;
-  }
-
   .modal-dialog-preview {
     width: 100%;
     max-width: none;
@@ -230,6 +224,55 @@
 /********************************/
 /*          Edit Profil         */
 /********************************/
+
+.carousel{
+    width: 50%;
+    height: auto;
+}
+
+.carousel-control-prev{
+    justify-content: left;
+}
+.carousel-control-next{
+    justify-content: right;
+}
+.carousel-inner{
+    padding-right:15px;
+    padding-left:15px;
+}
+
+.my_bg{
+    height: 70vh;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    -webkit-background-size: contain;
+    -moz-background-size: contain;
+    -o-background-size: contain;
+    background-size: contain;
+}
+
+.image_fav {
+    cursor: default;
+    color:yellow;
+}
+
+.image_other{
+    color:gray;
+    cursor: pointer;
+}
+
+.my_carousel_caption_top{
+    right: 0;
+    top: 1px;
+    left: 0;
+}
+
+.baner_label{
+    font-size: 1rem;
+    background-color: pink;
+    max-width: fit-content;
+}
 
 .my_rounded-square-picture {
   position: relative;
@@ -303,33 +346,16 @@
 
 /* Navigation Custom */
 @media screen and (max-width: 660px) {
-  .my_rounded-square-picture {
-    position: relative;
-    width: 450px;
-    height: 450px;
-  }
   .modal-body {
     padding:0;
   }
-  .carousel-inner{
-    margin:0;
-  }
+
 }
 
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 500px) {
 
-  .my_rounded-square-picture {
-    position: relative;
-    width: 250px;
-    height: 250px;
-  }
-}
-
-@media screen and (max-width: 560px) {
-
-  .my_rounded-square-picture {
-    position: relative;
-    width: 250px;
-    height: 250px;
-  }
+    .carousel{
+        width: 80%;
+        height: auto;
+    }
 }

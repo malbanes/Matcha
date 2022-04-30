@@ -36,6 +36,7 @@ def index():
 @login_required
 @check_confirmed
 def profile():
+    images_path = dict()
     print(current_user.name)
     conn = get_db_connection()
     cur = conn.cursor()
@@ -44,8 +45,23 @@ def profile():
     print(profil)
     age_num = str(age(profil[5]))
     description = profil[6]
-    score = ""
-    image_profil = ""
+    score = str(profil[8])
+    if score == "None":
+        score = str(0)
+    genre = GENRE[profil[2]]
+    orientation = ORIENTATION[profil[3]]
+    cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    image_profil = cur.fetchone()
+    if image_profil :
+        image_profil_id = str(image_profil[0])
+    else :
+        image_profil_id = "0"
+    cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    all_images = cur.fetchall()
+    for key, imgpth in all_images:
+        images_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
+    total_img = len(images_path)
+
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
     interest = cur.fetchall()
     print(interest)
@@ -58,14 +74,13 @@ def profile():
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('profile.html', name=current_user.name, age=age_num, desc=description, interest_list=interest_list, localisation=localisation)
+    return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=image_profil_id, images_path=images_path, total_img=total_img)
 
 # edit profile page that return 'edit-profile'
 @main.route('/edit-profile') 
 def editprofile():
 
     image_path = dict()
-    images_urls = []
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -233,7 +248,14 @@ def account():
         if current_user.confirmed is False:
             flash('Please confirm your account!', 'warning')
             return redirect(url_for('main.index'))
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path)
+        onglet = "account"
+        section = "like"
+        if request.args.get('onglet'):
+            onglet = request.args.get('onglet')
+            print(onglet)
+        if request.args.get('section'):
+            section = request.args.get('section')
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section)
     else:
         if 'username' in request.form:
             if current_user.confirmed is False:
@@ -329,6 +351,7 @@ def account():
             print("No modal implemented")
         cur.close()
         conn.close()
+
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path)
 
 # match page that return 'match'

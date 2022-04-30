@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/edit_profile.css') }}">
 {% endblock %}
 
 {% block title %} Profile {% endblock %}
@@ -15,137 +15,139 @@
         <!--left side-->
         <div class="col-sm" style="max-width:270px;">
             <div class="rounded-square-picture">
-                <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+            {% if image_profil == "0" %}
+              <div class="rounded-square-picture__content nophoto no-cursor" data-test="profile-rounded-square-picture"></div>
+            {% else %}
+              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{images_path[image_profil_id]}})"></div>
+            {% endif %}
             </div>
             <div class="d-inline-flex p-2">
-              <img class="edit-icon mr-2" src="{{url_for('static', filename='img/etoile.png')}}" alt="score">
-                <p class="font-weight-bold mt-1">5400</p>
+              <img class="edit-icon mr-2 no-cursor" src="{{url_for('static', filename='img/etoile.png')}}" alt="score">
+                <p class="font-weight-bold mt-1">{{score}}</p>
             </div>
+
+            <div class="container">
+              <a href="{{ url_for('main.account', onglet='historique') }}">Who liked you ? </a>
+              </br></br>
+              <a href="{{ url_for('main.account', onglet='historique', section='visit') }}">Who saw your profil ? </a>
+            </div>
+
+
 
         </div>
         <!--right side-->
         <div class="col-sm">
             <div>
                 <h1 class="title" style="font-size: 2.75rem; line-height: 1;">{{name}}</h1>
-                <span class="profil_info"> 29 ans, Paris 17e Arrondissement </span>
+                <span class="profil_info"> {{age}} ans, {{localisation}} </span>
             </div>
             <!--Hashtag list-->
         </br>
         <ul class="list-inline">
-            <li class="list-inline-item dealbreaker">#Animaux</li>
-            <li class="list-inline-item dealbreaker">#Music</li>
-            <li class="list-inline-item dealbreaker">#Sport</li>
-            <li class="list-inline-item dealbreaker">#Voyage</li>
-            <li class="list-inline-item dealbreaker">#Grandetekezef</li>
-            <li class="list-inline-item dealbreaker">#foot</li>
-            <li class="list-inline-item dealbreaker">#zEFzefzEFzef</li>
-            <li class="list-inline-item dealbreaker">#zeFz</li>
-            <li class="list-inline-item dealbreaker">#zFEzefz FzefzefzefzeqzemifuqmzeiufmqzieubfmqziebfmqizbefmiqzjebfmqizjefbqmizefbqmzbfFzefzEFzf</li>
+          {% for i in interest_list %}
+            <li class="list-inline-item dealbreaker">#{{i}}</li>
+          {% endfor %}
         </ul>
 
             <!--text presentation-->
             <div>
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-            biographie text qzeifubq pzefpuzeb fiqzunf qenf izuefuqzefjznqemkfjnzmqjef nmqezjknf mqjzenf kmqjzne fmkqjznemf kjnqz
-          
+              {{desc}}
             </div>
         </br>
             <!--Ref list-->
             <div class="reflist">
-                <!-- Reflist Title -->
-                <ul class="nav nav-tabs" style="flex-wrap: nowrap;" id="refTab" role="tablist">
-                    <li class="nav-item">
-                      <a class="nav-link link dark active" id="me-tab" data-toggle="tab" href="#me" role="tab" aria-controls="me" aria-selected="true">Je suis</a>
-                    </li>
-                    <li class="nav-item">
-                      <a class="nav-link link purple" id="search-tab" data-toggle="tab" href="#search" role="tab" aria-controls="search" aria-selected="false">Je cherche</a>
-                    </li>
-                  </ul>
-                <!-- Reflist Content -->
                   <div class="tab-content" id="refTabContent">
                     <!-- Reflist Panel Me Info-->
                     <div class="tab-pane fade show active" id="me" role="tabpanel" aria-labelledby="me-tab">
                     <!-- Reflist list Item-->
                       <div class="reflist-list__item">
                         <div class="reflist-content">
-                            <div class="reflist-field">Mon signe astrologique</div>
-                            <div class="reflist-value">Cancer</div>
+                            <div class="reflist-field">My Gender</div>
+                            <div class="reflist-value">{{ genre }}</div>
                         </div>
                       </div> 
                       <div class="reflist-list__item">
                         <div class="reflist-content">
-                            <div class="reflist-field">Ma religion</div>
-                            <div class="reflist-value">Athée</div>
+                            <div class="reflist-field">My Sexual orientation</div>
+                            <div class="reflist-value">{{ orientation }}</div>
                         </div>
                       </div>
 
                     </div><!--End Panel Me info-->
-                    <!-- Reflist Panel Search Info-->
-                    <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="search-tab">
-                        <!-- Reflist list Item-->
-                        <div class="reflist-list__item">
-                            <div class="reflist-content">
-                                <div class="reflist-field">Son âge</div>
-                                <div class="reflist-value">de 26 à 32 ans</div>
-                            </div>
-                        </div>
-
-                    </div>
-                  </div><!--End Panel Search Info-->
 
             </div><!--End Ref list-->
 
         </div>
+
+        <a href="{{ url_for('main.editprofile') }}"><button type="button" class="btn btn-primary">Edit profil</button></a>
     </row>
     </div>
 
 </div>
 
 
-<!-- Modal -->
-<div class="modal modal-fullscreen-xl" id="modal-fullscreen-xl" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog-preview" role="document">
-    <div class="modal-content-preview">
-      <div class="modal-header">
-        <h5 class="modal-title text-white">Photo</h5>
-        <button type="button" class="close close-white" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body justify-content-center">
-      <!-- Caroussel Modal -->
-        <div id="carouselExampleIndicators{{ i }}" class="carousel slide" data-interval="false" data-ride="carousel">
-          <ol class="carousel-indicators">
-            <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-            <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-            <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-          </ol>
-          <div class="carousel-inner">
-            <div class="carousel-item active">
-              <img class="d-block w-100" src="{{url_for('static', filename='public/tabi-1.jpeg')}}" alt="First slide">
-            </div>
-            <div class="carousel-item">
-              <img class="d-block w-100" src="{{url_for('static', filename='public/tabi-2.jpeg')}}" alt="Second slide">
-            </div>
-            <div class="carousel-item">
-              <img class="d-block w-100" src="{{url_for('static', filename='public/tabi-3.jpeg')}}" alt="Third slide">
-            </div>
+    <!-- MODAL -->
+
+    <!-- Modal show Photo-->
+    <div class="modal modal-fullscreen-xl" id="modal-fullscreen-xl" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog-preview" role="document">
+          <div class="modal-content-preview">
+              <div class="modal-header">
+                  <h5 class="modal-title text-white">Picture</h5>
+                  <button type="button" class="close close-white" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div id="action-image--error" class="invalid-feedback error" style="display:none;">
+                  An error occur.
+              </div>
+              <div class="modal-body d-flex justify-content-center">
+                  {% if total_img > 0 %}
+                  <!-- Caroussel Modal -->
+                  <div id="carouselExampleIndicators" class="carousel slide" data-interval="false" data-ride="carousel">
+                      <ol class="carousel-indicators">
+                        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                        {% for i in range(1, total_img) %}
+                          <li data-target="#carouselExampleIndicators" data-slide-to="{{ i }}"></li>
+                        {% endfor %}
+                      </ol>
+                      <div class="carousel-inner">
+                        <div class="carousel-item active">
+                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[image_profil_id]}})"></div>
+                          <div class="carousel-caption d-md-block my_carousel_caption_top">
+                              <div class="row justify-content-between mx-auto carousel-inner-icon">
+                                  <button class="edit-icon bg-dark-gray image_fav no-margin" disabled>
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                                          <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                      </svg>
+                                  </button>
+                              </div>
+                          </div>  
+                      </div>
+                        {% for i in images_path %}
+                          {% if i != image_profil_id %}
+                              <div class="carousel-item">
+                                  <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[i]}})"></div>
+                              </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                      </a>
+                      <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                      </a>
+                  </div>
+              {% else %}
+                  <h5 class="modal-title text-white">No photo yet</h5>
+              {% endif%}
+              </div> <!-- End Caroussel Modal -->
           </div>
-          <a class="carousel-control-prev" href="#carouselExampleIndicators{{ i }}" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-          </a>
-          <a class="carousel-control-next" href="#carouselExampleIndicators{{ i }}" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-          </a>
-        </div>        
-      </div> <!-- End Caroussel Modal -->
-    </div>
-  </div>
-</div>
+      </div>
+  </div> <!-- End show photo Modal -->
 
 
 

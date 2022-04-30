@@ -30,9 +30,9 @@
                 </div>
             </div>
           <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-            <a class="nav-link active" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
-            <a class="nav-link" id="v-pills-param-tab" data-toggle="pill" href="#v-pills-param" role="tab" aria-controls="v-pills-param" aria-selected="false">Parameters</a>
-            <a class="nav-link" id="v-pills-histo-tab" data-toggle="pill" href="#v-pills-histo" role="tab" aria-controls="v-pills-histo" aria-selected="false">Historique</a>
+            <a class="nav-link {{ 'active' if onglet=='account'}}" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
+            <a class="nav-link {{ 'active' if onglet=='parameter'}}" id="v-pills-param-tab" data-toggle="pill" href="#v-pills-param" role="tab" aria-controls="v-pills-param" aria-selected="false">Parameters</a>
+            <a class="nav-link {{ 'active' if onglet=='historique'}}" id="v-pills-histo-tab" data-toggle="pill" href="#v-pills-histo" role="tab" aria-controls="v-pills-histo" aria-selected="false">Historique</a>
 
             <a class="nav-link" id="v-pills-del-tab" data-toggle="pill" href="#v-pills-del" role="tab" aria-controls="v-pills-del" aria-selected="false">Delete account</a>
             <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
@@ -41,7 +41,7 @@
         <div class="col-9 bg-light">
           <div class="tab-content" id="v-pills-tabContent">
             <!--Account Section-->
-            <div class="tab-pane fade show active" id="v-pills-account" role="tabpanel" aria-labelledby="v-pills-account-tab">
+            <div class="tab-pane fade {{ 'show active' if onglet=='account'}}" id="v-pills-account" role="tabpanel" aria-labelledby="v-pills-account-tab">
                 <div class="container">
                     <div class="h2 text-deepblue">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person mb-2" viewBox="0 0 16 16">
@@ -55,7 +55,7 @@
                         <a href="{{ url_for('main.profile') }}">
                           <div class="rounded-square-picture">
                             {% if image_profil == 0 %}
-                              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{url_for('static', filename='public/no-photo.png')}})"></div>
+                              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
                             {% else %}
                               <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil}})"></div>
                             {% endif %}
@@ -172,17 +172,17 @@
                 </div>
             </div> <!--End Account Section-->
             <!--Parameters Section-->
-            <div class="tab-pane fade" id="v-pills-param" role="tabpanel" aria-labelledby="v-pills-param-tab">...</div>
+            <div class="tab-pane fade {{ 'show active' if onglet=='parameter'}}" id="v-pills-param" role="tabpanel" aria-labelledby="v-pills-param-tab">...</div>
             <!--Historique Section-->
-            <div class="tab-pane fade" id="v-pills-histo" role="tabpanel" aria-labelledby="v-pills-histo-tab">
+            <div class="tab-pane fade {{ 'show active' if onglet=='historique'}}" id="v-pills-histo" role="tabpanel" aria-labelledby="v-pills-histo-tab">
               <div class="reflist">
                 <!-- Reflist Title -->
                 <ul class="nav nav-tabs" style="flex-wrap: nowrap;" id="refTab" role="tablist">
                   <li class="nav-item">
-                    <a class="nav-link link dark active" id="like-tab" data-toggle="tab" href="#like" role="tab" aria-controls="like" aria-selected="true">Like</a>
+                    <a class="nav-link link dark {{ 'active' if section=='like'}}" id="like-tab" data-toggle="tab" href="#like" role="tab" aria-controls="like" aria-selected="true">Like</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link link dark" id="visit-tab" data-toggle="tab" href="#visit" role="tab" aria-controls="visit" aria-selected="false">Visite</a>
+                    <a class="nav-link link dark {{ 'active' if section=='visit'}}"" id="visit-tab" data-toggle="tab" href="#visit" role="tab" aria-controls="visit" aria-selected="false">Visite</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link link dark" id="blocked-tab" data-toggle="tab" href="#blocked" role="tab" aria-controls="blocked" aria-selected="false">Blocked</a>
@@ -190,7 +190,7 @@
                 </ul>
                 <div class="tab-content" id="refTabContent">
                 <!--Like Sub-Section-->
-                <div class="tab-pane fade show active" id="like" role="tabpanel" aria-labelledby="like-tab">
+                <div class="tab-pane fade {{ 'show active' if section=='like'}}" id="like" role="tabpanel" aria-labelledby="like-tab">
                   <div class="h4 text-deepblue mt-3 ml-3">
                     <strong>Person who like you </strong>
                   </div>
@@ -215,7 +215,7 @@
                   </div>
                 </div>   
                 <!--Visit Sub-Section-->
-                <div class="tab-pane fade show" id="visit" role="tabpanel" aria-labelledby="visit-tab">
+                <div class="tab-pane fade {{ 'show active' if section=='visit'}}" id="visit" role="tabpanel" aria-labelledby="visit-tab">
                   <div class="h4 text-deepblue mt-3 ml-3">
                     <strong>Person who visit your profil</strong>
                   </div>
