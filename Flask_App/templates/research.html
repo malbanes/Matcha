@@ -41,11 +41,11 @@
   <div class="container container-match">
 
     <div class="h2 text-deepblue mb-4">
-        853 célibataires
+        {{ user_num }} célibataires
     </div>
 
     <div class="">
-        {% for i in range(1,9) %}
+        {% for i in all_users %}
         <div class="d-inline-flex">
           <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
             <a href="{{ url_for('main.profile')}}">
@@ -54,8 +54,8 @@
               </div>
             </a>
             <div class="card-body center bg-light rounded-demi-invert">
-              <h4 class="card-title mb-0">Elise</h5>
-              <small><p class="card-text text-muted">24 ans . Paris</p></small>
+              <h4 class="card-title mb-0">{{i[0]}}</h5>
+              <small><p class="card-text text-muted">{{i[1]}} ans . {{i[2]}}</p></small>
               <div class="row mt-2">
                 <div class="col-auto mr-auto">
                   <a href="#" class="">Like</a>
@@ -122,20 +122,14 @@
             <input type="text" class="live-search-box form-control" placeholder="search here" />
           </div>
             <ul class="live-search-list list-inline" type="None">
-                {% for i in range(1,20) %}
+                {% for i in full_interest %}
                 <li class="list-inline-item" style="display: none;">
                     <div class="custom-control custom-checkbox mx-2 d-inline-flex">
                         <input type="checkbox" class="custom-control-input" id="hashtag1S" name="check" value="hashtag1S">
-                        <label class="custom-control-label" for="hashtag1S">Music</label>
+                        <label class="custom-control-label" for="hashtag1S">{{ i[1] }}</label>
                     </div>
                 </li>
                 {% endfor %}
-                <li class="list-inline-item">
-                    <div class="custom-control custom-checkbox mx-2 d-inline-flex">
-                        <input type="checkbox" class="custom-control-input" id="hashtag2S" name="check" value="hashtag2S">
-                        <label class="custom-control-label" for="hashtag2S">Voyage</label>
-                    </div>
-                </li>
             </ul>
             </br>
             <div class="modal-footer">
@@ -213,20 +207,14 @@
             <input type="text" class="live-search-box form-control" placeholder="search here" />
         </div>
             <ul class="live-search-list list-inline" type="None">
-                {% for i in range(1,20) %}
+                {% for i in full_interest %}
                 <li class="list-inline-item" style="display: none;">
                     <div class="custom-control custom-checkbox mx-2 d-inline-flex">
                         <input type="checkbox" class="custom-control-input" id="hashtag1" name="check" value="hashtag1">
-                        <label class="custom-control-label" for="hashtag1">Music</label>
+                        <label class="custom-control-label" for="hashtag1">{{ i[1] }}</label>
                     </div>
                 </li>
                 {% endfor %}
-                <li class="list-inline-item">
-                    <div class="custom-control custom-checkbox mx-2 d-inline-flex">
-                        <input type="checkbox" class="custom-control-input" id="hashtag2" name="check" value="hashtag2">
-                        <label class="custom-control-label" for="hashtag2">Voyage</label>
-                    </div>
-                </li>
             </ul>
         </form>
       </div>

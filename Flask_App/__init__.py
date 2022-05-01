@@ -25,7 +25,7 @@ def create_app():
     app.config['MAIL_USE_SSL'] = True
 
     # gmail authentication
-    app.config['MAIL_USERNAME'] = "noreply42project@gmail.com"
+    app.config['MAIL_USERNAME'] = ""
     app.config['MAIL_PASSWORD'] = ""
 
     # S3 upload

@@ -101,7 +101,7 @@
         Une erreur est survenue
     </div>
     <ul class="list-inline" id="hashtagList">
-        {% for i in interest_list %}
+        {% for i in interest %}
         <li class="list-inline-item dealbreaker">#{{ i }}</li>
         {% endfor %}
     </ul>
@@ -318,21 +318,15 @@
                     <input type="text" class="live-search-box form-control" placeholder="search here" />
                 </div>
                     <ul class="live-search-list list-inline" type="None">
+                        {% for i in full_interest %}
                         <li class="list-inline-item">
                             <div class="custom-control custom-checkbox mx-2 d-inline-flex">
-                                <input type="checkbox" class="custom-control-input" id="1" name="check" value="1">
-                                <label class="custom-control-label" for="1">Music</label>
+                                <input type="checkbox" class="custom-control-input" id={{i[0]}} name="check" value={{i[0]}}>
+                                <label class="custom-control-label" for={{i[0]}}>{{i[1]}}</label>
                             </div>
                         </li>
-                        <li class="list-inline-item" style="display: none;">
-                            <div class="custom-control custom-checkbox mx-2 d-inline-flex">
-                                <input type="checkbox" class="custom-control-input" id="2" name="check" value="2">
-                                <label class="custom-control-label" for="2">Voyage</label>
-                            </div>
-                        </li>
-
-                    </ul>
-                  
+                    {% endfor %}
+                    </ul>    
               </div>
               <div class="center">
                 <button type="submit" class="btn btn-primary center" id="interest-btn" data-dismiss="modal">Save change</button>

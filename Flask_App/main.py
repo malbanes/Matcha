@@ -79,7 +79,6 @@ def profile():
 # edit profile page that return 'edit-profile'
 @main.route('/edit-profile') 
 def editprofile():
-
     image_path = dict()
     conn = get_db_connection()
     cur = conn.cursor()
@@ -106,6 +105,8 @@ def editprofile():
         interest_list.append(cur.fetchone()[0].rstrip())
         print(interest_list)
     print("blablabla")
+    cur.execute("SELECT * FROM \"Interest\";")
+    full_interest = cur.fetchall()
     cur.close()
     conn.close()
     for key, imgpth in all_images:
@@ -113,9 +114,7 @@ def editprofile():
     total_img = len(image_path)
     if total_img != 5:
         image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/no-photo.png")
-
-
-    return render_template('edit-profile.html', image_profil=image_profil_id, images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation)
+    return render_template('edit-profile.html', image_profil=image_profil_id, images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
 
 @main.route('/uploadajax', methods = ['POST'])
 def upldfile():
@@ -147,6 +146,7 @@ def setimgprofil():
         if img_id :
             conn = get_db_connection()
             cur = conn.cursor()
+            cur.execute
             cur.execute("UPDATE profil SET image_profil='{0}' WHERE user_id={1};".format(img_id,current_user.id))
             conn.commit()
             cur.close()
@@ -213,14 +213,26 @@ def updprim():
 @main.route('/updatehashtag', methods = ['POST'])
 def updhash():
     if request.method == 'POST':
-        tab = ["voyage", "music", "licorne"]
-        interest_list = []
-        cknames = request.form.getlist("check")
-        if (cknames):
-            for ckname in cknames:
-                interest_list.append(tab[int(ckname)].rstrip())
-        if (interest_list) :
-            return jsonify(interest_list)
+        hash_id = request.form.getlist("check")
+        print(hash_id)
+        existing_list = []
+        if (hash_id):
+            conn = get_db_connection()
+            cur = conn.cursor()
+            try:
+                cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+            except: 
+                print("no hash  for the user")
+            for i in hash_id:
+                cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES ('{0}', '{1}');".format(current_user.id, i))
+                conn.commit()
+            for id in hash_id:
+                cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id))
+                existing_list.append(cur.fetchone()[0].rstrip())
+                print(existing_list)
+            cur.close()
+            conn.close()
+            return jsonify(existing_list)
         else:
             return ("KO")
 
@@ -370,7 +382,7 @@ def notification():
     return render_template('notification.html')
 
 # search page that return 'match'
-@main.route('/search') 
+@main.route('/search', methods=['GET', 'POST'])
 def search():
     final_users = []
     conn = get_db_connection()
