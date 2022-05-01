@@ -1,4 +1,6 @@
-from datetime import date
+from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
+
 
 def age(birthdate):
     if birthdate is None:
@@ -12,3 +14,9 @@ def age(birthdate):
     age = year_diff - one_or_zero
     
     return age
+
+def age_period(y):
+# minus number of year
+    currentTimeDate = (datetime.today()-relativedelta(years=int(y))).strftime("%Y-%m-%d")
+    print(currentTimeDate)
+    return(currentTimeDate)

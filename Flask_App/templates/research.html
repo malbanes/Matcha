@@ -125,8 +125,8 @@
                 {% for i in full_interest %}
                 <li class="list-inline-item" style="display: none;">
                     <div class="custom-control custom-checkbox mx-2 d-inline-flex">
-                        <input type="checkbox" class="custom-control-input" id="hashtag1S" name="check" value="hashtag1S">
-                        <label class="custom-control-label" for="hashtag1S">{{ i[1] }}</label>
+                        <input type="checkbox" class="custom-control-input" id={{i[0]}} name="check" value={{i[0]}}>
+                        <label class="custom-control-label" for={{i[0]}}>{{ i[1] }}</label>
                     </div>
                 </li>
                 {% endfor %}
@@ -210,8 +210,8 @@
                 {% for i in full_interest %}
                 <li class="list-inline-item" style="display: none;">
                     <div class="custom-control custom-checkbox mx-2 d-inline-flex">
-                        <input type="checkbox" class="custom-control-input" id="hashtag1" name="check" value="hashtag1">
-                        <label class="custom-control-label" for="hashtag1">{{ i[1] }}</label>
+                        <input type="checkbox" class="custom-control-input" id={{i[0]}} name="check" value={{i[0]}}>
+                        <label class="custom-control-label" for={{i[0]}}>{{ i[1] }}</label>
                     </div>
                 </li>
                 {% endfor %}

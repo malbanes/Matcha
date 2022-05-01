@@ -9,8 +9,8 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 
 from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
-from age_calc import age
-from localization import localize_text
+from age_calc import age, age_period
+from localization import localize_text, distance
 from datetime import date
 from token_gen import generate_confirmation_token, confirm_token, generate_email_token, confirm_email_token
 from email_mngr import send_email
@@ -384,26 +384,82 @@ def notification():
 # search page that return 'match'
 @main.route('/search', methods=['GET', 'POST'])
 def search():
-    final_users = []
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT id, first_name FROM users;")
     profil_list = cur.fetchall()
+    if request.method=='POST':
+        if 'ageMinSearch' in request.form:
+            print("blablabebfbeizfi")
+            profil_list = []
+            final_profil_list_id = []
+            ageMinSearch = request.form.get('ageMinSearch')
+            ageMaxSearch = request.form.get('ageMaxSearch')
+            citySearch = request.form.get('citySearch')
+            locRangeSearch = request.form.get('locRangeSearch')
+            scoreMinSearch = request.form.get('scoreMinSearch')
+            scoreMaxSearch = request.form.get('scoreMaxSearch')
+            #before#
+            ageMinComp = age_period(ageMinSearch)
+            #after#
+            ageMaxComp = age_period(ageMaxSearch)
+            #to meter#
+            locRangeSearch = int(locRangeSearch)
+            print(locRangeSearch)
+            if citySearch == '':
+                cur.execute("SELECT user_id FROM profil WHERE age between '{1}' and '{0}' AND score between {2} and {3};".format(ageMinComp, ageMaxComp, int(scoreMinSearch), int(scoreMaxSearch)))
+                profil_list_id = cur.fetchall()
+                print(profil_list)
+                for i in profil_list_id:
+                    cur.execute("SELECT id, first_name FROM users where id={0} LIMIT 1;".format(i[0]))
+                    if i[0] != current_user.id:
+                        profil_list.append(cur.fetchone())
+            else:
+                cur.execute("SELECT user_id, location_id FROM profil WHERE age between '{1}' and '{0}' AND score between {2} and {3};".format(ageMinComp, ageMaxComp, int(scoreMinSearch), int(scoreMaxSearch)))
+                profil_list_id = cur.fetchall()
+                cur.execute("SELECT location_id FROM profil WHERE user_id = {0} LIMIT 1;".format(current_user.id))
+                loc_me = cur.fetchone()
+                cur.execute("SELECT latitude, longitude FROM location WHERE id = {0} LIMIT 1;".format(loc_me[0]))
+                coordinates_me = cur.fetchone()
+                for i in profil_list_id:
+                    if i[0] != current_user.id:
+                        cur.execute("SELECT latitude, longitude FROM location WHERE id = {0} LIMIT 1;".format(i[1]))
+                        coordinates_others = cur.fetchone()
+                        off_distance = distance(coordinates_me[0], coordinates_me[1], coordinates_others[0], coordinates_others[1])
+                        print(off_distance)
+                        if off_distance <= float(locRangeSearch):
+                            print("keep user")
+                            final_profil_list_id.append(i)
+                        else:
+                            print("remove user")
+                print("hiiiiii")
+                for i in final_profil_list_id:
+                    cur.execute("SELECT id, first_name FROM users where id={0} LIMIT 1;".format(i[0]))
+                    profil_list.append(cur.fetchone())
+            cur.close()
+            conn.close()
+    print(profil_list)
+    final_users = []
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM \"Interest\";")
+    full_interest = cur.fetchall()
     for user in profil_list:
-        cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(user[0]))
-        user_details = cur.fetchone()
-        print(user_details)
-        if user_details != None:
-            user_age = str(age(user_details[1]))
-            cur.execute("SELECT city FROM location WHERE id='{0}' LIMIT 1;".format(user_details[2]))
-            user_location = cur.fetchone()[0]
-            final_users.append([user[1], user_age, user_location])
-            print(final_users)
-            print(len(final_users))
+        if user[0] != current_user.id:
+            cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(user[0]))
+            user_details = cur.fetchone()
+            print(user_details)
+            if user_details != None:
+                user_age = str(age(user_details[1]))
+                cur.execute("SELECT city FROM location WHERE id='{0}' LIMIT 1;".format(user_details[2]))
+                user_location = cur.fetchone()[0]
+                final_users.append([user[1], user_age, user_location])
+                print(final_users)
+                print(len(final_users))
     print(profil_list)
     cur.close()
     conn.close()
-    return render_template('research.html', all_users = final_users, user_num=len(final_users))
+    return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
     
 
 # we initialize our flask app using the  __init__.py function 
