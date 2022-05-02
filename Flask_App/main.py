@@ -240,6 +240,8 @@ def updhash():
 @main.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
+    onglet = None
+    section = None
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
@@ -260,12 +262,11 @@ def account():
         if current_user.confirmed is False:
             flash('Please confirm your account!', 'warning')
             return redirect(url_for('main.index'))
-        onglet = "account"
-        section = "like"
-        if request.args.get('onglet'):
+        if request.args.get('onglet') != None :
             onglet = request.args.get('onglet')
+            print("onglet :")
             print(onglet)
-        if request.args.get('section'):
+        if request.args.get('section') != None :
             section = request.args.get('section')
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section)
     else:
@@ -364,7 +365,7 @@ def account():
         cur.close()
         conn.close()
 
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet)
 
 # match page that return 'match'
 @main.route('/match') 
