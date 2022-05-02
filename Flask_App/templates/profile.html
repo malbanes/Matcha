@@ -18,7 +18,7 @@
             {% if image_profil == "0" %}
               <div class="rounded-square-picture__content nophoto no-cursor" data-test="profile-rounded-square-picture"></div>
             {% else %}
-              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{images_path[image_profil_id]}})"></div>
+              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil_id}})"></div>
             {% endif %}
             </div>
             <div class="d-inline-flex p-2">
@@ -27,7 +27,7 @@
             </div>
 
             <div class="container">
-              <a href="{{ url_for('main.account', onglet='historique') }}">Who liked you ? </a>
+              <a href="{{ url_for('main.account', onglet='historique', section='like') }}">Who liked you ? </a>
               </br></br>
               <a href="{{ url_for('main.account', onglet='historique', section='visit') }}">Who saw your profil ? </a>
             </div>
@@ -113,7 +113,8 @@
                       </ol>
                       <div class="carousel-inner">
                         <div class="carousel-item active">
-                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[image_profil_id]}})"></div>
+                            {% for i in images_path %}
+                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{i[1]}})"></div>
                           <div class="carousel-caption d-md-block my_carousel_caption_top">
                               <div class="row justify-content-between mx-auto carousel-inner-icon">
                                   <button class="edit-icon bg-dark-gray image_fav no-margin" disabled>
@@ -123,11 +124,12 @@
                                   </button>
                               </div>
                           </div>  
+                          {% endfor %}
                       </div>
                         {% for i in images_path %}
                           {% if i != image_profil_id %}
                               <div class="carousel-item">
-                                  <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[i]}})"></div>
+                                  <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{i[1]}})"></div>
                               </div>
                           {% endif %}
                         {% endfor %}
@@ -152,4 +154,3 @@
 
 
 {% endblock %}
-

@@ -36,10 +36,59 @@ def index():
 @login_required
 @check_confirmed
 def profile():
-    images_path = dict()
+    images_path = []
     print(current_user.name)
     conn = get_db_connection()
     cur = conn.cursor()
+    cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    profil = cur.fetchone()
+    print(profil)
+    age_num = str(age(profil[5]))
+    description = profil[6]
+    score = str(profil[8])
+    if score == "None":
+        score = str(0)
+    genre = GENRE[profil[2]]
+    orientation = ORIENTATION[profil[3]]
+    cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    image_profil = cur.fetchone()
+    if image_profil:
+        image_profil_id = str(image_profil[0])
+    else :
+        image_profil_id = "0"
+    cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    all_images = cur.fetchall()
+    for key, imgpth in all_images:
+        images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
+    print(images_path)
+    total_img = len(images_path)
+    fav_image = images_path[int(image_profil_id)][1]
+    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+    interest = cur.fetchall()
+    print(interest)
+    interest_list = []
+    for id in interest:
+        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
+        interest_list.append(cur.fetchone()[0].rstrip())
+        print(interest_list)
+    cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
+    localisation = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=fav_image, images_path=images_path, total_img=total_img)
+
+# Other User profile page that return 'show-profile'
+@main.route('/showprofile') 
+@login_required
+@check_confirmed
+def showprofile():
+    images_path = dict()
+    print(current_user.name)
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT first_name, last_name FROM users WHERE id='{0}' LIMIT 1;".format(current_user.id))
+    user = cur.fetchone()
     cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
     profil = cur.fetchone()
     print(profil)
@@ -72,9 +121,46 @@ def profile():
         print(interest_list)
     cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
     localisation = cur.fetchone()[0]
+    like_message = "This person like you ! Like back ?" #"Like", "Unlike", "This person like you ! Like back ?"
     cur.close()
     conn.close()
-    return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=image_profil_id, images_path=images_path, total_img=total_img)
+    return render_template('show_profile.html', user_id=2, like_message=like_message, like_send=False,  name=current_user.name, profil=profil, username=current_user.username, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=image_profil_id, images_path=images_path, total_img=total_img)
+
+@main.route('/addlike', methods = ['POST'])
+def addlike():
+    if request.method == 'POST':
+        user_id = request.form['data']
+        if user_id :
+            return (user_id)
+        else:
+            return ("KO")
+
+@main.route('/dellike', methods = ['POST'])
+def dellike():
+    if request.method == 'POST':
+        user_id = request.form['data']
+        if user_id :
+            return (user_id)
+        else:
+            return ("KO")
+
+@main.route('/block', methods = ['POST'])
+def block():
+    if request.method == 'POST':
+        user_id = request.form['data']
+        if user_id :
+            return (user_id)
+        else:
+            return ("KO")
+
+@main.route('/report', methods = ['POST'])
+def report():
+    if request.method == 'POST':
+        user_id = request.form['data']
+        if user_id :
+            return (user_id)
+        else:
+            return ("KO")
 
 # edit profile page that return 'edit-profile'
 @main.route('/edit-profile') 
@@ -86,9 +172,9 @@ def editprofile():
     cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
     image_profil = cur.fetchone()
     image_profil_id = str(image_profil[0])
-
     cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
     all_images = cur.fetchall()
+    fav_image = all_images[int(image_profil_id)][0]
     cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
 
     i_am = cur.fetchone()
@@ -111,10 +197,11 @@ def editprofile():
     conn.close()
     for key, imgpth in all_images:
         image_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
+    print(fav_image)
     total_img = len(image_path)
     if total_img != 5:
         image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/no-photo.png")
-    return render_template('edit-profile.html', image_profil=image_profil_id, images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
+    return render_template('edit-profile.html', image_profil=str(fav_image), images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
 
 @main.route('/uploadajax', methods = ['POST'])
 def upldfile():
@@ -240,6 +327,8 @@ def updhash():
 @main.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
+    onglet = None
+    section = None
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
@@ -250,22 +339,24 @@ def account():
     email = current_user.email
     firstname = current_user.firstname
     lastname = current_user.lastname
-    cur.execute("SELECT path FROM images WHERE id='{0}' LIMIT 1;".format(profil[7]))
-    image_profil = cur.fetchone()
+    cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    image_profil = cur.fetchone()[0]
+    cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    all_images = cur.fetchall()
+    fav_image = all_images[int(image_profil)][1]
     if image_profil :
-        image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[0])
+        image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
     else :
-        image_profil_path = 0
+        image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
     if request.method=='GET':
         if current_user.confirmed is False:
             flash('Please confirm your account!', 'warning')
             return redirect(url_for('main.index'))
-        onglet = "account"
-        section = "like"
-        if request.args.get('onglet'):
+        if request.args.get('onglet') != None :
             onglet = request.args.get('onglet')
+            print("onglet :")
             print(onglet)
-        if request.args.get('section'):
+        if request.args.get('section') != None :
             section = request.args.get('section')
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section)
     else:
@@ -364,7 +455,7 @@ def account():
         cur.close()
         conn.close()
 
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet)
 
 # match page that return 'match'
 @main.route('/match') 
@@ -448,13 +539,34 @@ def search():
         if user[0] != current_user.id:
             cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(user[0]))
             user_details = cur.fetchone()
+            print(user[0])
             print(user_details)
             if user_details != None:
+                image_profil = user_details[0]
+                print(image_profil)
+                cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(user[0]))
+                all_images = cur.fetchall()
+                try:
+                    fav_image = all_images[int(image_profil)][1]
+
+                except:
+                    all_images.append([0, 'test/no-photo.png']) 
+                    all_images.append([1, 'test/no-photo.png'])
+                    all_images.append([2, 'test/no-photo.png'])
+                    all_images.append([3, 'test/no-photo.png'])
+                    all_images.append([4, 'test/no-photo.png'])
+                    fav_image = all_images[int(image_profil)][1]
+                print("all_images")
+                print(all_images)
+                print(fav_image)
+                if fav_image:
+                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
+                else :
+                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
                 user_age = str(age(user_details[1]))
                 cur.execute("SELECT city FROM location WHERE id='{0}' LIMIT 1;".format(user_details[2]))
                 user_location = cur.fetchone()[0]
-                final_users.append([user[1], user_age, user_location])
-                print(final_users)
+                final_users.append([user[1], user_age, user_location, image_profil_path])
                 print(len(final_users))
     print(profil_list)
     cur.close()

@@ -30,7 +30,7 @@
                 </div>
             </div>
           <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-            <a class="nav-link {{ 'active' if onglet=='account'}}" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
+            <a class="nav-link {{ 'active' if onglet==None}}" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
             <a class="nav-link {{ 'active' if onglet=='parameter'}}" id="v-pills-param-tab" data-toggle="pill" href="#v-pills-param" role="tab" aria-controls="v-pills-param" aria-selected="false">Parameters</a>
             <a class="nav-link {{ 'active' if onglet=='historique'}}" id="v-pills-histo-tab" data-toggle="pill" href="#v-pills-histo" role="tab" aria-controls="v-pills-histo" aria-selected="false">Historique</a>
 
@@ -41,7 +41,7 @@
         <div class="col-9 bg-light">
           <div class="tab-content" id="v-pills-tabContent">
             <!--Account Section-->
-            <div class="tab-pane fade {{ 'show active' if onglet=='account'}}" id="v-pills-account" role="tabpanel" aria-labelledby="v-pills-account-tab">
+            <div class="tab-pane fade {{ 'show active' if onglet==None}}" id="v-pills-account" role="tabpanel" aria-labelledby="v-pills-account-tab">
                 <div class="container">
                     <div class="h2 text-deepblue">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person mb-2" viewBox="0 0 16 16">
@@ -299,7 +299,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <form method="POST" action="#">
+        <form method="POST" action="/account">
             
           <div class="form-group">
             <small class="form-text text-muted">Your Username :</small>
@@ -338,7 +338,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <form method="POST" action="#">
+        <form method="POST" action="/account">
           <div class="form-group">
             <small class="form-text text-muted">Your new email :</small>
             <input class="form-control" type="text" name="email" placeholder="New email" autofocus="">
@@ -363,7 +363,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <form method="POST" action="#">
+        <form method="POST" action="/account">
             
           <div class="form-group">
             <input class="form-control" type="text" name="oldpassword" placeholder="Old password" autofocus="">

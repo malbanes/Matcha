@@ -3,9 +3,10 @@
 /*          Show Profil         */
 /********************************/
 
-.error {
-  background-color: rgb(192, 143, 143);
-  text-align:center;
+.more-action-btn {
+  position: absolute;
+  right: 10%;
+  z-index: 2;
 }
 
 .title {
@@ -53,6 +54,10 @@
 
   .addphoto {
     background-image: url('../img/add-photo.png')
+  }
+
+  .clickable {
+    cursor: pointer;
   }
 
   .edit-icon {

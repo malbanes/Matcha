@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/edit_profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 {% endblock %}
 
 {% block title %} Edit Profile {% endblock %}
@@ -458,6 +458,9 @@ $(function() {
         });
     });
 });
+
+
+
 
 function set_image_profil(img_id) {
     $.ajax({
