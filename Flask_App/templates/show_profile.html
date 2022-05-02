@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block title %} Profile {% endblock %}
+
+{% block content %}
+<!-- Viewers MUST be register in the user historique -->
+
+<div class="container">
+
+    <!-- <div class="ajax_message" id="ajax_message">
+        un message d'erreur
+    </div> -->
+
+    <!--Show Profile-->
+    <div class="container">
+        <!-- FIXED POSITION More action (bloquer, signaler) -->
+        <button id="moreActionDropdownMenuLink" class="more-action-btn btn btn-secondary"data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
+
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActionDropdownMenuLink">
+            <p class="dropdown-item no-margin clickable" onclick="block({{ user_id }})" >Block</p>
+            <p class="dropdown-item no-margin clickable" onclick="report({{ user_id }})">Report</p>
+        </div>
+
+
+
+    <row class="row justify-content-start">
+        <!--left side-->
+        <div class="col-sm" style="max-width:270px;">
+            <div class="rounded-square-picture">
+            {% if image_profil == "0" %}
+              <div class="rounded-square-picture__content nophoto no-cursor" data-test="profile-rounded-square-picture"></div>
+            {% else %}
+              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{images_path[image_profil_id]}})"></div>
+            {% endif %}
+            </div>
+            <div class="d-inline-flex p-2">
+                <img class="edit-icon mr-2 no-cursor" src="{{url_for('static', filename='img/etoile.png')}}" alt="score">
+                <p class="font-weight-bold mt-1">{{score}}</p>
+            </div>
+            </br>
+        
+            <div class="row">
+                <div class="col-2 no-padding">
+                  {% if image_profil == "0" %}
+                    <div class="col-auto mb-2 dropright">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="text-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false" width="25" height="25" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                      <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                      </svg>
+                      <div class="dropdown-menu text-danger bg-red">
+                        <p class="px-3"><small>You can't like this user. Wait for this user to have at least 1 photo.</small></p>
+                      </div>
+                    </div>
+                  {% else %}
+                    <svg id="like_img" onclick="like_gesture({{ user_id }})" class="gray-color {{ 'red-color' if like_send==True}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+                    </svg>
+                  {% endif %}
+                </div>
+                <div class="col">
+                    <p id="like_message"> {{ like_message }} </p>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Right side -->
+        <div class="col-sm">
+
+            <!-- Row Header -->
+                <!-- Small Info (img, age, loc) -->
+                <h1 class="title d-inline" style="font-size: 2.75rem; line-height: 1;">{{username}}</h1>
+                <svg class="gray-color {{ 'green-color' if profil[9]==true}} ml-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="8"/>
+                </svg>
+            </br><span class="profil_info"> {{age}} ans, {{localisation}} </span>
+                <!-- Is Connected -->
+                {% if profil[9] == false %}
+          </br><span><small> Last log : {{ profil[10] }} </small></span>
+                {% endif %}
+
+        </br></br><span style="word-break: break-all;">Name: {{ name }}</span>
+
+            <!--Hashtag list-->
+        </br>
+        <ul class="list-inline">
+          {% for i in interest_list %}
+            <li class="list-inline-item dealbreaker">#{{i}}</li>
+          {% endfor %}
+        </ul>
+            <!--text presentation-->
+            <div class="rounded bg-light px-2 pt-2 pb-2">
+              {{desc}}
+            </div>
+        </br>
+            <!--Ref list-->
+            <div class="reflist">
+                  <div class="tab-content" id="refTabContent">
+                    <div class="tab-pane fade show active" id="me" role="tabpanel" aria-labelledby="me-tab">
+                    <!-- Reflist list Item-->
+                      <div class="reflist-list__item">
+                        <div class="reflist-content">
+                            <div class="reflist-field">My Gender</div>
+                            <div class="reflist-value">{{ genre }}</div>
+                        </div>
+                      </div> 
+                      <div class="reflist-list__item">
+                        <div class="reflist-content">
+                            <div class="reflist-field">My Sexual orientation</div>
+                            <div class="reflist-value">{{ orientation }}</div>
+                        </div>
+                      </div>
+                    </div>
+            </div><!--End Ref list-->
+        </div>
+    </row>
+    </div>
+
+</div>
+
+
+    <!-- MODAL -->
+
+    <!-- Modal show Photo-->
+    <div class="modal modal-fullscreen-xl" id="modal-fullscreen-xl" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog-preview" role="document">
+          <div class="modal-content-preview">
+              <div class="modal-header">
+                  <h5 class="modal-title text-white">Picture</h5>
+                  <button type="button" class="close close-white" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div id="action-image--error" class="invalid-feedback error" style="display:none;">
+                  An error occur.
+              </div>
+              <div class="modal-body d-flex justify-content-center">
+                  {% if total_img > 0 %}
+                  <!-- Caroussel Modal -->
+                  <div id="carouselExampleIndicators" class="carousel slide" data-interval="false" data-ride="carousel">
+                      <ol class="carousel-indicators">
+                        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                        {% for i in range(1, total_img) %}
+                          <li data-target="#carouselExampleIndicators" data-slide-to="{{ i }}"></li>
+                        {% endfor %}
+                      </ol>
+                      <div class="carousel-inner">
+                        <div class="carousel-item active">
+                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[image_profil_id]}})"></div>
+                          <div class="carousel-caption d-md-block my_carousel_caption_top">
+                              <div class="row justify-content-between mx-auto carousel-inner-icon">
+                                  <button class="edit-icon bg-dark-gray image_fav no-margin" disabled>
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+                                  </button>
+                              </div>
+                          </div>  
+                      </div>
+                        {% for i in images_path %}
+                          {% if i != image_profil_id %}
+                              <div class="carousel-item">
+                                  <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[i]}})"></div>
+                              </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                      </a>
+                      <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                      </a>
+                  </div>
+              {% else %}
+                  <h5 class="modal-title text-white">No photo yet</h5>
+              {% endif%}
+              </div> <!-- End Caroussel Modal -->
+          </div>
+      </div>
+  </div> <!-- End show photo Modal -->
+
+
+
+{% endblock %}
+
+{% block script %}
+<script>
+
+//Like Gesture
+function like_gesture(user_id) {
+        var like_img = document.getElementById('like_img');
+        var is_liked = like_img.classList.contains("red-color");
+        if (is_liked == true) {
+            delete_like(user_id);
+        }
+        else {
+            add_like(user_id);
+        }
+    }
+
+function add_like(user_id) {
+    $.ajax({
+            type: 'POST',
+            url: '/addlike',
+            data: {"data":user_id},
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log('Une erreur est survenue');
+                }
+                else {
+                    var like_img = document.getElementById('like_img');
+                    like_img.classList.add("red-color");
+                    var like_message = document.getElementById('like_message');
+                    like_message.style.display = "none";
+                    console.log("user "+data+" liké");
+                }
+            },
+        });
+}
+
+function delete_like(user_id) {
+    $.ajax({
+            type: 'POST',
+            url: '/dellike',
+            data: {"data":user_id},
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log('Une erreur est survenue');
+                }
+                else {
+                    var like_img = document.getElementById('like_img');
+                    like_img.classList.remove("red-color");
+                    var like_message = document.getElementById('like_message');
+                    like_message.style.display = "block";
+                    console.log("user "+data+" Unliké");
+                }
+            },
+        });
+}
+
+//Report Gesture
+function report(user_id) {
+    $.ajax({
+            type: 'POST',
+            url: '/report',
+            data: {"data":user_id},
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log('Une erreur est survenue');
+                }
+                else {
+                    console.log("user "+data+" Signalé");
+                }
+            },
+        });
+}
+
+//Report Gesture
+function block(user_id) {
+    $.ajax({
+            type: 'POST',
+            url: '/block',
+            data: {"data":user_id},
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log('Une erreur est survenue');
+                }
+                else {
+                    console.log("user "+data+" Bloqué");
+                }
+            },
+        });
+}
+
+</script>
+{% endblock %}
+

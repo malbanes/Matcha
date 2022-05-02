@@ -1,3 +1,30 @@
+
+/************************************/
+/*         Error/Success            */
+/************************************/
+
+.ajax_message {
+    align-content: center;
+    border-radius: 20rem;
+    border-width : 2px;
+    border-style: solid;
+    text-align: center;
+}
+
+.msg-error{
+    color:#c20000;
+    background-color: #d69f9f;
+    border-color : #c20000;
+}
+
+.msg-success {
+    color:#00c2ab;
+    background-color:#a6d7d2;
+    border-color : #00c2ab;
+}
+
+
+
 /********************************/
 /*         Navigation           */
 /********************************/
@@ -32,11 +59,6 @@ ul {
     /*background-image: url('/static/img/bg-home.jpeg');*/
     /* Full height */
     height: 100%; 
-    <a href="{{ url_for('main.profile') }}">
-    <div class="rounded-square-mini">
-        <div class="rounded-square-picture__content nophoto" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
-    </div>
-</a>
     /* Center and scale the image nicely */
     background-position: center;
     background-repeat: no-repeat;
@@ -65,6 +87,10 @@ ul {
 
 .green-color {
     color:#00c2ab;
+}
+
+.red-color {
+    color:#c20000!important;
 }
 
 .bg-dark-gray {
