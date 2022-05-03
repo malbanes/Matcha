@@ -13,6 +13,7 @@ from token_gen import generate_confirmation_token, confirm_token, generate_email
 from email_mngr import send_email
 from password_checker import password_check
 import re
+from datetime import datetime
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -27,22 +28,26 @@ def login():
     else:
         conn = get_db_connection()
         cur = conn.cursor()
-        email = request.form.get('email')
+        username = request.form.get('username')
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
-        cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+        cur.execute("SELECT * FROM users WHERE username='{0}' LIMIT 1;".format(username))
         user = cur.fetchone()
         
         # check if the user actually exists + take the user-supplied password, hash it, and compare it to the hashed password in the database
         if not user:
-            flash('Please sign up before!')
-            return redirect(url_for('auth.signup'))
+            flash('Please check your login details and try again - or sign up')
+            return redirect(url_for('auth.login')) 
         # if the user doesn't exist or password is wrong, reload the page
         elif not bcrypt.verify(password,user[2]):
-            flash('Please check your login details and try again.')
+            flash('Please check your login details and try again - or sign up')
             return redirect(url_for('auth.login')) 
         # if the above check passes, then we know the user has the right credentials
         login_user(User(user), remember=remember)
+        cur.execute("UPDATE profil SET is_online = true WHERE user_id='{0}';".format(current_user.id))
+        conn.commit()
+        cur.close()
+        conn.close()
         print("hello")
         print(current_user.name)
         print(dir(current_user))
@@ -233,6 +238,12 @@ def reset_password(token):
 @auth.route('/logout') 
 @login_required
 def logout():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE profil SET is_online = false, last_log = '{0}' WHERE user_id={1};".format(str(datetime.date(datetime.now())),current_user.id))
+    conn.commit()
+    cur.close()
+    conn.close()
     logout_user()
     return redirect(url_for('main.index'))
 

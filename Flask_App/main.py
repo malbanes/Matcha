@@ -46,6 +46,8 @@ def profile():
     age_num = str(age(profil[5]))
     description = profil[6]
     score = str(profil[8])
+    is_online = profil[9]
+    last_log = str(profil[10])
     if score == "None":
         score = str(0)
     genre = GENRE[profil[2]]
@@ -75,7 +77,7 @@ def profile():
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=fav_image, images_path=images_path, total_img=total_img)
+    return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
 
 # Other User profile page that return 'show-profile'
 @main.route('/showprofile') 
