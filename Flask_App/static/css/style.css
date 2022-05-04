@@ -141,3 +141,12 @@ ul {
     }
 
   }
+
+  @media screen and (max-width: 500px) {
+    .litte-device-txt {
+        font-size: 0.5rem!important;
+    }
+    .litte-device-title {
+        font-size: 0.7rem!important;
+    }
+  }

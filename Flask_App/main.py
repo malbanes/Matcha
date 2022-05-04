@@ -77,42 +77,40 @@ def profile():
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
+    return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
 
 # Other User profile page that return 'show-profile'
 @main.route('/showprofile') 
 @login_required
 @check_confirmed
 def showprofile():
-    images_path = dict()
+    images_path = []
     print(current_user.name)
-
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT first_name, last_name FROM users WHERE id='{0}' LIMIT 1;".format(current_user.id))
-    user = cur.fetchone()
     cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
     profil = cur.fetchone()
     print(profil)
     age_num = str(age(profil[5]))
     description = profil[6]
     score = str(profil[8])
+    is_online = profil[9]
+    last_log = str(profil[10])
     if score == "None":
         score = str(0)
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
     cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
     image_profil = cur.fetchone()
-    if image_profil :
+    if image_profil:
         image_profil_id = str(image_profil[0])
-    else :
-        image_profil_id = "0"
     cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
     all_images = cur.fetchall()
     for key, imgpth in all_images:
-        images_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
+        images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
+    print(images_path)
     total_img = len(images_path)
-
+    fav_image = images_path[int(image_profil_id)][1]
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
     interest = cur.fetchall()
     print(interest)
@@ -123,10 +121,9 @@ def showprofile():
         print(interest_list)
     cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
     localisation = cur.fetchone()[0]
-    like_message = "This person like you ! Like back ?" #"Like", "Unlike", "This person like you ! Like back ?"
     cur.close()
     conn.close()
-    return render_template('show_profile.html', user_id=2, like_message=like_message, like_send=False,  name=current_user.name, profil=profil, username=current_user.username, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil_id=image_profil_id, images_path=images_path, total_img=total_img)
+    return render_template('show_profile.html', profil=profil, name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
 
 @main.route('/addlike', methods = ['POST'])
 def addlike():
