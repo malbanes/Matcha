@@ -18,7 +18,7 @@
             {% if image_profil == "0" %}
               <div class="rounded-square-picture__content nophoto no-cursor" data-test="profile-rounded-square-picture"></div>
             {% else %}
-              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil_id}})"></div>
+              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil}})"></div>
             {% endif %}
             </div>
             <div class="d-inline-flex p-2">
@@ -117,8 +117,7 @@
                       </ol>
                       <div class="carousel-inner">
                         <div class="carousel-item active">
-                            {% for i in images_path %}
-                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{i[1]}})"></div>
+                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{image_profil}}"></div>
                           <div class="carousel-caption d-md-block my_carousel_caption_top">
                               <div class="row justify-content-between mx-auto carousel-inner-icon">
                                   <button class="edit-icon bg-dark-gray image_fav no-margin" disabled>
@@ -128,10 +127,9 @@
                                   </button>
                               </div>
                           </div>  
-                          {% endfor %}
                       </div>
                         {% for i in images_path %}
-                          {% if i != image_profil_id %}
+                          {% if i[1] != image_profil %}
                               <div class="carousel-item">
                                   <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{i[1]}})"></div>
                               </div>
@@ -154,6 +152,7 @@
           </div>
       </div>
   </div> <!-- End show photo Modal -->
+
 
 
 

@@ -21,8 +21,8 @@
         <button id="moreActionDropdownMenuLink" class="more-action-btn btn btn-secondary"data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
 
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActionDropdownMenuLink">
-            <p class="dropdown-item no-margin clickable" onclick="block({{ user_id }})" >Block</p>
-            <p class="dropdown-item no-margin clickable" onclick="report({{ user_id }})">Report</p>
+            <p class="dropdown-item no-margin clickable" onclick="block({{ profil[1] }})" >Block</p>
+            <p class="dropdown-item no-margin clickable" onclick="report({{ profil[1] }})">Report</p>
         </div>
 
 
@@ -31,11 +31,7 @@
         <!--left side-->
         <div class="col-sm" style="max-width:270px;">
             <div class="rounded-square-picture">
-            {% if image_profil == "0" %}
-              <div class="rounded-square-picture__content nophoto no-cursor" data-test="profile-rounded-square-picture"></div>
-            {% else %}
-              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{images_path[image_profil_id]}})"></div>
-            {% endif %}
+              <div class="rounded-square-picture__content {{ 'no-cursor nophoto' if not image_profil|length }}" {{ 'style=background-image:url(' + image_profil + ')' if image_profil|length }} data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
             </div>
             <div class="d-inline-flex p-2">
                 <img class="edit-icon mr-2 no-cursor" src="{{url_for('static', filename='img/etoile.png')}}" alt="score">
@@ -45,7 +41,7 @@
         
             <div class="row">
                 <div class="col-2 no-padding">
-                  {% if image_profil == "0" %}
+                  {% if not image_profil|length %}
                     <div class="col-auto mb-2 dropright">
                       <svg xmlns="http://www.w3.org/2000/svg" class="text-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false" width="25" height="25" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
                           <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
@@ -56,7 +52,7 @@
                       </div>
                     </div>
                   {% else %}
-                    <svg id="like_img" onclick="like_gesture({{ user_id }})" class="gray-color {{ 'red-color' if like_send==True}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                    <svg id="like_img" onclick="like_gesture({{ profil[1] }})" class="gray-color {{ 'red-color' if like_send==True}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
                       <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                     </svg>
                   {% endif %}
@@ -123,9 +119,7 @@
 
 </div>
 
-
     <!-- MODAL -->
-
     <!-- Modal show Photo-->
     <div class="modal modal-fullscreen-xl" id="modal-fullscreen-xl" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog-preview" role="document">
@@ -151,19 +145,21 @@
                       </ol>
                       <div class="carousel-inner">
                         <div class="carousel-item active">
-                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[image_profil_id]}})"></div>
+                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{image_profil}}"></div>
                           <div class="carousel-caption d-md-block my_carousel_caption_top">
                               <div class="row justify-content-between mx-auto carousel-inner-icon">
                                   <button class="edit-icon bg-dark-gray image_fav no-margin" disabled>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                                          <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                      </svg>
                                   </button>
                               </div>
                           </div>  
                       </div>
                         {% for i in images_path %}
-                          {% if i != image_profil_id %}
+                          {% if i[1] != image_profil %}
                               <div class="carousel-item">
-                                  <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{images_path[i]}})"></div>
+                                  <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{i[1]}})"></div>
                               </div>
                           {% endif %}
                         {% endfor %}
