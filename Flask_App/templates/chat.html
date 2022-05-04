@@ -11,67 +11,86 @@
 
 <div class="container-fluid no-padding">
 
-        <row class="row justify-content-start">
-          <!--left side-->
-          <div class="col-xs mb-4" style="max-width:270px;">
-            <div class="h4 mx-4 text-deepblue">
-                <strong>Messages</strong>
-            </div>
-            <ul>
-                <li>name</li>
-                <li>name 2</li>
-                <li>name 3</li>
-                <li>name 4</li>
-            </ul>
-
+  <row class="row justify-content-start">
+  <!--left side-->
+    <div class="col-xs mb-4" style="max-width:270px;">
+      <div class="h4 mx-4 text-deepblue">
+        <strong>Messages</strong>
+      </div>
+      <ul>
+        <li>name</li>
+        <li>name 2</li>
+        <li>name 3</li>
+        <li>name 4</li>
+      </ul>
+    </div>
+    <div class="bg-light d-inline" style="width:2px;"></div>
+      <div class="col">
+        <div class="row align-items-end pb-4 pt-4">
+          <div class="col col-sm" style="max-width:105px;">
+            <a href="{{ url_for('main.profile') }}">
+              <div class="rounded-square-mini">
+                  <div class="rounded-square-picture__content nophoto" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+              </div>
+            </a>
           </div>
-          <div class="bg-light d-inline" style="width:2px;"></div>
           <div class="col">
-            <div class="row align-items-end pb-4 pt-4">
-              <div class="col col-sm" style="max-width:105px;">
-                <a href="{{ url_for('main.profile') }}">
-                  <div class="rounded-square-mini">
-                      <div class="rounded-square-picture__content nophoto" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
-                  </div>
-              </a>
-              </div>
-              <div class="col">
-                <p class="no-margin">Momo</p>
-                <p class="no-margin"><small class="gray-color">24 . Paris</small></p>
-              </div>
-            </div>
-            <div class="container" style="height:60%;overflow-y: scroll;">
-
-              <div id ="log"></div>
-
-            </div>
-
-            <form id="broadcast" method="POST" action='#'>
-              <input type="text" name="broadcast_data" id="broadcast_data" placeholder="Message">
-              <input type="submit" value="Broadcast">
-            </form>
-
-
+            <p class="no-margin">Momo</p>
+            <p class="no-margin"><small class="gray-color">24 . Paris</small></p>
           </div>
+        </div>
+        <div class="container" style="height:40%;overflow-y: scroll;">
+          <div id ="log"></div>
+        </div>
 
-        </row>
+        <div class="container">
+          <form id="emit" method="POST" action='#'>
+            <input type="text" name="emit_data" id="emit_data" placeholder="Message">
+            <input type="submit" value="Send Message">
+          </form>
+          <form id="broadcast" method="POST" action='#'>
+            <input type="text" name="broadcast_data" id="broadcast_data" placeholder="Message">
+            <input type="submit" value="Send Broadcast Message">
+          </form>
+          <form id="disconnect" method="POST" action="#">
+            <input type="submit" value="Disconnect Server">
+          </form>
+        </div>
+      </div>
+    </div>
+  </row>
 </div>
 
-<script>
-namespace = '/test'; 
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
 
-var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+      namespace = '/test';
+      var socket = io(namespace);
 
+      socket.on('connect', function() {
+          socket.emit('my_event', {data: 'connected to the SocketServer...'});
+      });
 
-socket.on('my response', function(msg) {
-    $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
-});
-
-$('form#broadcast').submit(function(event) {
-    socket.emit('my broadcast event', {data: $('#broadcast_data').val()});
-    return false;
-});
-
+      socket.on('my_response', function(msg, cb) {
+          $('#log').append('<br>' + $('<div/>').text('logs #' + msg.count + ': ' + msg.data).html());
+          if (cb)
+              cb();
+      });
+      $('form#emit').submit(function(event) {
+          socket.emit('my_event', {data: $('#emit_data').val()});
+          return false;
+      });
+      $('form#broadcast').submit(function(event) {
+          socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
+          return false;
+      });
+      $('form#disconnect').submit(function(event) {
+          socket.emit('disconnect_request');
+          return false;
+      });
+  });
 </script>
+  
 
 {% endblock %}

@@ -1,11 +1,12 @@
-from flask import Blueprint, render_template, flash, url_for, redirect, current_app, jsonify
+from flask import Blueprint, render_template, flash, url_for, redirect, current_app, jsonify, session
 from flask_login import login_required, current_user
 
 from flask_mail import Mail
 #Chargement socketIO des modules requis
 from flask import Flask, session, request         
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
-      close_room, rooms, disconnect                                  
+      close_room, rooms, disconnect     
+from threading import Lock                             
 
 from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
@@ -37,12 +38,10 @@ def index():
 @check_confirmed
 def profile():
     images_path = []
-    print(current_user.name)
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
     profil = cur.fetchone()
-    print(profil)
     age_num = str(age(profil[5]))
     description = profil[6]
     score = str(profil[8])
@@ -62,17 +61,14 @@ def profile():
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
-    print(images_path)
     total_img = len(images_path)
     fav_image = images_path[int(image_profil_id)][1]
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
     interest = cur.fetchall()
-    print(interest)
     interest_list = []
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
         interest_list.append(cur.fetchone()[0].rstrip())
-        print(interest_list)
     cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
     localisation = cur.fetchone()[0]
     cur.close()
@@ -85,12 +81,10 @@ def profile():
 @check_confirmed
 def showprofile():
     images_path = []
-    print(current_user.name)
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
     profil = cur.fetchone()
-    print(profil)
     age_num = str(age(profil[5]))
     description = profil[6]
     score = str(profil[8])
@@ -108,17 +102,14 @@ def showprofile():
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
-    print(images_path)
     total_img = len(images_path)
     fav_image = images_path[int(image_profil_id)][1]
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
     interest = cur.fetchall()
-    print(interest)
     interest_list = []
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
         interest_list.append(cur.fetchone()[0].rstrip())
-        print(interest_list)
     cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
     localisation = cur.fetchone()[0]
     cur.close()
@@ -180,23 +171,18 @@ def editprofile():
     i_am_bio = str(i_am[0])
     i_am_genre = GENRE[i_am[1]]
     i_am_orientation = ORIENTATION[i_am[2]]
-    print(i_am)
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
     interest = cur.fetchall()
-    print(interest)
     interest_list = []
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
         interest_list.append(cur.fetchone()[0].rstrip())
-        print(interest_list)
-    print("blablabla")
     cur.execute("SELECT * FROM \"Interest\";")
     full_interest = cur.fetchall()
     cur.close()
     conn.close()
     for key, imgpth in all_images:
         image_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
-    print(fav_image)
     total_img = len(image_path)
     if total_img != 5:
         image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/no-photo.png")
@@ -258,7 +244,6 @@ def updbio():
         bio = request.form['newBio']
         if bio :
             bio = bio.replace("'", "`")
-            print(bio)
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute("UPDATE profil SET bio='{0}' WHERE user_id={1};".format(bio,current_user.id))
@@ -300,7 +285,6 @@ def updprim():
 def updhash():
     if request.method == 'POST':
         hash_id = request.form.getlist("check")
-        print(hash_id)
         existing_list = []
         if (hash_id):
             conn = get_db_connection()
@@ -353,8 +337,6 @@ def account():
             return redirect(url_for('main.index'))
         if request.args.get('onglet') != None :
             onglet = request.args.get('onglet')
-            print("onglet :")
-            print(onglet)
         if request.args.get('section') != None :
             section = request.args.get('section')
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section)
@@ -363,14 +345,12 @@ def account():
             if current_user.confirmed is False:
                 flash('Please confirm your account!', 'warning')
                 return redirect(url_for('main.index'))
-            print("post")
             firstname1 = request.form.get('first_name')
             lastname1 = request.form.get('last_name')
             username1 = request.form.get('username')
             localisation1 = request.form.get('location')
             cur.execute("SELECT * FROM users WHERE username='{0}';".format(username1))
             username_check = cur.fetchall()
-            print(username_check)
             if username1 != "" and username_check != []:
                 flash('User Name address already exists')
             elif username1 != "":
@@ -388,9 +368,6 @@ def account():
             if localisation1 != "":
                 lat, lont, display_loc = localize_text(str(localisation1))
                 today = date.today()
-                print(lat)
-                print(lont)
-                print(display_loc)
                 if  display_loc != "ERROR - WRONG LOCALISATION":
                     cur.execute("UPDATE location SET latitude = '{0}', longitude = '{1}', date_modif = '{2}', city = '{3}' WHERE id='{4}';".format(lat,lont,today,display_loc.strip(),profil[4]))
                     conn.commit()
@@ -398,7 +375,6 @@ def account():
                 else:
                     flash('New location not found')
         elif 'oldpassword' in request.form:
-            print("password")
             if current_user.confirmed is False:
                 flash('Please confirm your account!', 'warning')
                 return redirect(url_for('main.index'))
@@ -431,11 +407,9 @@ def account():
                     conn.commit()
                     flash('password updated', 'success')
         elif 'email' in request.form:
-            print("email")
             email1 = request.form.get('email')
             cur.execute("SELECT * FROM users WHERE email='{0}';".format(email1))
             email_check = cur.fetchall()
-            print(email_check)
             email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
             if email1 != "" and email_check == [] and re.fullmatch(email_regex, email):
                 cur.execute("UPDATE users SET email = '{0}', confirmed = false WHERE id='{1}';".format(email1,current_user.id))
@@ -464,7 +438,7 @@ def match():
 # chat page that return 'match'
 @main.route('/chat') 
 def chat():
-    return render_template('chat.html')
+    return render_template('chat.html', sync_mode=socketio.async_mode)
 
 # notification page that return 'match'
 @main.route('/notification') 
@@ -581,31 +555,43 @@ async_mode = None
 
 #Objet Flask, asynchrone_Créer un objet serveur SocketIO en spécifiant le mode
 socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+thread_lock = Lock()
 
 #Variable globale pour stocker les threads
-thread = None
 
-@socketio.on('connect', namespace='/test')
-def test_connect():
-    global thread
-    emit('my response', {'data': 'Envoyez le premier message !', 'count': 0})
 
-@socketio.on('my event', namespace='/test')
+
+@socketio.on('my_event', namespace='/test')
 def test_message(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my response',                                               
+    emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
-                                                                      
-@socketio.on('my broadcast event', namespace='/test')
+
+
+@socketio.on('my_broadcast_event', namespace='/test')
 def test_broadcast_message(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my response',
+    emit('my_response',
          {'data': message['data'], 'count': session['receive_count']},
          broadcast=True)
 
+
+@socketio.on('disconnect_request', namespace='/test')
+def disconnect_request():
+    @copy_current_request_context
+    def can_disconnect():
+        disconnect()
+
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': 'Disconnected!', 'count': session['receive_count']},
+         callback=can_disconnect)
+
 # setup Mail
-mail = Mail(app)     
+mail = Mail(app)   
+
 if __name__ == '__main__':
     ##db.create_all(app=create_app())
-    app.run(debug=True)
-    socketio.run(app)
+    ##app.run(debug=True)
+    socketio.run(app, debug=True)
