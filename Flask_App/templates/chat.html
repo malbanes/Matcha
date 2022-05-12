@@ -9,88 +9,307 @@
 
 {% block content %}
 
-<div class="container-fluid no-padding">
+
+<div class="container no-padding no-margin">
 
   <row class="row justify-content-start">
-  <!--left side-->
-    <div class="col-xs mb-4" style="max-width:270px;">
-      <div class="h4 mx-4 text-deepblue">
+  <!--Select Section-->
+    <div id="messagelist" class="col-xs mb-4 bg-white messagelistresponsive" style="max-width:270px;">
+      <div class="h4 ml-4 text-deepblue">
         <strong>Messages</strong>
+        <div class="d-inline">
+          <button id="dropdownmessagearrowhide" class="btn mt-2 text-pink bg-light rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-left" viewBox="0 0 16 16">
+              <path d="M10 12.796V3.204L4.519 8 10 12.796zm-.659.753-5.48-4.796a1 1 0 0 1 0-1.506l5.48-4.796A1 1 0 0 1 11 3.204v9.592a1 1 0 0 1-1.659.753z"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      <ul>
-        <li>name</li>
-        <li>name 2</li>
-        <li>name 3</li>
-        <li>name 4</li>
-      </ul>
-    </div>
-    <div class="bg-light d-inline" style="width:2px;"></div>
-      <div class="col">
-        <div class="row align-items-end pb-4 pt-4">
-          <div class="col col-sm" style="max-width:105px;">
-            <a href="{{ url_for('main.profile') }}">
-              <div class="rounded-square-mini">
-                  <div class="rounded-square-picture__content nophoto" style="background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
-              </div>
-            </a>
-          </div>
-          <div class="col">
-            <p class="no-margin">Momo</p>
-            <p class="no-margin"><small class="gray-color">24 . Paris</small></p>
-          </div>
-        </div>
-        <div class="container" style="height:40%;overflow-y: scroll;">
-          <div id ="log"></div>
-        </div>
+      <ul class="no-padding">
 
-        <div class="container">
-          <form id="emit" method="POST" action='#'>
-            <input type="text" name="emit_data" id="emit_data" placeholder="Message">
-            <input type="submit" value="Send Message">
-          </form>
-          <form id="broadcast" method="POST" action='#'>
-            <input type="text" name="broadcast_data" id="broadcast_data" placeholder="Message">
-            <input type="submit" value="Send Broadcast Message">
-          </form>
-          <form id="disconnect" method="POST" action="#">
-            <input type="submit" value="Disconnect Server">
+        {% for user in usersList %}
+          <li id="{{ roomsList[loop.index0] }}" title="{{ user }}" class="list-group-item">
+            <div class="row">
+              <div class="col-8 text-break">
+                {{ user }}
+              </div>
+              <div id="default-alert" class="col-2 text-pink">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
+                  <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                </svg>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+      
+    </div>
+
+    <div class="bg-light d-inline" style="width:2px;"></div>
+
+    <div class="d-none" id="dropdownmessage">
+      <button id="dropdownmessagearrowshow" class="btn mt-2 text-pink bg-light rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right" viewBox="0 0 16 16">
+          <path d="M6 12.796V3.204L11.481 8 6 12.796zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753z"/>
+        </svg>
+      </button>
+    </div>
+
+
+    <!-- Chat Section -->
+    {% if usersList[0] == null %}
+      <div class="col">
+        <div class="text-center mt-4">
+          <h3>You don't have any messages</h3>
+          <p> Like some people. To get match, two people must like each other. </p>
+          <p class="text-pink"> Good luck ! </p>
+        </div>
+      </div>
+
+    {% endif %}
+    
+
+    {% for user in usersList %}
+      <div id="chat{{ roomsList[loop.index0] }}" class="col d-none">
+        <div class="row align-items-end pb-4 pt-4">
+          <div class="col">
+              <p class="no-margin d-inline"><a class="text-decoration-none" href="{{ url_for('main.profile') }}"><strong class="text-deepblue">{{user}}</strong></a></p>
+              {% if onlineList[loop.index0] == true %}
+                <div class="d-inline green-color">
+                  Online
+                </div>
+                {% else %}
+                <div class="d-inline gray-color">
+                  Offline
+                </div>
+                {% endif %}
+            </div>
+          <div class="col col-moreaction">
+        <!-- POSITION More action (bloquer, signaler) -->
+        <button id="moreActionDropdownMenuLink" class="more-action-btn btn btn-secondary"data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
+
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActionDropdownMenuLink">
+            <p class="dropdown-item no-margin clickable" onclick="block('{{ user }}')" >Block</p>
+            <p class="dropdown-item no-margin clickable" onclick="report('{{ user }}')">Report</p>
+            <p class="dropdown-item no-margin clickable" onclick="report('{{ user }}')">Delete conversation</p>
+        </div>
+          </div>
+        </div>
+          <div class="container container-messagerie" id ="log{{ roomsList[loop.index0] }}">
+
+            {% for messages in messagesList[loop.index0] %}
+
+            <div class="date-text {{ 'right' if current_user == messages[1] }}"><small > 
+              {{ messages[4]|strftime }} 
+            </small></div>
+            <div class="message_container {{ 'right' if current_user == messages[1] }}">
+              <div class="{{ 'message_content_user' if current_user == messages[1] else 'message_content_other' }}">
+                <div class="">
+                  {% if current_user != messages[1] %}
+                  {{ user }} : 
+                  {% endif %}
+                  {{ messages[3] }}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+
+
+          </div>
+
+        <div class="container mb-4">
+          <form id="emit" class="myform" method="POST" action='#'>
+            <input type="text" name="{{ user }}" placeholder="Message">
+            <input type="submit" value="Send">
           </form>
         </div>
       </div>
+    {% endfor %}
+
     </div>
   </row>
 </div>
 
+
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
 <script type="text/javascript" charset="utf-8">
-  $(document).ready(function() {
 
-      namespace = '/test';
-      var socket = io(namespace);
 
-      socket.on('connect', function() {
-          socket.emit('my_event', {data: 'connected to the SocketServer...'});
-      });
 
-      socket.on('my_response', function(msg, cb) {
-          $('#log').append('<br>' + $('<div/>').text('logs #' + msg.count + ': ' + msg.data).html());
-          if (cb)
-              cb();
-      });
-      $('form#emit').submit(function(event) {
-          socket.emit('my_event', {data: $('#emit_data').val()});
-          return false;
-      });
-      $('form#broadcast').submit(function(event) {
-          socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
-          return false;
-      });
-      $('form#disconnect').submit(function(event) {
-          socket.emit('disconnect_request');
-          return false;
-      });
+$( function() {
+      /* Button dropdown-message Gesture */
+    $("#dropdownmessagearrowhide").click(function(event) {
+      event.preventDefault();
+    var messageViewList = document.getElementById("messagelist");
+    console.log("Clicked");
+    var arrowrshow = document.getElementById("dropdownmessage");
+    arrowrshow.classList.remove("d-none");
+    arrowrshow.classList.add("d-inline");
+    messageViewList.classList.add("d-none");
   });
+
+  $("#dropdownmessagearrowshow").click(function(event) {
+      event.preventDefault();
+    var messageViewList = document.getElementById("messagelist");
+    console.log("Clicked");
+    var arrowrshow = document.getElementById("dropdownmessage");
+    arrowrshow.classList.remove("d-inline");
+    arrowrshow.classList.add("d-none");
+    messageViewList.classList.remove("d-none");
+  });
+
+} );
+
+$(document).ready(function() {
+
+  namespace = '/test';
+  var socket = io();
+      
+  socket.on('connect', () => {
+
+
+    // Automatically connect to all available channel
+
+    document.querySelectorAll('.list-group-item').forEach(function(channel){
+
+      socket.emit('join',{"username":channel.title});
+      channel.onclick = () =>{
+        section = "chat"+channel.id;
+        var lastelem = document.getElementsByClassName("current");
+        if (lastelem[0]) {
+          lastelem[0].classList.add("d-none");
+          lastelem[0].classList.remove("current");
+        }
+        var elem = document.getElementById(section);
+        elem.classList.remove("d-none");
+        elem.classList.add("current");
+        var containermessages = document.getElementById("log"+channel.id);
+        containermessages.scrollTop = containermessages.scrollHeight;
+        return false;
+      }
+    });
+
+  });
+
+  // Callback from server for sending messages
+  socket.on('broadcast_message', data =>{
+    // Append message to list of messages
+    var response = "log"+data.room;
+    var responseelem = document.getElementById(response);
+    var otheruser = document.getElementById(data.room).title;
+
+    let datediv = document.createElement("small");
+    datediv.classList.add("date-text");
+
+    var mydate = new Date(data.date*1000);
+
+    datediv.append($('<div/>').text(mydate.getHours() + ":" + mydate.getMinutes() + ":" + mydate.getSeconds()).html());
+    datecontainer = document.createElement("div");
+    if (data.username != otheruser) {
+      datecontainer.classList.add("right");
+    }
+    datecontainer.appendChild(datediv);
+    responseelem.appendChild(datecontainer);
+
+
+    let divparent = document.createElement("div");
+    divparent.classList.add("message_container");
+    let divcontent = document.createElement("div");
+    let div = document.createElement("div");
+
+
+    if (data.username != otheruser) {
+      //Si l'utilisateur est l'auteur du message
+      divparent.classList.add("right");
+      divcontent.classList.add("message_content_user");
+      div.append($('<div/>').text(data.message).html());
+    }
+    else {
+      //Si l'utilisateur Lit le message d'un autre utilisateur
+      divcontent.classList.add("message_content_other");
+      div.append($('<div/>').text(data.username + ' : ' + data.message).html());
+    }
+    divcontent.appendChild(div);
+    divparent.appendChild(divcontent);
+    responseelem.appendChild(divparent);
+    responseelem.scrollTop = responseelem.scrollHeight;
+  });
+
+  $('.myform').submit(function(event) {
+    event.preventDefault();
+    console.log($(this).serializeArray());
+    var values = $(this).serializeArray();
+    $.ajax({
+            type: 'POST',
+            url: '/sendmessage',
+            data: {"msg":values[0].value, "receiver":values[0].name},
+            success: function(data) {
+                if (data == 'KO') {
+                    //document.getElementById("block-error").style.display = "block";
+                    console.log("ko");
+                }
+                else {
+                  console.log("OK");
+                  socket.emit('send_message', {'message': data.msg, 'date':data.date , 'username': values[0].name });
+                }
+            },
+        });
+    return false;
+  });
+
+});
+
+/* AJAX Request */
+
+//Repport Ajax Gesture
+
+function block(u) {
+  $.ajax({
+            type: 'POST',
+            url: '/block',
+            data: {"user":u},
+            success: function(data) {
+                if (data == 'KO') {
+                    //document.getElementById("block-error").style.display = "block";
+                    console.log("ko");
+                }
+                else {
+                  console.log("OK");
+                    //document.getElementById("bio-error").style.display = "none";
+                    //document.getElementById("bio").innerHTML = data;
+                }
+            },
+        });
+};
+
+
+function report(u) {
+  $.ajax({
+            type: 'POST',
+            url: '/report',
+            data: {"user":u},
+            success: function(data) {
+                if (data == 'KO') {
+                    //document.getElementById("block-error").style.display = "block";
+                    console.log("ko");
+                }
+                else {
+                  console.log("OK");
+                    //document.getElementById("bio-error").style.display = "none";
+                    //document.getElementById("bio").innerHTML = data;
+                }
+            },
+        });
+};
+
+
+
+
+
+
 </script>
   
 
 {% endblock %}
+
+

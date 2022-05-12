@@ -16,7 +16,70 @@
     height: 100%;
   }
 
-  .message-container {
+  /* *************************************** */
+  /*        En tête messagerie               */
+  /*******************************************/
+
+  .col-moreaction {
+    text-align:right;
+    padding-right:4rem;
+  }
+
+  .container-messagerie {
+    height:400px;
+    overflow-y: scroll;
+  }
+
+  /* *************************************** */
+  /* Affichage des Messages privées         */
+  /*******************************************/
+
+  .message_container{
+    margin-bottom: 0.5rem;
+  }
+  .right {
+    text-align:right;
+  }
+
+  .message_content_user, .message_content_other {
     border-radius: calc(.7rem - 1px);
     padding:0.3rem;
+    display: inline-flex;
   }
+
+  .message_content_user{
+    background-color: lightgray;
+  }
+
+  .message_content_other {
+    background-color: rgb(136, 195, 216);
+  }
+
+/********************************/
+/*          Media Query         */
+/********************************/
+
+/* Affichage messagerie small device */
+@media screen and (max-width: 500px) {
+  .col-moreaction{
+    padding-right:20px;
+  }
+
+
+  .container-messagerie {
+    height:200px;
+  }
+  
+  .messagelistresponsive {
+    position: absolute;
+    z-index: 2;
+    min-height: 200px;
+    border-right-style:solid;
+    border-right-width:2px;
+    border-color:#f8f9fa;
+  }
+}
+
+
+
+

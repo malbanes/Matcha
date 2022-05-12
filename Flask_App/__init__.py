@@ -5,6 +5,9 @@ import os
 import psycopg2
 from models import User
 
+#import for time filter
+from datetime import datetime
+
 #sammy-test
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
@@ -51,6 +54,14 @@ def create_app():
     # define the redirection path when login required and we attempt to access without being logged in
     login_manager.init_app(app) 
     # configure it for login
+
+    #By Malbanes : time filter for message gesture
+    @app.template_filter('strftime')
+    def _jinja2_filter_datetime(date, fmt=None):
+        mydate = datetime.fromtimestamp(date)
+        native = mydate.replace(tzinfo=None)
+        format='%H:%M:%S'
+        return native.strftime(format) 
     
     @login_manager.user_loader
     def load_user(user_id):

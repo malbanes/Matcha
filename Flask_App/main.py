@@ -12,7 +12,7 @@ from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
 from age_calc import age, age_period
 from localization import localize_text, distance
-from datetime import date
+from datetime import date, datetime
 from token_gen import generate_confirmation_token, confirm_token, generate_email_token, confirm_email_token
 from email_mngr import send_email
 
@@ -25,6 +25,8 @@ from werkzeug.datastructures import  FileStorage
 
 GENRE = ["Non-binaire", "Men", "Women"]
 ORIENTATION = ["Bisexuel", "Heterosexuel", "Homosexuel"]
+rooms = ["conv1", "conv2", "conv3"]
+
 
 # home page that return 'index'
 main = Blueprint('main', __name__)
@@ -121,15 +123,64 @@ def addlike():
     if request.method == 'POST':
         user_id = request.form['data']
         if user_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
+            conn.commit()
+
+            cur.close()
+            conn.close()
+
             return (user_id)
         else:
             return ("KO")
+
+@main.route('/sendmessage', methods = ['POST'])
+def sendmessage():
+    if request.method == 'POST':
+        receiver = request.form['receiver']
+        msg = request.form['msg']
+        if msg and msg != '':
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            #get receiver_id from username
+            cur.execute("SELECT id FROM users WHERE username='{0}';".format(receiver))
+            receiver_id = cur.fetchone()[0]
+            print(receiver_id)
+            
+            msg_time = float(datetime.now().timestamp())
+
+            # create a new message
+            cur.execute("INSERT INTO messages (sender_id, receiver_id, msg, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(current_user.id , receiver_id, msg, msg_time))
+            conn.commit()
+            cur.execute("SELECT date_added FROM messages WHERE sender_id='{0}' AND receiver_id='{1}' AND msg='{2}' AND date_added='{3}' LIMIT 1;".format(current_user.id , receiver_id, msg, msg_time))
+            msg_date = cur.fetchone()[0]
+            # add the new user to the database
+            cur.close()
+            conn.close()
+
+            return {
+                'msg': msg,
+                'date': msg_date
+            }
+        else:
+            return ("KO")
+
+            
 
 @main.route('/dellike', methods = ['POST'])
 def dellike():
     if request.method == 'POST':
         user_id = request.form['data']
         if user_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("DELETE FROM likes WHERE sender_id='{0}' AND receiver_id='{1}';".format(current_user.id , user_id))
+            conn.commit()
+
+            cur.close()
+            conn.close()
             return (user_id)
         else:
             return ("KO")
@@ -137,18 +188,19 @@ def dellike():
 @main.route('/block', methods = ['POST'])
 def block():
     if request.method == 'POST':
-        user_id = request.form['data']
-        if user_id :
-            return (user_id)
+        username = request.form['user']
+        if username :
+            return (username)
         else:
             return ("KO")
+
 
 @main.route('/report', methods = ['POST'])
 def report():
     if request.method == 'POST':
-        user_id = request.form['data']
-        if user_id :
-            return (user_id)
+        username = request.form['user']
+        if username :
+            return (username)
         else:
             return ("KO")
 
@@ -234,6 +286,8 @@ def delimg():
             return (img_id)
         else:
             return ("KO")
+
+        
 
 @main.route('/updatebio', methods = ['POST'])
 def updbio():
@@ -435,10 +489,53 @@ def account():
 def match():
     return render_template('match.html')
 
+# Add Like
+# INSERT INTO likes(sender_id, receiver_id) VALUES(29, 30);
+
+
+
 # chat page that return 'match'
 @main.route('/chat') 
 def chat():
-    return render_template('chat.html', sync_mode=socketio.async_mode)
+
+    usersList = [] 
+    matchList = []
+    roomsList = []
+    messagesList = []
+    onlineList = []
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT receiver_id FROM likes WHERE sender_id={0};".format(current_user.id))
+    like_list = cur.fetchall()
+    for i in like_list:
+        cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id='{0}' AND receiver_id='{1}';".format(i[0], current_user.id))
+        if cur.fetchone()[0] > 0:
+            matchList.append(i[0])
+    for i in matchList:
+        cur.execute("SELECT username FROM users WHERE id='{0}';".format(i))
+        usersList.append(cur.fetchone()[0])
+        cur.execute("SELECT is_online FROM profil WHERE user_id='{0}';".format(i))
+        onlineList.append(cur.fetchone()[0])
+        cur.execute("SELECT * FROM messages WHERE (sender_id='{0}' AND receiver_id='{1}') OR (sender_id='{1}' AND receiver_id='{0}') ORDER BY date_added ASC;".format(current_user.id, i))
+        messages = cur.fetchall()
+        messagesList.append(messages)
+
+
+    
+
+    cur.close()
+    conn.close()
+    for u in usersList:
+        if current_user.username < u :
+            roomsList.append(current_user.username+u)
+        else :
+            roomsList.append(u+current_user.username)
+        
+
+
+    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user.id, onlineList=onlineList)
 
 # notification page that return 'match'
 @main.route('/notification') 
@@ -569,7 +666,7 @@ def test_message(message):
          {'data': message['data'], 'count': session['receive_count']})
 
 
-@socketio.on('my_broadcast_event', namespace='/test')
+@socketio.on('broadcast_message')
 def test_broadcast_message(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
     emit('my_response',
@@ -587,6 +684,33 @@ def disconnect_request():
     emit('my_response',
          {'data': 'Disconnected!', 'count': session['receive_count']},
          callback=can_disconnect)
+
+@socketio.on("send_message")
+def message(data):
+    username = data['username']
+    if current_user.username < username :
+        room = current_user.username+username
+    else :
+        room = username+current_user.username
+    print(room)
+    emit("broadcast_message", {"message": data['message'],"date":data['date'], "username":current_user.username, "room":room}, room=room)
+
+@socketio.on('join')
+def on_join(data):
+    username = data['username']
+    if current_user.username < username :
+        channel = current_user.username+username
+    else :
+        channel = username+current_user.username
+    join_room(channel)
+    print("User join the chanel"+channel)
+
+
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username']
+    room = data['room']
+    leave_room(room)
 
 # setup Mail
 mail = Mail(app)   
