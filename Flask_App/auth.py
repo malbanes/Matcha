@@ -14,6 +14,7 @@ from email_mngr import send_email
 from password_checker import password_check
 import re
 from datetime import datetime
+from localization import localize_user
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -31,7 +32,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
-        cur.execute("SELECT * FROM users WHERE username='{0}' LIMIT 1;".format(username))
+        cur.execute("SELECT * FROM users WHERE username=%(username)s LIMIT 1", {'username': username})
         user = cur.fetchone()
         
         # check if the user actually exists + take the user-supplied password, hash it, and compare it to the hashed password in the database
@@ -44,7 +45,7 @@ def login():
             return redirect(url_for('auth.login')) 
         # if the above check passes, then we know the user has the right credentials
         login_user(User(user), remember=remember)
-        cur.execute("UPDATE profil SET is_online = true WHERE user_id='{0}';".format(current_user.id))
+        cur.execute("UPDATE profil SET is_online = true WHERE user_id=%(id)s", {'id': current_user.id})
         conn.commit()
         cur.close()
         conn.close()
@@ -99,9 +100,14 @@ def signup():
             # add the new user to the database
             new_user = cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
             new_user = cur.fetchone()
+            localisation, latitude, longitude = localize_user()
+            loc_id = cur.execute("INSERT INTO location (latitude,longitude,date_modif,city) VALUES ('{0}', '{1}', '{2}', '{3}') returning id;".format(latitude,longitude,str(datetime.date(datetime.now())),localisation))
+            conn.commit()
+            loc_id = cur.fetchone()
+            cur.execute("INSERT INTO profil (user_id, location_id) VALUES ('{0}', '{1}');".format(new_user[0], loc_id[0]))
+            conn.commit()
             cur.close()
             conn.close()
-
             token = generate_confirmation_token(email)
             confirm_url = url_for('auth.confirm_email', token=token, _external=True)
             html = render_template('activate.html', confirm_url=confirm_url)
@@ -141,7 +147,7 @@ def confirm_email(token):
 @login_required
 def unconfirmed():
     if current_user.confirmed:
-        return redirect('main.index')
+        return redirect(url_for('main.index'))
     flash('Please confirm your account!', 'warning')
     return render_template('unconfirmed.html')
 

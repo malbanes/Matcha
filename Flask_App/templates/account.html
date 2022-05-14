@@ -275,8 +275,14 @@
                 <div class="h2 text-deepblue">
                     <strong>Delete my account</strong>
                 </div>
-                <p class="small">Pour vous désinscrire de Matcha, veuillez confirmer votre identité :</p>
+                <p class="small">Your entire profile and your data will be deleted.  No possible recovery!<br>If you want to process, fill the below field with the sentence: Delete my account now</p>
               </div>
+              <form method="POST" action="/account">
+                <div class="form-group">
+                        <input class="form-control" type="deletemyaccount" name="deletemyaccount" placeholder="Delete my account now" autofocus="">
+                </div>
+                <button type="submit" class="btn btn-primary">Delete my account</button>
+              </form>
               <!--Form > email/mdp > Valider -->
               <!--Forgot password link -->
             </div>

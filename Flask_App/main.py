@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, flash, url_for, redirect, current_app, jsonify
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, logout_user
 
 from flask_mail import Mail
 #Chargement socketIO des modules requis
@@ -10,7 +10,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
 from age_calc import age, age_period
-from localization import localize_text, distance
+from localization import localize_text, distance, localize_user
 from datetime import date
 from token_gen import generate_confirmation_token, confirm_token, generate_email_token, confirm_email_token
 from email_mngr import send_email
@@ -21,6 +21,8 @@ from password_checker import password_check
 from img_upload import upload_file_to_s3, create_presigned_url
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
+
+import re
 
 GENRE = ["Non-binaire", "Men", "Women"]
 ORIENTATION = ["Bisexuel", "Heterosexuel", "Homosexuel"]
@@ -64,7 +66,10 @@ def profile():
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
     print(images_path)
     total_img = len(images_path)
-    fav_image = images_path[int(image_profil_id)][1]
+    if images_path != []:
+        fav_image = images_path[int(image_profil_id)][1]
+    else:
+        fav_image = "0"
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
     interest = cur.fetchall()
     print(interest)
@@ -126,6 +131,8 @@ def showprofile():
     return render_template('show_profile.html', profil=profil, name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
 
 @main.route('/addlike', methods = ['POST'])
+@login_required
+@check_confirmed
 def addlike():
     if request.method == 'POST':
         user_id = request.form['data']
@@ -135,6 +142,8 @@ def addlike():
             return ("KO")
 
 @main.route('/dellike', methods = ['POST'])
+@login_required
+@check_confirmed
 def dellike():
     if request.method == 'POST':
         user_id = request.form['data']
@@ -144,6 +153,8 @@ def dellike():
             return ("KO")
 
 @main.route('/block', methods = ['POST'])
+@login_required
+@check_confirmed
 def block():
     if request.method == 'POST':
         user_id = request.form['data']
@@ -153,6 +164,8 @@ def block():
             return ("KO")
 
 @main.route('/report', methods = ['POST'])
+@login_required
+@check_confirmed
 def report():
     if request.method == 'POST':
         user_id = request.form['data']
@@ -163,6 +176,8 @@ def report():
 
 # edit profile page that return 'edit-profile'
 @main.route('/edit-profile') 
+@login_required
+@check_confirmed
 def editprofile():
     image_path = dict()
     conn = get_db_connection()
@@ -170,10 +185,16 @@ def editprofile():
 
     cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
     image_profil = cur.fetchone()
-    image_profil_id = str(image_profil[0])
+    if image_profil != None:
+        image_profil_id = str(image_profil[0])
+    print(image_profil_id)
     cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
     all_images = cur.fetchall()
-    fav_image = all_images[int(image_profil_id)][0]
+    print(all_images)
+    if all_images != []:
+        fav_image = all_images[int(image_profil_id)][0]
+    else:
+        fav_image = None
     cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
 
     i_am = cur.fetchone()
@@ -196,13 +217,14 @@ def editprofile():
     conn.close()
     for key, imgpth in all_images:
         image_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
-    print(fav_image)
     total_img = len(image_path)
     if total_img != 5:
         image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/no-photo.png")
     return render_template('edit-profile.html', image_profil=str(fav_image), images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
 
 @main.route('/uploadajax', methods = ['POST'])
+@login_required
+@check_confirmed
 def upldfile():
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -226,6 +248,8 @@ def upldfile():
             return ("KO")
 
 @main.route('/setimageprofil', methods = ['POST'])
+@login_required
+@check_confirmed
 def setimgprofil():
     if request.method == 'POST':
         img_id = request.form['data']
@@ -241,6 +265,8 @@ def setimgprofil():
             return ("KO")
 
 @main.route('/deleteimage', methods = ['POST'])
+@login_required
+@check_confirmed
 def delimg():
     if request.method == 'POST':
         img_id = request.form['data']
@@ -250,6 +276,8 @@ def delimg():
             return ("KO")
 
 @main.route('/updatebio', methods = ['POST'])
+@login_required
+@check_confirmed
 def updbio():
     if request.method == 'POST':
         if 'newBio' not in request.form:
@@ -269,6 +297,8 @@ def updbio():
             return ("KO")
 
 @main.route('/updateprimary', methods = ['POST'])
+@login_required
+@check_confirmed
 def updprim():
     if request.method == 'POST':
         if 'newGender' not in request.form:
@@ -297,6 +327,8 @@ def updprim():
 
     
 @main.route('/updatehashtag', methods = ['POST'])
+@login_required
+@check_confirmed
 def updhash():
     if request.method == 'POST':
         hash_id = request.form.getlist("check")
@@ -325,24 +357,29 @@ def updhash():
 # account profile page that return 'account'
 @main.route('/account', methods=['GET', 'POST'])
 @login_required
+@check_confirmed
+@login_required
 def account():
     onglet = None
     section = None
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     profil = cur.fetchone()
-    cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
+    cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
     localisation = cur.fetchone()[0]
     username = current_user.username
     email = current_user.email
     firstname = current_user.firstname
     lastname = current_user.lastname
-    cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s", {'id': current_user.id})
     image_profil = cur.fetchone()[0]
-    cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
     all_images = cur.fetchall()
-    fav_image = all_images[int(image_profil)][1]
+    if all_images != []:
+        fav_image = all_images[int(image_profil)][1]
+    else:
+        fav_image = None
     if image_profil :
         image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
     else :
@@ -359,6 +396,23 @@ def account():
             section = request.args.get('section')
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section)
     else:
+        if 'deletemyaccount' in request.form:
+            officialdelete = request.form.get('deletemyaccount')
+            if str(officialdelete) == "Delete my account now":
+                cur.execute("DELETE FROM \"ProfilInterest\" USING users WHERE user_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM images USING users WHERE profil_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM profil USING users WHERE user_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM users WHERE id =%(id)s", {'id': current_user.id})
+                logout_user()
+                conn.commit()
+                cur.close()
+                conn.close()
+                flash('Your account is now deleted', 'warning')
+                return redirect(url_for('main.index'))
+            else:
+                flash('There was an error  while deleting your account, try again!', 'warning')
+                return redirect(url_for('main.account'))
+
         if 'username' in request.form:
             if current_user.confirmed is False:
                 flash('Please confirm your account!', 'warning')
@@ -368,21 +422,21 @@ def account():
             lastname1 = request.form.get('last_name')
             username1 = request.form.get('username')
             localisation1 = request.form.get('location')
-            cur.execute("SELECT * FROM users WHERE username='{0}';".format(username1))
+            cur.execute("SELECT * FROM users WHERE username=%(username)s", {'username': username1})
             username_check = cur.fetchall()
             print(username_check)
             if username1 != "" and username_check != []:
                 flash('User Name address already exists')
             elif username1 != "":
-                cur.execute("UPDATE users SET username = '{0}' WHERE id='{1}';".format(username1,current_user.id))
+                cur.execute("UPDATE users SET username = %(username)s WHERE id=%(id)s", {'username': username1, 'id': current_user.id})
                 conn.commit()
                 username = username1
             if firstname1 != "":
-                cur.execute("UPDATE users SET first_name = '{0}' WHERE id='{1}';".format(firstname1,current_user.id))
+                cur.execute("UPDATE users SET first_name = %(firstname)s WHERE id=%(id)s", {'firstname': firstname1, 'id': current_user.id})
                 conn.commit()
                 firstname = firstname1           
             if lastname1 != "":
-                cur.execute("UPDATE users SET last_name = '{0}' WHERE id='{1}';".format(lastname1,current_user.id))
+                cur.execute("UPDATE users SET last_name = %(lastname)s WHERE id=%(id)s", {'lastname': lastname1, 'id': current_user.id})
                 conn.commit()
                 lastname = lastname1           
             if localisation1 != "":
@@ -392,7 +446,7 @@ def account():
                 print(lont)
                 print(display_loc)
                 if  display_loc != "ERROR - WRONG LOCALISATION":
-                    cur.execute("UPDATE location SET latitude = '{0}', longitude = '{1}', date_modif = '{2}', city = '{3}' WHERE id='{4}';".format(lat,lont,today,display_loc.strip(),profil[4]))
+                    cur.execute("UPDATE location SET latitude = %(lat)s, longitude = %(long)s, date_modif = %(date)s, city = %(city)s WHERE id=%(id)s", {'lat': lat, 'long': lont, 'date': today, 'city': display_loc.strip(),'id': profil[4]})
                     conn.commit()
                     localisation = display_loc
                 else:
@@ -406,7 +460,7 @@ def account():
                 oldpassword = request.form.get('oldpassword')
                 password1 = request.form.get('password1')
                 password2 = request.form.get('password2')
-                cur.execute("SELECT * FROM users WHERE id='{0}' LIMIT 1;".format(current_user.id))
+                cur.execute("SELECT * FROM users WHERE id=%(id)s LIMIT 1", {'id': current_user.id})
                 user = cur.fetchone()
                 pass_complexity = password_check(password1)
                 if password1 != password2:
@@ -427,18 +481,19 @@ def account():
                         error_to_return = error_to_return + "\nPassword must contain at least 1 special character. "
                     flash('password not enough complex:\n' + error_to_return, 'warning')
                 else:
-                    cur.execute("UPDATE users SET password = crypt('{0}', gen_salt('bf')) WHERE id='{1}';".format(password1, current_user.id))
+                    cur.execute("UPDATE users SET password = crypt(%(pwd)s, gen_salt('bf')) WHERE id=%(id)s", {'pwd':password1, 'id': current_user.id})
                     conn.commit()
                     flash('password updated', 'success')
         elif 'email' in request.form:
             print("email")
             email1 = request.form.get('email')
-            cur.execute("SELECT * FROM users WHERE email='{0}';".format(email1))
+            cur.execute("SELECT * FROM users WHERE email=%(email)s", {'email': email1})
             email_check = cur.fetchall()
             print(email_check)
             email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
             if email1 != "" and email_check == [] and re.fullmatch(email_regex, email):
-                cur.execute("UPDATE users SET email = '{0}', confirmed = false WHERE id='{1}';".format(email1,current_user.id))
+                #cur.execute("UPDATE users SET email = '{0}', confirmed = false WHERE id='{1}';".format(email1,current_user.id))
+                cur.execute("UPDATE users SET email = %(email)s,  confirmed = false WHERE id=%(id)s", {'email':email1, 'id': current_user.id})
                 conn.commit()
                 token = generate_confirmation_token(email1)
                 confirm_url = url_for('auth.confirm_email', token=token, _external=True)
@@ -457,22 +512,30 @@ def account():
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet)
 
 # match page that return 'match'
-@main.route('/match') 
+@main.route('/match')
+@login_required
+@check_confirmed
 def match():
     return render_template('match.html')
 
 # chat page that return 'match'
 @main.route('/chat') 
+@login_required
+@check_confirmed
 def chat():
     return render_template('chat.html')
 
 # notification page that return 'match'
 @main.route('/notification') 
+@login_required
+@check_confirmed
 def notification():
     return render_template('notification.html')
 
 # search page that return 'match'
 @main.route('/search', methods=['GET', 'POST'])
+@login_required
+@check_confirmed
 def search():
     conn = get_db_connection()
     cur = conn.cursor()
