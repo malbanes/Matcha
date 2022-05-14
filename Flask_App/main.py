@@ -42,7 +42,7 @@ def profile():
     print(current_user.name)
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     profil = cur.fetchone()
     print(profil)
     age_num = str(age(profil[5]))
@@ -54,13 +54,13 @@ def profile():
         score = str(0)
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
-    cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     image_profil = cur.fetchone()
     if image_profil:
         image_profil_id = str(image_profil[0])
     else :
         image_profil_id = "0"
-    cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
@@ -70,15 +70,15 @@ def profile():
         fav_image = images_path[int(image_profil_id)][1]
     else:
         fav_image = "0"
-    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
     interest = cur.fetchall()
     print(interest)
     interest_list = []
     for id in interest:
-        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
+        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append(cur.fetchone()[0].rstrip())
         print(interest_list)
-    cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
+    cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
@@ -93,7 +93,7 @@ def showprofile():
     print(current_user.name)
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     profil = cur.fetchone()
     print(profil)
     age_num = str(age(profil[5]))
@@ -105,26 +105,29 @@ def showprofile():
         score = str(0)
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
-    cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     image_profil = cur.fetchone()
     if image_profil:
         image_profil_id = str(image_profil[0])
-    cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
     print(images_path)
     total_img = len(images_path)
-    fav_image = images_path[int(image_profil_id)][1]
-    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+    if images_path != []:
+        fav_image = images_path[int(image_profil_id)][1]
+    else:
+        fav_image = "0"
+    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
     interest = cur.fetchall()
     print(interest)
     interest_list = []
     for id in interest:
-        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
+        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append(cur.fetchone()[0].rstrip())
         print(interest_list)
-    cur.execute("SELECT city FROM location WHERE id='{0}';".format(profil[4]))
+    cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
@@ -182,32 +185,30 @@ def editprofile():
     image_path = dict()
     conn = get_db_connection()
     cur = conn.cursor()
-
-    cur.execute("SELECT image_profil FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
+    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     image_profil = cur.fetchone()
     if image_profil != None:
         image_profil_id = str(image_profil[0])
     print(image_profil_id)
-    cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(current_user.id))
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
     all_images = cur.fetchall()
     print(all_images)
     if all_images != []:
         fav_image = all_images[int(image_profil_id)][0]
     else:
         fav_image = None
-    cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(current_user.id))
-
+    cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     i_am = cur.fetchone()
     i_am_bio = str(i_am[0])
     i_am_genre = GENRE[i_am[1]]
     i_am_orientation = ORIENTATION[i_am[2]]
     print(i_am)
-    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
     interest = cur.fetchall()
     print(interest)
     interest_list = []
     for id in interest:
-        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id[0]))
+        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append(cur.fetchone()[0].rstrip())
         print(interest_list)
     print("blablabla")
@@ -239,7 +240,7 @@ def upldfile():
             output, file_path = upload_file_to_s3(file1, app.config["S3_BUCKET"], path)
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(file1.filename, file_path, current_user.id, date.today()))
+            cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, %(profil_id)s, %(date_added)s)", {'title': file1.filename, 'path': file_path, 'profil_id': current_user.id, 'date_added': date.today()})
             conn.commit()
             cur.close()
             conn.close()
@@ -256,8 +257,7 @@ def setimgprofil():
         if img_id :
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute
-            cur.execute("UPDATE profil SET image_profil='{0}' WHERE user_id={1};".format(img_id,current_user.id))
+            cur.execute("UPDATE profil SET image_profil=%(fav)s WHERE user_id=%(id)s", {'fav': img_id, 'id': current_user.id})
             conn.commit()
             cur.close()
             return ("success")
@@ -289,7 +289,7 @@ def updbio():
             print(bio)
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("UPDATE profil SET bio='{0}' WHERE user_id={1};".format(bio,current_user.id))
+            cur.execute("UPDATE profil SET bio=%(bio)s WHERE user_id=%(id)s", {'bio': bio, 'id': current_user.id})
             conn.commit()
             cur.close()
             return (bio)
@@ -308,7 +308,7 @@ def updprim():
         orient = request.form['newOrient']
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("UPDATE profil SET genre_id='{0}', orientation_id={1} WHERE user_id={2};".format(gender, orient, current_user.id))
+        cur.execute("UPDATE profil SET genre_id=%(genre)s, orientation_id=%(orientation)s WHERE user_id=%(id)s", {'genre': gender, 'orientation': orient, 'id': current_user.id})
         conn.commit()
         cur.close()
         conn.close()
@@ -338,14 +338,14 @@ def updhash():
             conn = get_db_connection()
             cur = conn.cursor()
             try:
-                cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id='{0}';".format(current_user.id))
+                cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
             except: 
                 print("no hash  for the user")
             for i in hash_id:
-                cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES ('{0}', '{1}');".format(current_user.id, i))
+                cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(id)s, %(int)s)", {'id': current_user.id, 'int': i})
                 conn.commit()
             for id in hash_id:
-                cur.execute("SELECT hashtag FROM \"Interest\" WHERE id='{0}' LIMIT 1;".format(id))
+                cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id})
                 existing_list.append(cur.fetchone()[0].rstrip())
                 print(existing_list)
             cur.close()
@@ -560,23 +560,23 @@ def search():
             locRangeSearch = int(locRangeSearch)
             print(locRangeSearch)
             if citySearch == '':
-                cur.execute("SELECT user_id FROM profil WHERE age between '{1}' and '{0}' AND score between {2} and {3};".format(ageMinComp, ageMaxComp, int(scoreMinSearch), int(scoreMaxSearch)))
+                cur.execute("SELECT user_id FROM profil WHERE age between %(max)s and %(min)s AND score between %(smin)s and %(smax)s", {'max': ageMaxComp, 'min': ageMinComp, 'smin': int(scoreMinSearch), 'smax': int(scoreMaxSearch)})
                 profil_list_id = cur.fetchall()
                 print(profil_list)
                 for i in profil_list_id:
-                    cur.execute("SELECT id, first_name FROM users where id={0} LIMIT 1;".format(i[0]))
+                    cur.execute("SELECT id, first_name FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
                     if i[0] != current_user.id:
                         profil_list.append(cur.fetchone())
             else:
-                cur.execute("SELECT user_id, location_id FROM profil WHERE age between '{1}' and '{0}' AND score between {2} and {3};".format(ageMinComp, ageMaxComp, int(scoreMinSearch), int(scoreMaxSearch)))
+                cur.execute("SELECT user_id, location_id FROM profil WHERE age between  %(max)s and %(min)s AND score between %(smin)s and %(smax)s", {'max': ageMaxComp, 'min': ageMinComp, 'smin': int(scoreMinSearch), 'smax': int(scoreMaxSearch)})
                 profil_list_id = cur.fetchall()
-                cur.execute("SELECT location_id FROM profil WHERE user_id = {0} LIMIT 1;".format(current_user.id))
+                cur.execute("SELECT location_id FROM profil WHERE user_id = %(id)s LIMIT 1", {'id': current_user.id})
                 loc_me = cur.fetchone()
-                cur.execute("SELECT latitude, longitude FROM location WHERE id = {0} LIMIT 1;".format(loc_me[0]))
+                cur.execute("SELECT latitude, longitude FROM location WHERE id = %(id)s LIMIT 1", {'id': loc_me[0]})
                 coordinates_me = cur.fetchone()
                 for i in profil_list_id:
                     if i[0] != current_user.id:
-                        cur.execute("SELECT latitude, longitude FROM location WHERE id = {0} LIMIT 1;".format(i[1]))
+                        cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
                         coordinates_others = cur.fetchone()
                         off_distance = distance(coordinates_me[0], coordinates_me[1], coordinates_others[0], coordinates_others[1])
                         print(off_distance)
@@ -587,7 +587,7 @@ def search():
                             print("remove user")
                 print("hiiiiii")
                 for i in final_profil_list_id:
-                    cur.execute("SELECT id, first_name FROM users where id={0} LIMIT 1;".format(i[0]))
+                    cur.execute("SELECT id, first_name FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
                     profil_list.append(cur.fetchone())
             cur.close()
             conn.close()
@@ -599,14 +599,14 @@ def search():
     full_interest = cur.fetchall()
     for user in profil_list:
         if user[0] != current_user.id:
-            cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id='{0}' LIMIT 1;".format(user[0]))
+            cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user[0]})
             user_details = cur.fetchone()
             print(user[0])
             print(user_details)
             if user_details != None:
                 image_profil = user_details[0]
                 print(image_profil)
-                cur.execute("SELECT id, path FROM images WHERE profil_id='{0}';".format(user[0]))
+                cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': user[0]})
                 all_images = cur.fetchall()
                 try:
                     fav_image = all_images[int(image_profil)][1]
@@ -626,7 +626,7 @@ def search():
                 else :
                     image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
                 user_age = str(age(user_details[1]))
-                cur.execute("SELECT city FROM location WHERE id='{0}' LIMIT 1;".format(user_details[2]))
+                cur.execute("SELECT city FROM location WHERE id=%(id)s LIMIT 1", {'id': user_details[2]})
                 user_location = cur.fetchone()[0]
                 final_users.append([user[1], user_age, user_location, image_profil_path])
                 print(len(final_users))

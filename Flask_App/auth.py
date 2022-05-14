@@ -72,7 +72,7 @@ def signup():
         #user = User.query.filter_by(email=email).first()
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT email FROM users WHERE email='{0}' OR username = '{1}';".format(email, username))
+        cur.execute("SELECT email FROM users WHERE email=%(email)s OR username = %(username)s", {'email': email, 'username': username})  
         user = cur.fetchall()
         # if a user is found, we want to redirect back to signup page so user can try again
         if user: 
@@ -95,16 +95,16 @@ def signup():
             return redirect(url_for('auth.signup'))
         else:
             # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-            cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES ('{0}', '{1}', '{2}', '{3}', crypt('{4}', gen_salt('bf')), false);".format(email, first_name, last_name,username,password))
+            cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES (%(email)s, %(first_name)s, %(last_name)s, %(username)s, crypt(%(password)s, gen_salt('bf')), false);", {'email': email, 'first_name': first_name, 'last_name': last_name, 'username': username, 'password': password})
             conn.commit()
             # add the new user to the database
-            new_user = cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+            new_user = cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': email})
             new_user = cur.fetchone()
             localisation, latitude, longitude = localize_user()
-            loc_id = cur.execute("INSERT INTO location (latitude,longitude,date_modif,city) VALUES ('{0}', '{1}', '{2}', '{3}') returning id;".format(latitude,longitude,str(datetime.date(datetime.now())),localisation))
+            loc_id = cur.execute("INSERT INTO location (latitude,longitude,date_modif,city) VALUES (%(lat)s, %(long)s, %(date)s, %(city)s) returning id", {'lat': latitude, 'long': longitude, 'date': str(datetime.date(datetime.now())), 'city': localisation})
             conn.commit()
             loc_id = cur.fetchone()
-            cur.execute("INSERT INTO profil (user_id, location_id) VALUES ('{0}', '{1}');".format(new_user[0], loc_id[0]))
+            cur.execute("INSERT INTO profil (user_id, location_id) VALUES (%(user_id)s, %(location_id)s)", {'user_id': new_user[0], 'location_id': loc_id[0]})
             conn.commit()
             cur.close()
             conn.close()
@@ -129,13 +129,13 @@ def confirm_email(token):
     
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+    cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': email})
     user = cur.fetchone()
     print(user)
     if user[7] == True:
-        flash('Account already confirmed. Please login.', 'success')
+        flash('Account confirmed. Please login.', 'success')
     else:
-        cur.execute("UPDATE users SET confirmed = true WHERE email='{0}';".format(email))
+        cur.execute("UPDATE users SET confirmed = true WHERE email=%(email)s", {'email': email})
         conn.commit()
         flash('You have confirmed your account. Thanks!', 'success')
     cur.close()
@@ -180,7 +180,7 @@ def reset_page():
         else:
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+            cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': email})
             user = cur.fetchone()
             if user:
                 token = generate_email_token(user[6])
@@ -208,7 +208,7 @@ def reset_password(token):
     if  request.method=='POST': 
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(confirm_email_token(token)))
+        cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': confirm_email_token(token)})
         user = cur.fetchone()
         print(user)
         password = request.form.get('password')
@@ -229,7 +229,7 @@ def reset_password(token):
             return render_template('reset_password.html', token=token)
         else:
             if user and user[7] == True:
-                cur.execute("UPDATE users SET password = crypt('{0}', gen_salt('bf')) WHERE email='{1}';".format(password, email))
+                cur.execute("UPDATE users SET password = crypt(%(password)s, gen_salt('bf')) WHERE email=%(email)s", {'password': password,'email': email})
                 conn.commit()
                 flash('Your password has been reset. Thanks!', 'success')
             else:
@@ -246,7 +246,7 @@ def reset_password(token):
 def logout():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("UPDATE profil SET is_online = false, last_log = '{0}' WHERE user_id={1};".format(str(datetime.date(datetime.now())),current_user.id))
+    cur.execute("UPDATE profil SET is_online = false, last_log = %(date)s WHERE user_id=%(id)s", {'date': str(datetime.date(datetime.now())),'id': current_user.id})
     conn.commit()
     cur.close()
     conn.close()
