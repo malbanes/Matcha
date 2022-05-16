@@ -25,7 +25,9 @@ from werkzeug.datastructures import  FileStorage
 
 GENRE = ["Non-binaire", "Men", "Women"]
 ORIENTATION = ["Bisexuel", "Heterosexuel", "Homosexuel"]
-rooms = ["conv1", "conv2", "conv3"]
+rooms = []
+NOTIF_TYPE = ["like", "view", "message"]
+
 
 
 # home page that return 'index'
@@ -118,6 +120,7 @@ def showprofile():
     conn.close()
     return render_template('show_profile.html', profil=profil, name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
 
+
 @main.route('/addlike', methods = ['POST'])
 def addlike():
     if request.method == 'POST':
@@ -131,6 +134,7 @@ def addlike():
             cur.close()
             conn.close()
 
+
             return (user_id)
         else:
             return ("KO")
@@ -140,6 +144,8 @@ def sendmessage():
     if request.method == 'POST':
         receiver = request.form['receiver']
         msg = request.form['msg']
+        #A FIX Check message format
+        
         if msg and msg != '':
 
             conn = get_db_connection()
@@ -154,15 +160,20 @@ def sendmessage():
             # create a new message
             cur.execute("INSERT INTO messages (sender_id, receiver_id, msg, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(current_user.id , receiver_id, msg, msg_time))
             conn.commit()
-            cur.execute("SELECT date_added FROM messages WHERE sender_id='{0}' AND receiver_id='{1}' AND msg='{2}' AND date_added='{3}' LIMIT 1;".format(current_user.id , receiver_id, msg, msg_time))
-            msg_date = cur.fetchone()[0]
+            cur.execute("SELECT id, date_added FROM messages WHERE sender_id='{0}' AND receiver_id='{1}' AND msg='{2}' AND date_added='{3}' LIMIT 1;".format(current_user.id , receiver_id, msg, msg_time))
+            msg_row = cur.fetchone()
+            msg_id = msg_row[0]
+            msg_date = msg_row[1]
+
             # add the new user to the database
             cur.close()
             conn.close()
 
             return {
                 'msg': msg,
-                'date': msg_date
+                'date': msg_date,
+                'receiver_id': receiver_id,
+                'msg_id' : msg_id
             }
         else:
             return ("KO")
@@ -489,13 +500,11 @@ def account():
 def match():
     return render_template('match.html')
 
-# Add Like
-# INSERT INTO likes(sender_id, receiver_id) VALUES(29, 30);
-
-
 
 # chat page that return 'match'
 @main.route('/chat') 
+@login_required
+@check_confirmed
 def chat():
 
     usersList = [] 
@@ -522,9 +531,6 @@ def chat():
         messages = cur.fetchall()
         messagesList.append(messages)
 
-
-    
-
     cur.close()
     conn.close()
     for u in usersList:
@@ -537,7 +543,7 @@ def chat():
 
     return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user.id, onlineList=onlineList)
 
-# notification page that return 'match'
+# notification page that return 'research'
 @main.route('/notification') 
 def notification():
     return render_template('notification.html')
@@ -643,6 +649,80 @@ def search():
     conn.close()
     return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
     
+@main.route('/addnotification', methods = ['POST'])
+def addnotif():
+    if request.method == 'POST':
+        user_id = request.form['receiver']
+        notif_type = int(request.form['notif_type'])
+        content = request.form['content']
+        notif_date = float(datetime.now().timestamp())
+        if user_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO notifications (user_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(user_id, notif_type, content, notif_date))
+            conn.commit()
+
+            cur.close()
+            conn.close()
+            return (NOTIF_TYPE[int(request.form['notif_type'])])
+        else:
+            return ("KO")
+
+@main.route('/readnotification', methods = ['POST'])
+def readnotif():
+    if request.method == 'POST':
+        user_id = request.form['receiver']
+        notif_type = int(request.form['notif_type'])
+        content = request.form['content']
+        notif_date = float(datetime.now().timestamp())
+
+
+        if user_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO notifications (user_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(user_id, notif_type, content, notif_date))
+            conn.commit()
+
+            cur.close()
+            conn.close()
+
+
+            return (NOTIF_TYPE[int(request.form['notif_type'])])
+        else:
+            return ("KO")
+
+@main.route('/getnavnotification', methods = ['POST'])
+def getnavnotif():
+
+    if request.method == 'POST':
+
+        if not current_user.is_authenticated:
+            return("KO")
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        #Notification setup Gesture
+        cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id='{0}' AND is_read=false AND notif_type=0;".format(current_user.id))
+        nbr_like = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id='{0}' AND is_read=false AND notif_type=1;".format(current_user.id))
+        nbr_view = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id='{0}' AND is_read=false AND notif_type=2;".format(current_user.id))
+        nbr_msg = cur.fetchone()[0]
+
+        total_notif = nbr_like + nbr_view + nbr_msg
+
+        cur.close()
+        conn.close()
+
+        return {
+            'likes': nbr_like,
+            'views': nbr_view,
+            'msgs': nbr_msg,
+            'total': total_notif
+        }
+
+    else:
+        return ("KO")
 
 # we initialize our flask app using the  __init__.py function 
 app = create_app()
@@ -658,23 +738,27 @@ thread_lock = Lock()
 #Variable globale pour stocker les threads
 
 
-
-@socketio.on('my_event', namespace='/test')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']})
-
-
-@socketio.on('broadcast_message')
-def test_broadcast_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         broadcast=True)
+# Notifications Dynamic Gesture 
+@socketio.on('join_request')
+def on_join_request():
+    user_id = current_user.id
+    join_room(user_id)
+    print("User join the chanel"+str(user_id))
 
 
-@socketio.on('disconnect_request', namespace='/test')
+@socketio.on('new_notif')
+def new_notif(data):
+    content = int(data['content'])
+    receiver = data['receiver']
+    notif_type = NOTIF_TYPE[int(data['notif_type'])]
+    # Si notif_type = message, add 1 to message
+    if int(data['notif_type']) == 2 :
+        value = 1
+    emit("notifications",
+        {"content": content, "notif_type":notif_type}, room=int(receiver))
+
+
+@socketio.on('disconnect_request')
 def disconnect_request():
     @copy_current_request_context
     def can_disconnect():
@@ -685,6 +769,8 @@ def disconnect_request():
          {'data': 'Disconnected!', 'count': session['receive_count']},
          callback=can_disconnect)
 
+
+# Chat Dynamic Gesture 
 @socketio.on("send_message")
 def message(data):
     username = data['username']
@@ -709,8 +795,11 @@ def on_join(data):
 @socketio.on('leave')
 def on_leave(data):
     username = data['username']
-    room = data['room']
-    leave_room(room)
+    if current_user.username < username :
+        channel = current_user.username+username
+    else :
+        channel = username+current_user.username
+    leave_room(channel)
 
 # setup Mail
 mail = Mail(app)   

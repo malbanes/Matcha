@@ -215,6 +215,8 @@ function add_like(user_id) {
                     var like_message = document.getElementById('like_message');
                     like_message.style.display = "none";
                     console.log("user "+data+" liké");
+                    add_notification(user_id , 0, "1");
+
                 }
             },
         });
@@ -234,7 +236,10 @@ function delete_like(user_id) {
                     like_img.classList.remove("red-color");
                     var like_message = document.getElementById('like_message');
                     like_message.style.display = "block";
+                    var socket = io();
+                    socket.emit('new_notif', {'content': "-1", 'receiver' : user_id, 'notif_type': 0});
                     console.log("user "+data+" Unliké");
+
                 }
             },
         });

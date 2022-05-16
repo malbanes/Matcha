@@ -63,18 +63,18 @@
 
             <li class="list-inline-item">
                 <a href="{{ url_for('main.account') }}" class="">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="myicon" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
-                        <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="myicon" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
                     </svg>
-                    <span class="counter counter-lg">99+</span>&nbsp;&nbsp;
+                    <span id="likecounter" class="counter counter-lg d-none">0</span>&nbsp;&nbsp;
                 </a>
             </li>
             <li class="list-inline-item">
                 <a href="{{ url_for('main.account') }}" class="">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="myicon" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="myicon" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
+                        <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
                     </svg>
-                    <span class="counter counter-lg">99+</span>&nbsp;&nbsp;
+                    <span id="viewcounter" class="counter counter-lg d-none">0</span>&nbsp;&nbsp;
                 </a>
             </li>
             <li class="list-inline-item">
@@ -83,7 +83,7 @@
                         <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
                         <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
                       </svg>
-                      <span class="counter counter-lg">99+</span>&nbsp;
+                      <span id="messagecounter" class="counter counter-lg d-none">0</span>&nbsp;
                 </a>
             </li>
             <li class="list-inline-item dropdown">
@@ -96,7 +96,16 @@
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
                     <a class="dropdown-item" href="{{ url_for('main.account') }}">My account</a>
                     <a class="dropdown-item" href="{{ url_for('main.editprofile') }}">Edit profile</a>
-                    <a class="dropdown-item" href="{{ url_for('main.notification') }}">Notification</a>
+                    <a class="dropdown-item" href="{{ url_for('main.notification') }}">
+                        <div class="">
+                            <div class="d-inline-flex">
+                                Notification
+                            </div>
+                            <div class="d-inline">
+                                <span id="globalcounter" class="text-danger counter counter-lg d-none">0</span>
+                            </div>
+                        </div>
+                    </a>
                     <a class="dropdown-item" href="{{ url_for('main.chat') }}">Message</a>
 
 
@@ -148,7 +157,151 @@
     </div>
 
     <!--Save root path in SCRIPT_ROOT-->
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+
+    <script type="text/javascript" charset="utf-8">
+
+
+//This fuction Save notification on BDD and sent dynamic notification to the nav
+        //Receiver = user_id; notif_type = [0,1,2]; content= [1, -1, msg_id] 
+function add_notification(receiver, notif_type, content) {
+    $.ajax({
+            type: 'POST',
+            url: '/addnotification',
+            data: {"receiver":receiver, "notif_type":notif_type, "content":content},
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log('Une erreur est survenue');
+                }
+                else {
+                    //Call notif dynamique
+                    var socket = io();
+                    socket.emit('new_notif', {'content': content, 'receiver' : receiver, 'notif_type': notif_type});
+
+                }
+            },
+        });
+} 
+  //window.onload = function() {
+  //yourFunction(param1, param2);
+  //};
+
+  function get_notification() {
+
+                $.ajax({
+                type: 'POST',
+                url: '/getnavnotification',
+                data: {"data":"get"},
+                success: function(data) {
+                    if (data == "KO") {
+                    console.log('Une erreur est survenue');
+                    }
+                    else {
+                        //Call notif dynamique
+                        var likecounter = document.getElementById('likecounter');
+                        var viewcounter = document.getElementById('viewcounter');
+                        var messagecounter = document.getElementById('messagecounter');
+                        var totalcounter = document.getElementById('globalcounter');
+                        //console.log("like:"+data.likes+", view:"+data.views+", msg: "+data.msgs+", total: "+data.total);
+
+                        if (likecounter != null) {
+                            if (Number.isInteger(data.likes)) {
+                            if (data.likes > 0) {
+                            likecounter.innerHTML = data.likes;
+                            likecounter.classList.remove('d-none');
+                            }
+                            else {
+                                likecounter.classList.add('d-none');
+                            }
+                        }
+                        if (Number.isInteger(data.views)) {
+                            if (data.views > 0) {
+                            viewcounter.innerHTML = data.views;
+                            viewcounter.classList.remove('d-none');
+                            }
+                            else {
+                                viewcounter.classList.add('d-none');
+                            }
+                        }
+                        if (Number.isInteger(data.msgs)) {
+                            if (data.msgs > 0) {
+                                messagecounter.innerHTML = data.msgs;
+                                messagecounter.classList.remove('d-none');
+                            }
+                            else {
+                                messagecounter.classList.add('d-none');
+                            }
+                        }
+                        if (Number.isInteger(data.total)) {
+                            if (data.total > 0) {
+                                totalcounter.innerHTML = data.total;
+                                totalcounter.classList.remove('d-none');
+                            }
+                            else {
+                                totalcounter.classList.add('d-none');
+                            }
+                        }
+                        }
+                        
+                    }
+                },
+                });
+            }
+
+        $(document).ready(function() {
+
+            var socket = io();
+
+            socket.on('connect', function() {
+                socket.emit('join_request');
+            });
+
+            socket.on('my_response', function(msg, cb) {
+                $('#log').append('<br>' + $('<div/>').text('logs #' + msg.count + ': ' + msg.data).html());
+                if (cb)
+                    cb();
+            });
+
+            socket.on('notifications', data =>{
+            
+            //Print Notification counter au bon endroit
+            notif_counter_id = data.notif_type + "counter"; //"like", "view", "message"
+            var notif_counter = document.getElementById(notif_counter_id);
+            if ( notif_counter != null) {
+                var oldValue = notif_counter.innerHTML;
+                var newValue = parseInt(oldValue)+parseInt(data.content);
+                var global_counter = document.getElementById('globalcounter');
+                var newTotal = parseInt(global_counter.innerHTML) + parseInt(data.content);
+                if (newValue > 0) {
+                notif_counter.classList.remove('d-none');
+                notif_counter.innerHTML = newValue;
+                }
+                else {
+                    notif_counter.classList.add('d-none');
+                }
+                if (newTotal > 0) {
+                    global_counter.innerHTML = newTotal;
+                    global_counter.classList.remove('d-none');
+                }
+                else {
+                    global_counter.classList.add('d-none');
+                }
+            }
+            //console.log("New value = "+ data.content);
+            });
+
+            // SETUP NOTIFICATION ON READY
+            get_notification();
+
+
+
+    });
+
+    </script>
+
     {% block script %} {% endblock %}
 
   </body>
 </html>
+

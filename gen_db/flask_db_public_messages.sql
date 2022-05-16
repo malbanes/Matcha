@@ -8,10 +8,10 @@ create table messages
     date_added float
 );
 
-alter table likes
+alter table messages
     owner to agu;
 
 create unique index messages_id_uindex
     on messages (id);
 
-grant delete, insert, references, select, trigger, truncate, update on likes to sammy;
+grant delete, insert, references, select, trigger, truncate, update on messages to sammy;

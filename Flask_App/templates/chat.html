@@ -162,7 +162,6 @@ $( function() {
 
 $(document).ready(function() {
 
-  namespace = '/test';
   var socket = io();
       
   socket.on('connect', () => {
@@ -251,6 +250,7 @@ $(document).ready(function() {
                 else {
                   console.log("OK");
                   socket.emit('send_message', {'message': data.msg, 'date':data.date , 'username': values[0].name });
+                  add_notification(data.receiver_id , 2, data.msg_id);
                 }
             },
         });
