@@ -85,15 +85,19 @@ def profile():
     return render_template('profile.html', name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
 
 # Other User profile page that return 'show-profile'
-@main.route('/showprofile') 
+@main.route('/showprofile/<username>') 
 @login_required
 @check_confirmed
-def showprofile():
+def showprofile(username):
     images_path = []
-    print(current_user.name)
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
+    cur.execute("SELECT * FROM users WHERE username=%(username)s LIMIT 1", {'username': username})
+    showuser_details = cur.fetchone()
+    user_id = showuser_details[0]
+    print(showuser_details[4])
+    user_name = str(showuser_details[4]) + " " + str(showuser_details[5])
+    cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     profil = cur.fetchone()
     print(profil)
     age_num = str(age(profil[5]))
@@ -105,11 +109,11 @@ def showprofile():
         score = str(0)
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
-    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
+    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     image_profil = cur.fetchone()
     if image_profil:
         image_profil_id = str(image_profil[0])
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': user_id})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
@@ -119,7 +123,7 @@ def showprofile():
         fav_image = images_path[int(image_profil_id)][1]
     else:
         fav_image = "0"
-    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
+    cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': user_id})
     interest = cur.fetchall()
     print(interest)
     interest_list = []
@@ -131,7 +135,7 @@ def showprofile():
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('show_profile.html', profil=profil, name=current_user.name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
+    return render_template('show_profile.html', profil=profil, name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
 
 @main.route('/addlike', methods = ['POST'])
 @login_required
@@ -161,9 +165,26 @@ def dellike():
 def block():
     if request.method == 'POST':
         user_id = request.form['data']
-        if user_id :
+        conn = get_db_connection()
+        cur = conn.cursor()  
+        cur.execute("SELECT to_user_id FROM accountcontrol WHERE (to_user_id=%(id)s AND blocked = true) LIMIT 1", {'id': user_id})
+        to_user_id = cur.fetchone()
+        if to_user_id != None:
+            to_user_id = to_user_id[0]
+        print(to_user_id)
+        print(user_id)
+        if user_id and str(to_user_id) != str(user_id):
+            print(user_id)      
+            cur.execute("INSERT INTO accountcontrol (blocked, fake, from_user_id, to_user_id) VALUES (true, false, %(from)s, %(to)s)", {'from': current_user.id, 'to': user_id})
+            conn.commit()
+            cur.close()
+            conn.close()
+            flash('The user has been blocked')
             return (user_id)
         else:
+            cur.close()
+            conn.close()
+            flash('The user is already blocked')
             return ("KO")
 
 @main.route('/report', methods = ['POST'])
@@ -172,9 +193,24 @@ def block():
 def report():
     if request.method == 'POST':
         user_id = request.form['data']
-        if user_id :
+        conn = get_db_connection()
+        cur = conn.cursor()  
+        cur.execute("SELECT to_user_id FROM accountcontrol WHERE (to_user_id=%(id)s AND blocked = true) LIMIT 1", {'id': user_id})
+        to_user_id = cur.fetchone()[0]
+        print(to_user_id)
+        print(user_id) 
+        if user_id and str(to_user_id) != str(user_id):
+            print(user_id)       
+            cur.execute("INSERT INTO accountcontrol (blocked, fake, from_user_id, to_user_id) VALUES (false, true, %(from)s, %(to)s)", {'from': current_user.id, 'to': user_id})
+            conn.commit()
+            cur.close()
+            conn.close()
+            flash('The user has been reported')
             return (user_id)
         else:
+            cur.close()
+            conn.close()
+            flash('The user is already reported')
             return ("KO")
 
 # edit profile page that return 'edit-profile'
@@ -362,8 +398,15 @@ def updhash():
 def account():
     onglet = None
     section = None
+    blocked_list = []
     conn = get_db_connection()
     cur = conn.cursor()
+    cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s and blocked=true)", {'id': current_user.id})
+    blocked_users = cur.fetchall()
+    for i in blocked_users:
+        cur.execute("SELECT * FROM users WHERE id=%(id)s LIMIT 1", {'id': i})
+        blocked_profil = cur.fetchone()
+        blocked_list.append([str(blocked_profil[4]) + " " + str(blocked_profil[5]), i])
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     profil = cur.fetchone()
     cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
@@ -394,7 +437,7 @@ def account():
             print(onglet)
         if request.args.get('section') != None :
             section = request.args.get('section')
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list)
     else:
         if 'deletemyaccount' in request.form:
             officialdelete = request.form.get('deletemyaccount')
@@ -509,7 +552,7 @@ def account():
         cur.close()
         conn.close()
 
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list)
 
 # match page that return 'match'
 @main.route('/match')
@@ -532,15 +575,88 @@ def chat():
 def notification():
     return render_template('notification.html')
 
+
+@main.route('/trisearch', methods = ['POST'])
+@login_required
+@check_confirmed
+def trisearch():
+    sort = []
+    if request.method == 'POST':
+        print("hello")
+        print(request.form.get('ageCheck'))
+        print(request.form.get('ageCheckOrder'))
+        print(request.form.get('distCheck'))
+        print(request.form.get('distCheckOrder'))
+        print(request.form.get('scoreCheck'))
+        print(request.form.get('scoreCheckOrder'))
+        print(request.form.get('hashtagCheck'))
+        print(request.form.get('hashtagCheckOrder'))
+        if request.form.get('ageCheck') == "on":
+            if request.form.get('ageCheckOrder') == "on":
+                sort.append(["age", "+"])
+            else:
+                sort.append(["age", "-"])
+        if request.form.get('distCheck') == "on":
+            if request.form.get('distCheckOrder') == "on":
+                sort.append(["dist", "+"])
+            else:
+                sort.append(["dist", "-"])
+        if request.form.get('scoreCheck') == "on":
+            if request.form.get('scoreCheckOrder') == "on":
+                sort.append(["score", "+"])
+            else:
+                sort.append(["score", "-"])
+        if request.form.get('hashtagCheck') == "on":
+            if request.form.get('hashtagCheckOrder') == "on":
+                sort.append(["hashtag", "+"])
+            else:
+                sort.append(["hashtag", "-"])
+    print(sort)
+    return ("KO")
+        #hash_id = request.form.getlist("check")
+        #print(hash_id)
+        #existing_list = []
+        #if (hash_id):
+        #    conn = get_db_connection()
+        #    cur = conn.cursor()
+        #    try:
+        #        cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
+        #    except: 
+        #        print("no hash  for the user")
+        #    for i in hash_id:
+        #        cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(id)s, %(int)s)", {'id': current_user.id, 'int': i})
+        #        conn.commit()
+        #    for id in hash_id:
+        #        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id})
+        #        existing_list.append(cur.fetchone()[0].rstrip())
+        #        print(existing_list)
+        #    cur.close()
+        #    conn.close()
+        #    return jsonify(existing_list)
+        #else:
+        #    return ("KO")
+
+
 # search page that return 'match'
 @main.route('/search', methods=['GET', 'POST'])
 @login_required
 @check_confirmed
 def search():
+    blacklisted_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name FROM users;")
+    cur.execute("SELECT id, first_name, username FROM users;")
     profil_list = cur.fetchall()
+    cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
+    blacklisted_elems = cur.fetchall()
+    for i in blacklisted_elems:
+        cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
+        blacklisted_list.append(cur.fetchone())
+    print(profil_list)
+    print(blacklisted_list)
+    print(len(profil_list))
+    profil_list = [x for x in profil_list if x not in blacklisted_list]
+    print(len(profil_list))
     if request.method=='POST':
         if 'ageMinSearch' in request.form:
             print("blablabebfbeizfi")
@@ -564,7 +680,7 @@ def search():
                 profil_list_id = cur.fetchall()
                 print(profil_list)
                 for i in profil_list_id:
-                    cur.execute("SELECT id, first_name FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
+                    cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
                     if i[0] != current_user.id:
                         profil_list.append(cur.fetchone())
             else:
@@ -587,11 +703,13 @@ def search():
                             print("remove user")
                 print("hiiiiii")
                 for i in final_profil_list_id:
-                    cur.execute("SELECT id, first_name FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
+                    cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
                     profil_list.append(cur.fetchone())
             cur.close()
             conn.close()
-    print(profil_list)
+    #print(profil_list)
+    profil_list = [x for x in profil_list if x not in blacklisted_list]
+    print(len(profil_list))
     final_users = []
     conn = get_db_connection()
     cur = conn.cursor()
@@ -601,11 +719,11 @@ def search():
         if user[0] != current_user.id:
             cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user[0]})
             user_details = cur.fetchone()
-            print(user[0])
-            print(user_details)
+            #print(user[0])
+            #print(user_details)
             if user_details != None:
                 image_profil = user_details[0]
-                print(image_profil)
+                #print(image_profil)
                 cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': user[0]})
                 all_images = cur.fetchall()
                 try:
@@ -618,9 +736,9 @@ def search():
                     all_images.append([3, 'test/no-photo.png'])
                     all_images.append([4, 'test/no-photo.png'])
                     fav_image = all_images[int(image_profil)][1]
-                print("all_images")
-                print(all_images)
-                print(fav_image)
+                #print("all_images")
+                #print(all_images)
+                #print(fav_image)
                 if fav_image:
                     image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
                 else :
@@ -628,9 +746,9 @@ def search():
                 user_age = str(age(user_details[1]))
                 cur.execute("SELECT city FROM location WHERE id=%(id)s LIMIT 1", {'id': user_details[2]})
                 user_location = cur.fetchone()[0]
-                final_users.append([user[1], user_age, user_location, image_profil_path])
-                print(len(final_users))
-    print(profil_list)
+                final_users.append([user[1], user_age, user_location, image_profil_path, user[2]])
+                #print(len(final_users))
+    #print(profil_list)
     cur.close()
     conn.close()
     return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)

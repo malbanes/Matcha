@@ -245,17 +245,17 @@
                     <strong>Person you blocked</strong>
                   </div>
                   <div class="">
-                    {% for i in range(1,2) %}
+                    {% for i in blocked_list %}
                     <div class="d-inline-flex">
                       <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
                         <a href="{{ url_for('main.profile')}}">
                           <div class="card-img-top">
-                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match3" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
+                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match3" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url('../static/img/no-photo.png')"></div>
                           </div>
                         </a>
                         <div class="card-body center">
-                          <h4 class="card-title mb-0">Elise</h5>
-                          <small><p class="card-text text-muted mb-2">24 ans . Paris</p></small>
+                          <h4 class="card-title mb-0">{{ i[0] }}</h5>
+                          <small><p class="card-text text-muted mb-2">is blocked</p></small>
                           <a href="#" class="mt-2">Unblock</a>
                         </div>
                       </div>
