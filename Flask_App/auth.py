@@ -14,6 +14,7 @@ from email_mngr import send_email
 from password_checker import password_check
 import re
 from datetime import datetime
+from localization import localize_user
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -31,7 +32,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
-        cur.execute("SELECT * FROM users WHERE username='{0}' LIMIT 1;".format(username))
+        cur.execute("SELECT * FROM users WHERE username=%(username)s LIMIT 1", {'username': username})
         user = cur.fetchone()
         
         # check if the user actually exists + take the user-supplied password, hash it, and compare it to the hashed password in the database
@@ -44,7 +45,7 @@ def login():
             return redirect(url_for('auth.login')) 
         # if the above check passes, then we know the user has the right credentials
         login_user(User(user), remember=remember)
-        cur.execute("UPDATE profil SET is_online = true WHERE user_id='{0}';".format(current_user.id))
+        cur.execute("UPDATE profil SET is_online = true WHERE user_id=%(id)s", {'id': current_user.id})
         conn.commit()
         cur.close()
         conn.close()
@@ -71,7 +72,7 @@ def signup():
         #user = User.query.filter_by(email=email).first()
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT email FROM users WHERE email='{0}' OR username = '{1}';".format(email, username))
+        cur.execute("SELECT email FROM users WHERE email=%(email)s OR username = %(username)s", {'email': email, 'username': username})  
         user = cur.fetchall()
         # if a user is found, we want to redirect back to signup page so user can try again
         if user: 
@@ -94,14 +95,19 @@ def signup():
             return redirect(url_for('auth.signup'))
         else:
             # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-            cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES ('{0}', '{1}', '{2}', '{3}', crypt('{4}', gen_salt('bf')), false);".format(email, first_name, last_name,username,password))
+            cur.execute("INSERT INTO users (email, first_name, last_name, username, password, confirmed) VALUES (%(email)s, %(first_name)s, %(last_name)s, %(username)s, crypt(%(password)s, gen_salt('bf')), false);", {'email': email, 'first_name': first_name, 'last_name': last_name, 'username': username, 'password': password})
             conn.commit()
             # add the new user to the database
-            new_user = cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+            new_user = cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': email})
             new_user = cur.fetchone()
+            localisation, latitude, longitude = localize_user()
+            loc_id = cur.execute("INSERT INTO location (latitude,longitude,date_modif,city) VALUES (%(lat)s, %(long)s, %(date)s, %(city)s) returning id", {'lat': latitude, 'long': longitude, 'date': str(datetime.date(datetime.now())), 'city': localisation})
+            conn.commit()
+            loc_id = cur.fetchone()
+            cur.execute("INSERT INTO profil (user_id, location_id) VALUES (%(user_id)s, %(location_id)s)", {'user_id': new_user[0], 'location_id': loc_id[0]})
+            conn.commit()
             cur.close()
             conn.close()
-
             token = generate_confirmation_token(email)
             confirm_url = url_for('auth.confirm_email', token=token, _external=True)
             html = render_template('activate.html', confirm_url=confirm_url)
@@ -123,13 +129,13 @@ def confirm_email(token):
     
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+    cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': email})
     user = cur.fetchone()
     print(user)
     if user[7] == True:
-        flash('Account already confirmed. Please login.', 'success')
+        flash('Account confirmed. Please login.', 'success')
     else:
-        cur.execute("UPDATE users SET confirmed = true WHERE email='{0}';".format(email))
+        cur.execute("UPDATE users SET confirmed = true WHERE email=%(email)s", {'email': email})
         conn.commit()
         flash('You have confirmed your account. Thanks!', 'success')
     cur.close()
@@ -141,7 +147,7 @@ def confirm_email(token):
 @login_required
 def unconfirmed():
     if current_user.confirmed:
-        return redirect('main.index')
+        return redirect(url_for('main.index'))
     flash('Please confirm your account!', 'warning')
     return render_template('unconfirmed.html')
 
@@ -174,7 +180,7 @@ def reset_page():
         else:
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(email))
+            cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': email})
             user = cur.fetchone()
             if user:
                 token = generate_email_token(user[6])
@@ -202,7 +208,7 @@ def reset_password(token):
     if  request.method=='POST': 
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE email='{0}' LIMIT 1;".format(confirm_email_token(token)))
+        cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': confirm_email_token(token)})
         user = cur.fetchone()
         print(user)
         password = request.form.get('password')
@@ -223,7 +229,7 @@ def reset_password(token):
             return render_template('reset_password.html', token=token)
         else:
             if user and user[7] == True:
-                cur.execute("UPDATE users SET password = crypt('{0}', gen_salt('bf')) WHERE email='{1}';".format(password, email))
+                cur.execute("UPDATE users SET password = crypt(%(password)s, gen_salt('bf')) WHERE email=%(email)s", {'password': password,'email': email})
                 conn.commit()
                 flash('Your password has been reset. Thanks!', 'success')
             else:
@@ -240,7 +246,7 @@ def reset_password(token):
 def logout():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("UPDATE profil SET is_online = false, last_log = '{0}' WHERE user_id={1};".format(str(datetime.date(datetime.now())),current_user.id))
+    cur.execute("UPDATE profil SET is_online = false, last_log = %(date)s WHERE user_id=%(id)s", {'date': str(datetime.date(datetime.now())),'id': current_user.id})
     conn.commit()
     cur.close()
     conn.close()
