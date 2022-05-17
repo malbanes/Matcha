@@ -187,6 +187,30 @@ def block():
             flash('The user is already blocked')
             return ("KO")
 
+@main.route('/unblock', methods = ['POST'])
+@login_required
+@check_confirmed
+def unblock():
+    if request.method == 'POST':
+        user_id = request.form['data']
+        print(user_id)
+        conn = get_db_connection()
+        cur = conn.cursor()  
+        try:
+            print("hello")
+            cur.execute("DELETE FROM accountcontrol WHERE (from_user_id=%(user)s AND to_user_id=%(id)s AND blocked = true)", {'user': current_user.id, 'id': user_id})
+            conn.commit()
+            cur.close()
+            conn.close()
+            flash('The user has been unblocked')
+            return (user_id)
+        except: 
+            print("error")
+            flash('Issue while unblocking user, try again later')
+            cur.close()
+            conn.close()
+            return ("KO")
+
 @main.route('/report', methods = ['POST'])
 @login_required
 @check_confirmed
@@ -406,7 +430,7 @@ def account():
     for i in blocked_users:
         cur.execute("SELECT * FROM users WHERE id=%(id)s LIMIT 1", {'id': i})
         blocked_profil = cur.fetchone()
-        blocked_list.append([str(blocked_profil[4]) + " " + str(blocked_profil[5]), i])
+        blocked_list.append([str(blocked_profil[4]) + " " + str(blocked_profil[5]), i[0], str(blocked_profil[1])])
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     profil = cur.fetchone()
     cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
@@ -612,29 +636,86 @@ def trisearch():
             else:
                 sort.append(["hashtag", "-"])
     print(sort)
-    return ("KO")
-        #hash_id = request.form.getlist("check")
-        #print(hash_id)
-        #existing_list = []
-        #if (hash_id):
-        #    conn = get_db_connection()
-        #    cur = conn.cursor()
-        #    try:
-        #        cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
-        #    except: 
-        #        print("no hash  for the user")
-        #    for i in hash_id:
-        #        cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(id)s, %(int)s)", {'id': current_user.id, 'int': i})
-        #        conn.commit()
-        #    for id in hash_id:
-        #        cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id})
-        #        existing_list.append(cur.fetchone()[0].rstrip())
-        #        print(existing_list)
-        #    cur.close()
-        #    conn.close()
-        #    return jsonify(existing_list)
-        #else:
-        #    return ("KO")
+    blacklisted_list = []
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, first_name, username FROM users;")
+    profil_list = cur.fetchall()
+    cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
+    blacklisted_elems = cur.fetchall()
+    for i in blacklisted_elems:
+        cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
+        blacklisted_list.append(cur.fetchone())
+    print(profil_list)
+    print(blacklisted_list)
+    print(len(profil_list))
+    profil_list = [x for x in profil_list if x not in blacklisted_list]
+    profil_list = [x for x in profil_list if x not in blacklisted_list]
+    print(len(profil_list))
+    final_users = []
+    cur.execute("SELECT * FROM \"Interest\";")
+    full_interest = cur.fetchall()
+    for user in profil_list:
+        if user[0] != current_user.id:
+            cur.execute("SELECT image_profil, age, location_id, score FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user[0]})
+            user_details = cur.fetchone()
+            #print(user[0])
+            #print(user_details)
+            if user_details != None:
+                image_profil = user_details[0]
+                #print(image_profil)
+                cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': user[0]})
+                all_images = cur.fetchall()
+                try:
+                    fav_image = all_images[int(image_profil)][1]
+
+                except:
+                    all_images.append([0, 'test/no-photo.png']) 
+                    all_images.append([1, 'test/no-photo.png'])
+                    all_images.append([2, 'test/no-photo.png'])
+                    all_images.append([3, 'test/no-photo.png'])
+                    all_images.append([4, 'test/no-photo.png'])
+                    fav_image = all_images[int(image_profil)][1]
+                #print("all_images")
+                #print(all_images)
+                #print(fav_image)
+                if fav_image:
+                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
+                else :
+                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+                user_age = str(age(user_details[1]))
+                cur.execute("SELECT city FROM location WHERE id=%(id)s LIMIT 1", {'id': user_details[2]})
+                user_location = cur.fetchone()[0]
+                final_users.append([user[1], user_age, user_location, image_profil_path, user[2], user_details[3]])
+                #print(len(final_users))
+    #print(profil_list)
+    cur.close()
+    conn.close()
+    for elem in sort:
+        if elem[0] == "age" and elem[1] == "+":
+            final_users = sorted(final_users, key=lambda tup: tup[1], reverse=False)
+        elif elem[0] == "age" and elem[1] == "-":
+            final_users = sorted(final_users, key=lambda tup: tup[1], reverse=True)
+        if elem[0] == "dist" and elem[1] == "+":
+            final_users = sorted(final_users, key=lambda tup: tup[2], reverse=False)
+        elif elem[0] == "dist" and elem[1] == "-":
+            final_users == final_users.sort(key=lambda tup: tup[2], reverse=True)
+        if elem[0] == "score" and elem[1] == "+":
+            final_users = sorted(final_users, key=lambda tup: tup[5], reverse=False)
+        elif elem[0] == "score" and elem[1] == "-":
+            final_users = sorted(final_users, key=lambda tup: tup[5], reverse=True)
+        #if elem[0] = "hashtag" and elem[1] ="+":
+        #    final_users = sorted(final_users, key=lambda tup: tup[1], reverse=False)
+        #elif elem[0] = "hashtag" and elem[1] ="-":
+        #    final_users = sorted(final_users, key=lambda tup: tup[1], reverse=True)
+    print(final_users)
+    return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
+
+    
+    
+    
+    
+
 
 
 # search page that return 'match'
