@@ -19,7 +19,7 @@
                         <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
                     </svg>
                 </div>
-                <div class="col-auto mb-2 dropright">
+                <div class="col-auto mb-2 dropright {{ 'd-none' if is_bio==1 }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="text-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false" width="25" height="25" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                     <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
@@ -31,7 +31,6 @@
             </div>
           <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
             <a class="nav-link {{ 'active' if onglet==None}}" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
-            <a class="nav-link {{ 'active' if onglet=='parameter'}}" id="v-pills-param-tab" data-toggle="pill" href="#v-pills-param" role="tab" aria-controls="v-pills-param" aria-selected="false">Parameters</a>
             <a class="nav-link {{ 'active' if onglet=='historique'}}" id="v-pills-histo-tab" data-toggle="pill" href="#v-pills-histo" role="tab" aria-controls="v-pills-histo" aria-selected="false">Historique</a>
 
             <a class="nav-link" id="v-pills-del-tab" data-toggle="pill" href="#v-pills-del" role="tab" aria-controls="v-pills-del" aria-selected="false">Delete account</a>
@@ -54,11 +53,7 @@
                       <div class="col-sm mb-2" style="max-width:270px;">
                         <a href="{{ url_for('main.profile') }}">
                           <div class="rounded-square-picture">
-                            {% if image_profil == 0 %}
-                              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
-                            {% else %}
                               <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil}})"></div>
-                            {% endif %}
                           </div>
                         </a>
                       </div>
@@ -171,8 +166,6 @@
 
                 </div>
             </div> <!--End Account Section-->
-            <!--Parameters Section-->
-            <div class="tab-pane fade {{ 'show active' if onglet=='parameter'}}" id="v-pills-param" role="tabpanel" aria-labelledby="v-pills-param-tab">...</div>
             <!--Historique Section-->
             <div class="tab-pane fade {{ 'show active' if onglet=='historique'}}" id="v-pills-histo" role="tabpanel" aria-labelledby="v-pills-histo-tab">
               <div class="reflist">
@@ -197,7 +190,7 @@
                   <div class="">
                     {% for i in range(1,5) %}
                     <div class="d-inline-flex">
-                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
+                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
                         <a href="{{ url_for('main.profile')}}">
                           <div class="card-img-top">
                             <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match1" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
@@ -222,7 +215,7 @@
                   <div class="">
                     {% for i in range(1,9) %}
                     <div class="d-inline-flex">
-                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
+                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
                         <a href="{{ url_for('main.profile')}}">
                           <div class="card-img-top">
                             <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match2" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url({{url_for('static', filename='public/tabi-1.jpeg')}})"></div>
@@ -247,7 +240,7 @@
                   <div class="">
                     {% for i in blocked_list %}
                     <div class="d-inline-flex">
-                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
+                      <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
                         <a href="{{ url_for('main.showprofile', username=i[2]) }}">
                           <div class="card-img-top">
                             <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match3" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url('../static/img/no-photo.png')"></div>

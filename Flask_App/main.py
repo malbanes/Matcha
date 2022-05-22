@@ -487,7 +487,7 @@ def updhash():
 @login_required
 def account():
     onglet = None
-    section = None
+    section = 'like'
     blocked_list = []
     conn = get_db_connection()
     cur = conn.cursor()
@@ -505,6 +505,11 @@ def account():
     email = current_user.email
     firstname = current_user.firstname
     lastname = current_user.lastname
+    cur.execute("SELECT bio FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
+    bio = cur.fetchone()[0]
+    is_bio = 0
+    if bio != '':
+        is_bio = 1
     cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s", {'id': current_user.id})
     image_profil = cur.fetchone()[0]
     cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
@@ -513,7 +518,7 @@ def account():
         fav_image = all_images[int(image_profil)][1]
     else:
         fav_image = None
-    if image_profil :
+    if fav_image :
         image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
     else :
         image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
@@ -525,7 +530,7 @@ def account():
             onglet = request.args.get('onglet')
         if request.args.get('section') != None :
             section = request.args.get('section')
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list, is_bio=is_bio)
     else:
         if 'deletemyaccount' in request.form:
             officialdelete = request.form.get('deletemyaccount')
@@ -632,7 +637,7 @@ def account():
         cur.close()
         conn.close()
 
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list, is_bio=is_bio)
 
 # match page that return 'match'
 @main.route('/match')
@@ -731,7 +736,7 @@ def trisearch():
     blacklisted_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name, username FROM users LIMIT 20;")
+    cur.execute("SELECT id, first_name, username FROM users LIMIT 50;")
     profil_list = cur.fetchall()
     cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
     blacklisted_elems = cur.fetchall()
@@ -823,7 +828,7 @@ def search():
     blacklisted_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name, username FROM users LIMIT 20;")
+    cur.execute("SELECT id, first_name, username FROM users LIMIT 50;")
     profil_list = cur.fetchall()
     cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
     blacklisted_elems = cur.fetchall()
