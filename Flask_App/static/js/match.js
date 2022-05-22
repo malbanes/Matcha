@@ -122,11 +122,12 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data == 'KO') {
-                  console.log(data);
+                console.log("Tri KO");
               }
               else {
-                  console.log(data);
-              }
+                console.log("c'est trié Match");
+
+              } //End else
           },
       });
   });
@@ -146,10 +147,12 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data == 'KO') {
-                  console.log(data);
+                  console.log("FILTRE KO");
+                  location.reload();
               }
               else {
-                  console.log(data);
+                  console.log("C'est Filtré !!");
+                  location.reload();
               }
           },
       });
@@ -164,7 +167,7 @@ $(function() {
   //Tri Ajax Gesture
   $(function() {
     $('#tri-search-btn').click(function(e) {
-        e.preventDefault();
+        //e.preventDefault();
         var form_data = new FormData($('#tri-search-form')[0]);
         $.ajax({
             type: 'POST',
@@ -175,10 +178,31 @@ $(function() {
             processData: false,
             success: function(data) {
                 if (data == 'KO') {
-                    console.log(data);
+                  console.log(" TRIER SEARCH KO");
+                  //location.reload();
                 }
                 else {
-                    console.log(data);
+
+                  for (let index = 0; index < data.all_users.length; ++index) {
+                    const element = data.all_users[index];
+  
+                    console.log("lenght : "+data.all_users.length);
+                    // ...use `element`...
+                    var link = document.getElementById('link'+index);
+                    var newlink = "http://127.0.0.1:5000/showprofile/" +element[4];
+                    link.href = newlink;
+                    var img = document.getElementById('img'+index);
+                    img.style.backgroundImage = "url('"+element[3]+"')";
+                    var title = document.getElementById('title'+index);
+                    title.innerHTML= element[4];
+                    var info = document.getElementById('info'+index);
+                    info.innerHTML = element[1] + " ans . "+element[2];
+                    var like = document.getElementById('like'+index);
+                    console.log("C'est TRIEEE !!");
+  
+                
+                  }
+
                 }
             },
         });

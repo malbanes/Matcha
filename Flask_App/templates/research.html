@@ -48,21 +48,16 @@
         {% for i in all_users %}
         <div class="d-inline-flex">
           <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;height: 20rem;">
-            <a href="{{ url_for('main.showprofile', username=i[4]) }}">
+            <a id="link{{ loop.index0 }}" href="{{ url_for('main.showprofile', username=i[4]) }}">
               <div class="card-img-top">
-                  <div class="rounded-square-picture_match nophoto rounded-demi" style="min-height:12rem; background-image: url({{i[3]}})" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
+                  <div id="img{{ loop.index0 }}" class="rounded-square-picture_match nophoto rounded-demi" style="min-height:12rem; background-image: url({{i[3]}})" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
               </div>
             </a>
             <div class="card-body center bg-light rounded-demi-invert">
-              <h4 class="card-title mb-0">{{i[0]}}</h5>
-              <small><p class="card-text text-muted">{{i[1]}} ans . {{i[2]}}</p></small>
-              <div class="row mt-2">
-                <div class="col-auto mr-auto">
-                  <a href="#" class="">Like</a>
-                </div>
-                <div class="col-auto">
-                  <a href="#" class="">Message</a>
-                </div>
+              <h4 id="title{{ loop.index0 }}" class="card-title mb-0">{{i[4]}}</h5>
+              <small><p id="info{{ loop.index0 }}" class="card-text text-muted">{{i[1]}} ans . {{i[2]}}</p></small>
+              <div class="align-baseline">
+                  <a id="like{{ loop.index0 }}" href="#" class="">Like</a>
               </div>
             </div>
           </div>

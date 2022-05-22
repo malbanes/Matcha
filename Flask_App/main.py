@@ -100,6 +100,7 @@ def showprofile(username):
     user_id = showuser_details[0]
     print(showuser_details[4])
     user_name = str(showuser_details[4]) + " " + str(showuser_details[5])
+    user_username = str(showuser_details[1])
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     profil = cur.fetchone()
     age_num = str(age(profil[5]))
@@ -111,6 +112,16 @@ def showprofile(username):
         score = str(0)
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
+
+    cur.execute("SELECT blocked FROM accountcontrol WHERE from_user_id=%(sid)s AND to_user_id=%(rid)s LIMIT 1", {'sid': current_user.id, 'rid': user_id})
+    is_user_block = cur.fetchone()
+    if is_user_block is None:
+        is_block = False
+    else:
+        is_block = is_user_block[0]
+    cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': user_id})
+    like_send = cur.fetchone()[0]
+
     cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     image_profil = cur.fetchone()
     if image_profil:
@@ -135,7 +146,7 @@ def showprofile(username):
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('show_profile.html', profil=profil, name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log)
+    return render_template('show_profile.html', profil=profil, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send)
 
 
 @main.route('/addlike', methods = ['POST'])
@@ -673,7 +684,7 @@ def chat():
 
     return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user.id, onlineList=onlineList)
 
-# notification page that return 'research'
+# notification page that return 'notification'
 @main.route('/notification') 
 @login_required
 @check_confirmed
@@ -720,7 +731,7 @@ def trisearch():
     blacklisted_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name, username FROM users;")
+    cur.execute("SELECT id, first_name, username FROM users LIMIT 20;")
     profil_list = cur.fetchall()
     cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
     blacklisted_elems = cur.fetchall()
@@ -782,15 +793,20 @@ def trisearch():
         elif elem[0] == "dist" and elem[1] == "-":
             final_users == final_users.sort(key=lambda tup: tup[2], reverse=True)
         if elem[0] == "score" and elem[1] == "+":
-            final_users = sorted(final_users, key=lambda tup: tup[5], reverse=False)
+            final_users = sorted(final_users, key=lambda tup: tup[3], reverse=False)
         elif elem[0] == "score" and elem[1] == "-":
-            final_users = sorted(final_users, key=lambda tup: tup[5], reverse=True)
+            final_users = sorted(final_users, key=lambda tup: tup[3], reverse=True)
         #if elem[0] = "hashtag" and elem[1] ="+":
         #    final_users = sorted(final_users, key=lambda tup: tup[1], reverse=False)
         #elif elem[0] = "hashtag" and elem[1] ="-":
         #    final_users = sorted(final_users, key=lambda tup: tup[1], reverse=True)
     print(final_users)
-    return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
+
+    return {
+        'all_users': final_users,
+        'full_interest': full_interest
+    }
+    #return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
 
     
     
@@ -807,7 +823,7 @@ def search():
     blacklisted_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name, username FROM users;")
+    cur.execute("SELECT id, first_name, username FROM users LIMIT 20;")
     profil_list = cur.fetchall()
     cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
     blacklisted_elems = cur.fetchall()
@@ -1007,21 +1023,24 @@ thread_lock = Lock()
 # Notifications Dynamic Gesture 
 @socketio.on('join_request')
 def on_join_request():
-    user_id = current_user.id
-    join_room(user_id)
-    print("User join the chanel"+str(user_id))
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        join_room(user_id)
+        print("User join the chanel"+str(user_id))
+        
 
 
 @socketio.on('new_notif')
 def new_notif(data):
     content = int(data['content'])
+    value = content
     receiver = data['receiver']
     notif_type = NOTIF_TYPE[int(data['notif_type'])]
     # Si notif_type = message, add 1 to message
     if int(data['notif_type']) == 2 :
         value = 1
     emit("notifications",
-        {"content": content, "notif_type":notif_type}, room=int(receiver))
+        {"content": value, "notif_type":notif_type}, room=int(receiver))
 
 
 @socketio.on('disconnect_request')
