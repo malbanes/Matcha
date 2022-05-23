@@ -10,6 +10,7 @@
 <!-- Viewers MUST be register in the user historique -->
 
 <div class="container">
+  
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="notification is-danger">
@@ -17,6 +18,7 @@
                 </div>
             {% endif %}
         {% endwith %}
+
     <!-- <div class="ajax_message" id="ajax_message">
         un message d'erreur
     </div> -->
@@ -27,7 +29,8 @@
         <button id="moreActionDropdownMenuLink" class="more-action-btn btn btn-secondary"data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
 
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActionDropdownMenuLink">
-            <p class="dropdown-item no-margin clickable" onclick="block({{ profil[1] }})" >Block</p>
+            <p id="blockbtn" class="dropdown-item no-margin clickable {{ 'd-none' if is_block == true }}" onclick="block({{ profil[1] }})" >Block</p>
+            <p id="unblockbtn" class="dropdown-item no-margin clickable {{ 'd-none' if is_block == false }}" onclick="unblock({{ profil[1] }})" >Unblock</p>
             <p class="dropdown-item no-margin clickable" onclick="report({{ profil[1] }})">Report</p>
         </div>
 
@@ -58,7 +61,7 @@
                       </div>
                     </div>
                   {% else %}
-                    <svg id="like_img" onclick="like_gesture({{ profil[1] }})" class="gray-color {{ 'red-color' if like_send==True}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                    <svg id="like_img" onclick="like_gesture({{ profil[1] }})" class="gray-color {{ 'red-color' if like_send>0}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
                       <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                     </svg>
                   {% endif %}
@@ -77,7 +80,7 @@
             <!-- Row Header -->
                 <!-- Small Info (img, age, loc) -->
                 <h1 class="title d-inline" style="font-size: 2.75rem; line-height: 1;">{{username}}</h1>
-                <svg class="gray-color {{ 'green-color' if profil[9]==true}} ml-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
+                <svg class="gray-color {{ 'green-color' if profil[9]==true}} ml-2 mb-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
                     <circle cx="8" cy="8" r="8"/>
                 </svg>
             </br><span class="profil_info"> {{age}} ans, {{localisation}} </span>
@@ -86,7 +89,7 @@
           </br><span><small> Last log : {{ profil[10] }} </small></span>
                 {% endif %}
 
-        </br></br><span style="word-break: break-all;">Name: {{ name }}</span>
+        </br></br><span style="word-break: break-all;"> {{ name }}</span></br>
 
             <!--Hashtag list-->
         </br>
@@ -107,13 +110,13 @@
                     <!-- Reflist list Item-->
                       <div class="reflist-list__item">
                         <div class="reflist-content">
-                            <div class="reflist-field">My Gender</div>
+                            <div class="reflist-field">Gender</div>
                             <div class="reflist-value">{{ genre }}</div>
                         </div>
                       </div> 
                       <div class="reflist-list__item">
                         <div class="reflist-content">
-                            <div class="reflist-field">My Sexual orientation</div>
+                            <div class="reflist-field">Sexual orientation</div>
                             <div class="reflist-value">{{ orientation }}</div>
                         </div>
                       </div>
@@ -212,7 +215,7 @@ function add_like(user_id) {
             url: '/addlike',
             data: {"data":user_id},
             success: function(data) {
-                if (data == 'KO') {
+                if (data == "") {
                   console.log('Une erreur est survenue');
                 }
                 else {
@@ -220,7 +223,6 @@ function add_like(user_id) {
                     like_img.classList.add("red-color");
                     var like_message = document.getElementById('like_message');
                     like_message.style.display = "none";
-                    console.log("user "+data+" liké");
                     add_notification(user_id , 0, "1");
 
                 }
@@ -258,12 +260,7 @@ function report(user_id) {
             url: '/report',
             data: {"data":user_id},
             success: function(data) {
-                if (data == 'KO') {
-                  console.log('Une erreur est survenue');
-                }
-                else {
-                    console.log("user "+data+" Signalé");
-                }
+              location.reload();
             },
         });
 }
@@ -279,7 +276,33 @@ function block(user_id) {
                   console.log('Une erreur est survenue');
                 }
                 else {
-                    console.log("user "+data+" Bloqué");
+                  console.log("user "+data+" Bloqué");
+                  var blockelem = document.getElementById('blockbtn');
+                  blockelem.classList.add('d-none');
+                  var unblockelem = document.getElementById('unblockbtn');
+                  unblockelem.classList.remove('d-none');
+                  location.reload();
+                  }
+            },
+        });
+}
+
+function unblock(user_id) {
+    $.ajax({
+            type: 'POST',
+            url: '/unblock',
+            data: {"data":user_id},
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log('Une erreur est survenue');
+                }
+                else {
+                  console.log("user "+data+" Débloqué");
+                  var unblockelem = document.getElementById('unblockbtn');
+                  unblockelem.classList.add('d-none');
+                  var blockelem = document.getElementById('blockbtn');
+                  blockelem.classList.remove('d-none');
+                  location.reload();
                 }
             },
         });

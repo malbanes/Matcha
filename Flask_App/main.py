@@ -121,6 +121,14 @@ def showprofile(username):
         is_block = is_user_block[0]
     cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': user_id})
     like_send = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': user_id, 'rid': current_user.id})
+    is_like = cur.fetchone()[0]
+    if like_send == 1 and is_like == 1:
+        like_message = "This is a match !"
+    elif is_like == 1:
+        like_message = "This person like you. Like back ?"
+    else:
+        like_message = ""
 
     cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     image_profil = cur.fetchone()
@@ -146,7 +154,7 @@ def showprofile(username):
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('show_profile.html', profil=profil, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send)
+    return render_template('show_profile.html', profil=profil, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send, like_message=like_message)
 
 
 @main.route('/addlike', methods = ['POST'])
@@ -154,20 +162,26 @@ def showprofile(username):
 @check_confirmed
 def addlike():
     if request.method == 'POST':
+        error = ""
         user_id = request.form['data']
         if user_id :
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
-            conn.commit()
-
+            
+            cur.execute("SELECT COUNT(*) FROM accountcontrol WHERE (from_user_id=%(id)s AND to_user_id=%(tid)s AND blocked = true) LIMIT 1", {'id': user_id, 'tid': current_user.id})
+            is_block = cur.fetchone()[0]
+            if is_block == 0:
+                cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
+                conn.commit()
+            else:
+                error = "An error occur"
             cur.close()
             conn.close()
 
 
-            return (user_id)
+            return (error)
         else:
-            return ("KO")
+            return ("")
 
 @main.route('/sendmessage', methods = ['POST'])
 def sendmessage():
@@ -505,6 +519,7 @@ def account():
     email = current_user.email
     firstname = current_user.firstname
     lastname = current_user.lastname
+    birthdate = profil[5]
     cur.execute("SELECT bio FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     bio = cur.fetchone()[0]
     is_bio = 0
@@ -530,7 +545,7 @@ def account():
             onglet = request.args.get('onglet')
         if request.args.get('section') != None :
             section = request.args.get('section')
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list, is_bio=is_bio)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list, is_bio=is_bio, birthdate=birthdate)
     else:
         if 'deletemyaccount' in request.form:
             officialdelete = request.form.get('deletemyaccount')
@@ -556,6 +571,7 @@ def account():
             firstname1 = request.form.get('first_name')
             lastname1 = request.form.get('last_name')
             username1 = request.form.get('username')
+            birthdate1 = request.form.get('birthdate')
             localisation1 = request.form.get('location')
             cur.execute("SELECT * FROM users WHERE username=%(username)s", {'username': username1})
             username_check = cur.fetchall()
@@ -572,7 +588,10 @@ def account():
             if lastname1 != "":
                 cur.execute("UPDATE users SET last_name = %(lastname)s WHERE id=%(id)s", {'lastname': lastname1, 'id': current_user.id})
                 conn.commit()
-                lastname = lastname1           
+                lastname = lastname1  
+            if birthdate1 != "":
+                cur.execute("UPDATE profil SET age = %(birthdate)s WHERE user_id=%(id)s", {'birthdate': birthdate1, 'id': current_user.id})
+                birthdate = birthdate1    
             if localisation1 != "":
                 lat, lont, display_loc = localize_text(str(localisation1))
                 today = date.today()
@@ -637,7 +656,7 @@ def account():
         cur.close()
         conn.close()
 
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list, is_bio=is_bio)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list, is_bio=is_bio, birthdate=birthdate)
 
 # match page that return 'match'
 @main.route('/match')
