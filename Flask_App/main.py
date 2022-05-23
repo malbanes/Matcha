@@ -676,6 +676,7 @@ def chat():
     matchList = []
     roomsList = []
     messagesList = []
+    notifList = []
     onlineList = []
 
     conn = get_db_connection()
@@ -695,6 +696,8 @@ def chat():
         cur.execute("SELECT * FROM messages WHERE (sender_id='{0}' AND receiver_id='{1}') OR (sender_id='{1}' AND receiver_id='{0}') ORDER BY date_added ASC;".format(current_user.id, i))
         messages = cur.fetchall()
         messagesList.append(messages)
+        cur.execute("SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=2 AND is_read=false AND sender_id=%(sid)s;", {'id': current_user.id, 'sid': i})
+        notifList.append(cur.fetchone()[0])
 
     cur.close()
     conn.close()
@@ -703,10 +706,8 @@ def chat():
             roomsList.append(current_user.username+u)
         else :
             roomsList.append(u+current_user.username)
-        
 
-
-    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user.id, onlineList=onlineList)
+    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user.id, onlineList=onlineList, notifList=notifList)
 
 # notification page that return 'notification'
 @main.route('/notification') 
@@ -958,14 +959,14 @@ def search():
 @main.route('/addnotification', methods = ['POST'])
 def addnotif():
     if request.method == 'POST':
-        user_id = request.form['receiver']
+        receiver_id = request.form['receiver']
         notif_type = int(request.form['notif_type'])
         content = request.form['content']
         notif_date = float(datetime.now().timestamp())
-        if user_id :
+        if receiver_id :
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("INSERT INTO notifications (user_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(user_id, notif_type, content, notif_date))
+            cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
             conn.commit()
 
             cur.close()
@@ -977,23 +978,36 @@ def addnotif():
 @main.route('/readnotification', methods = ['POST'])
 def readnotif():
     if request.method == 'POST':
-        user_id = request.form['receiver']
+        newvalue = None
         notif_type = int(request.form['notif_type'])
-        content = request.form['content']
-        notif_date = float(datetime.now().timestamp())
 
-
-        if user_id :
+        if notif_type :
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("INSERT INTO notifications (user_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(user_id, notif_type, content, notif_date))
-            conn.commit()
+            if notif_type == 2:
+                sender_id = request.form['sender_id']
+                if sender_id :
+                    cur.execute("UPDATE notifications SET is_read=true WHERE receiver_id=%(id)s AND notif_type=%(ntype)s AND sender_id=(SELECT id FROM users WHERE username=%(sid)s);", {'id': current_user.id, 'ntype': notif_type, 'sid': sender_id})
+                    conn.commit()
+                    cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id=%(id)s AND is_read=false AND notif_type=%(t)s;", {'id': current_user.id, 't': notif_type})
+                    newvalue = cur.fetchone()[0]
+                else:
+                    return("KO")
+            else:
+                cur.execute("UPDATE notifications SET is_read = true WHERE receiver_id=%(id)s AND notif_type=%(ntype)s;", {'id': current_user.id, 'ntype': notif_type})
+                conn.commit()
+                cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id=%(id)s AND is_read=false AND notif_type=%(t)s;", {'id': current_user.id, 't': notif_type})
+                newvalue = cur.fetchone()[0]
 
+            cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id=%(id)s AND is_read=false", {'id': current_user.id})
+            total_notif = cur.fetchone()[0]
             cur.close()
             conn.close()
-
-
-            return (NOTIF_TYPE[int(request.form['notif_type'])])
+            return {
+                'notif_type': NOTIF_TYPE[int(request.form['notif_type'])],
+                'value': newvalue,
+                'total': total_notif,
+            }
         else:
             return ("KO")
 
@@ -1008,11 +1022,11 @@ def getnavnotif():
         cur = conn.cursor()
 
         #Notification setup Gesture
-        cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id='{0}' AND is_read=false AND notif_type=0;".format(current_user.id))
+        cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND notif_type=0;".format(current_user.id))
         nbr_like = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id='{0}' AND is_read=false AND notif_type=1;".format(current_user.id))
+        cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND notif_type=1;".format(current_user.id))
         nbr_view = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id='{0}' AND is_read=false AND notif_type=2;".format(current_user.id))
+        cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND notif_type=2;".format(current_user.id))
         nbr_msg = cur.fetchone()[0]
 
         total_notif = nbr_like + nbr_view + nbr_msg
@@ -1061,10 +1075,8 @@ def new_notif(data):
     receiver = data['receiver']
     notif_type = NOTIF_TYPE[int(data['notif_type'])]
     # Si notif_type = message, add 1 to message
-    if int(data['notif_type']) == 2 :
-        value = 1
     emit("notifications",
-        {"content": value, "notif_type":notif_type}, room=int(receiver))
+        {"content": value, "notif_type":notif_type, "sender":current_user.username}, room=int(receiver))
 
 
 @socketio.on('disconnect_request')

@@ -2,7 +2,8 @@ create table notifications
 (
     id             serial
             primary key,
-    user_id       integer,
+    sender_id       integer,
+    receiver_id       integer,
     notif_type integer,
     content integer,
     is_read boolean default false,

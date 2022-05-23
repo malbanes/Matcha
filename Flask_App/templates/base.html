@@ -51,7 +51,7 @@
     <!-- Right Navigation //-->
     <div class="col-xs">
         <ul class="list-inline nav_margin">
-            {% if not current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
             <li class="list-inline-item">
                 <a class="nav-link" href="{{ url_for('auth.signup') }}">Sign up</a>
             </li>
@@ -59,7 +59,7 @@
                 <a class="nav-link" href="{{ url_for('auth.login') }}">Sign in</a>
             </li>
             {% endif %}
-            {% if current_user.is_authenticated %}
+            {% if not current_user.is_authenticated %}
 
             <li class="list-inline-item">
                 <a href="{{ url_for('main.account') }}" class="">
@@ -249,6 +249,53 @@ function add_notification(receiver, notif_type, content) {
                 });
             }
 
+    function read_notification(notif_type, username) {
+    $.ajax({
+            type: 'POST',
+            url: '/readnotification',
+            data: {"notif_type":notif_type, "sender_id":username},
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log('Une erreur est survenue');
+                }
+                else {
+                    //Call notif dynamique
+                    notif_counter_id = data.notif_type + "counter"; //"like", "view", "message"
+                    var notif_counter = document.getElementById(notif_counter_id);
+                    var global_counter = document.getElementById('globalcounter');
+
+                    if ( notif_counter != null) {
+                        if (data.value > 0) {
+                            notif_counter.classList.remove('d-none');
+                            notif_counter.innerHTML = data.value;
+                            }
+                        else {
+                            notif_counter.classList.add('d-none');
+                        }
+                        if (data.total > 0) {
+                            global_counter.innerHTML = data.total;
+                            global_counter.classList.remove('d-none');
+                        }
+                        else {
+                            global_counter.classList.add('d-none');
+                        }
+                    }
+                    //Si readNotif Message, clean icon message on conv
+                    if (username != null)
+                    {
+                        icon_message_id = "default-alert"+username;
+                        var icon_message = document.getElementById(icon_message_id);
+                        if (icon_message != null) {
+                            icon_message.classList.add('d-none');
+                        }
+                    }
+                }
+            },
+        });
+} 
+
+            
+
         $(document).ready(function() {
 
             var socket = io();
@@ -267,6 +314,14 @@ function add_notification(receiver, notif_type, content) {
             
             //Print Notification counter au bon endroit
             notif_counter_id = data.notif_type + "counter"; //"like", "view", "message"
+            if (data.notif_type == "message") {
+                icon_message_id = "default-alert"+data.sender;
+                var icon_message = document.getElementById(icon_message_id);
+                if (icon_message != null)
+                {
+                    icon_message.classList.remove('d-none');
+                }
+            }
             var notif_counter = document.getElementById(notif_counter_id);
             if ( notif_counter != null) {
                 var oldValue = notif_counter.innerHTML;
