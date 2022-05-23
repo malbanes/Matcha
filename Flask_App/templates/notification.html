@@ -11,21 +11,70 @@
 
     <!--Section Photo-->
     <div class="h2 text-deepblue">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-camera section-icon" viewBox="0 0 16 16">
-            <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/>
-            <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-bell text-pink" viewBox="0 0 16 16">
+            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
           </svg>
-        Toutes mes notifications
+        All notifications
     </div>
 
-    <div class="container">
+    <!--[notif_id, notif_type, date, username, message]-->
+    <div class="container notif_container">
+        {% if notifications[0] == null %}
+            <p>There is no notification.</p>
+        {% endif %}
         <ul>
-            <li>Xxx vous à liker / Date / Action / Petite croix</li>
-            <li>Match avec Xxx / Date / Action / Petite croix</li>
-            <li>Xxx ne vous like plus / Date / Action / Petite croix</li>
-            <li>Xxx vous à envoyer un message / Date / Action / Petite croix</li>
+            {% for notif in notifications %}
+                <li id="{{ notif[0]}}" class="text-bold">
+                    <div class="row justify-content-between mb-2">
+                        <div class="col {{ 'font-weight-bold' if notif[5]==false }}">
+                            <small>{{ notif[2] }}</small>: 
+                            <a href="{{ url_for('main.showprofile', username=notif[3]) }}">{{ notif[3] }}</a>
+                            {% if notif[1] == '0' %}
+                                <a class="text-decoration-none text-reset" href="{{ url_for('main.account', onglet='historique', section='like') }}">{{ notif[4] }}</a>
+                            {% elif notif[1] == '1' %}
+                                <a class="text-decoration-none text-reset" href="{{ url_for('main.account', onglet='historique', section='visit') }}">{{ notif[4] }}</a> 
+                            {% else %}
+                                <a class="text-decoration-none text-reset" href="{{ url_for('main.chat') }}">{{ notif[4] }}</a> 
+                            {% endif %}
+                        </div>
+                        <div class="col-2">
+                            <div onclick="delnotif({{ notif[0]}})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x link" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    
+
+                </li>
+            {% endfor %}
         </ul>
     </div>
 </div>
+
+<script type="text/javascript" charset="utf-8">
+
+function delnotif(u) {
+  $.ajax({
+            type: 'POST',
+            url: '/delnotif',
+            data: {"notif":u},
+            success: function(data) {
+                if (data == 'KO') {
+                    //document.getElementById("block-error").style.display = "block";
+                    console.log("ko");
+                }
+                else {
+                    var element = document.getElementById(u);
+                    element.parentNode.removeChild(element);
+                }
+            },
+        });
+};
+
+</script>
 
 {% endblock %}
