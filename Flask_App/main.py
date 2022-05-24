@@ -394,10 +394,20 @@ def upldfile():
 def setimgprofil():
     if request.method == 'POST':
         img_id = request.form['data']
+        print(img_id)
         if img_id :
+            order = []
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("UPDATE profil SET image_profil=%(fav)s WHERE user_id=%(id)s", {'fav': img_id, 'id': current_user.id})
+            cur.execute("SELECT id FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
+            all_images = cur.fetchall()
+            print(all_images)
+            for i in all_images:
+                order.append(int(i[0]))
+            print(order)
+            position = order.index(int(img_id))
+            print(position)
+            cur.execute("UPDATE profil SET image_profil=%(fav)s WHERE user_id=%(id)s", {'fav': position, 'id': current_user.id})
             conn.commit()
             cur.close()
             return ("success")

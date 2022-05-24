@@ -15,6 +15,7 @@ from password_checker import password_check
 import re
 from datetime import datetime
 from localization import localize_user
+from scoring import scoring_calculation
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -46,6 +47,33 @@ def login():
         # if the above check passes, then we know the user has the right credentials
         login_user(User(user), remember=remember)
         cur.execute("UPDATE profil SET is_online = true WHERE user_id=%(id)s", {'id': current_user.id})
+        cur.execute("SELECT score from profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
+        former_score = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) from images WHERE profil_id=%(id)s", {'id': current_user.id})
+        image_num = int(cur.fetchone()[0])
+        cur.execute("SELECT COUNT(*) from likes WHERE receiver_id=%(id)s", {'id': current_user.id})
+        likes_num = int(cur.fetchone()[0])
+        cur.execute("SELECT COUNT(*) from \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
+        tag_num = int(cur.fetchone()[0])
+        cur.execute("SELECT COUNT(*) from accountcontrol WHERE to_user_id=%(id)s and blocked=true", {'id': current_user.id})
+        block_num = int(cur.fetchone()[0])
+        cur.execute("SELECT COUNT(*) from accountcontrol WHERE to_user_id=%(id)s and fake=true", {'id': current_user.id})
+        report_num = int(cur.fetchone()[0])
+        cur.execute("SELECT last_log from profil WHERE user_id=%(id)s", {'id': current_user.id})
+        lact_co_date = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(DISTINCT receiver_id) from messages WHERE sender_id=%(id)s", {'id': current_user.id})
+        match_num = int(cur.fetchone()[0])
+        print(former_score)
+        print(image_num)
+        print(likes_num)
+        print(tag_num)
+        print(block_num)
+        print(report_num)
+        print(lact_co_date)
+        print(match_num)
+        updated_score = scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, report_num, lact_co_date, match_num)
+        print(updated_score)
+        cur.execute("UPDATE profil SET score = %(score)s WHERE user_id=%(id)s", {'score': updated_score, 'id': current_user.id})
         conn.commit()
         cur.close()
         conn.close()
@@ -104,7 +132,7 @@ def signup():
             loc_id = cur.execute("INSERT INTO location (latitude,longitude,date_modif,city) VALUES (%(lat)s, %(long)s, %(date)s, %(city)s) returning id", {'lat': latitude, 'long': longitude, 'date': str(datetime.date(datetime.now())), 'city': localisation})
             conn.commit()
             loc_id = cur.fetchone()
-            cur.execute("INSERT INTO profil (user_id, location_id) VALUES (%(user_id)s, %(location_id)s)", {'user_id': new_user[0], 'location_id': loc_id[0]})
+            cur.execute("INSERT INTO profil (user_id, location_id, score) VALUES (%(user_id)s, %(location_id)s, 0)", {'user_id': new_user[0], 'location_id': loc_id[0]})
             conn.commit()
             cur.close()
             conn.close()
