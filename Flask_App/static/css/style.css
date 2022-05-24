@@ -23,6 +23,11 @@
     border-color : #00c2ab;
 }
 
+.notif_container {
+    max-height:600px;
+    overflow-y:scroll;
+}
+
 
 
 /********************************/

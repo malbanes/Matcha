@@ -183,6 +183,27 @@ def addlike():
         else:
             return ("")
 
+@main.route('/delnotif', methods = ['POST'])
+@login_required
+@check_confirmed
+def delnotif():
+    if request.method == 'POST':
+        notif_id = int(request.form['notif'])
+        if notif_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+
+            cur.execute("DELETE FROM notifications WHERE receiver_id='{0}' AND id='{1}';".format(current_user.id , notif_id))
+            conn.commit()
+
+            cur.close()
+            conn.close()
+            return (str(notif_id))
+        else:
+            return ("KO")
+
+
+
 @main.route('/sendmessage', methods = ['POST'])
 def sendmessage():
     if request.method == 'POST':
@@ -508,7 +529,6 @@ def updhash():
 @main.route('/account', methods=['GET', 'POST'])
 @login_required
 @check_confirmed
-@login_required
 def account():
     onglet = None
     section = 'like'
@@ -724,7 +744,44 @@ def chat():
 @login_required
 @check_confirmed
 def notification():
-    return render_template('notification.html')
+
+    notifList = [] 
+    elem = []
+    message = ""
+    #username / message (selon type) / type / date / notif_id
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    cur.execute("SELECT * FROM notifications where receiver_id=%(id)s ORDER BY date_added DESC ;", {'id': current_user.id})
+    notifications = cur.fetchall()
+    for notif in notifications:
+        notif_id = notif[0]
+        notif_type = notif[3]
+        content = notif[4]
+        date = datetime.fromtimestamp(notif[6]).strftime('%d/%m-%H:%M:%S')
+        is_read = notif[5]
+        cur.execute("SELECT username FROM users where id=%(id)s LIMIT 1;", {'id': notif[1]})
+        username = cur.fetchone()[0]
+        #like
+        if notif_type == 0:
+            if content == 1:
+                message = "like you"
+            else:
+                message = "doesn't like you anymore"
+        #view
+        if notif_type == 1:
+            message = "looked at your profil"
+        #messages
+        if notif_type == 2:
+            message = "send you a message"
+
+        elem = [notif_id, notif_type, date, username, message, is_read]
+        notifList.append(elem)
+    cur.close()
+    conn.close()
+
+    return render_template('notification.html', notifications=notifList)
 
 
 @main.route('/trisearch', methods = ['POST'])
@@ -771,7 +828,7 @@ def trisearch():
     cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
     blacklisted_elems = cur.fetchall()
     for i in blacklisted_elems:
-        cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
+        cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1;", {'id': i[0]})
         blacklisted_list.append(cur.fetchone())
     print(profil_list)
     print(blacklisted_list)
