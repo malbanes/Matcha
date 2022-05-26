@@ -323,14 +323,19 @@ def report():
         user_id = request.form['data']
         conn = get_db_connection()
         cur = conn.cursor()  
-        cur.execute("SELECT to_user_id FROM accountcontrol WHERE (to_user_id=%(id)s AND blocked = true) LIMIT 1", {'id': user_id})
+        cur.execute("SELECT COUNT(to_user_id) FROM accountcontrol WHERE (to_user_id=%(id)s AND fake = true) LIMIT 1", {'id': user_id})
         to_user_id = cur.fetchone()[0]
         print(to_user_id)
         print(user_id) 
-        if user_id and str(to_user_id) != str(user_id):
-            print(user_id)       
-            cur.execute("INSERT INTO accountcontrol (blocked, fake, from_user_id, to_user_id) VALUES (false, true, %(from)s, %(to)s)", {'from': current_user.id, 'to': user_id})
-            conn.commit()
+        if user_id and to_user_id==0:
+            print(user_id)  
+            cur.execute("SELECT COUNT(to_user_id) FROM accountcontrol WHERE (to_user_id=%(id)s AND from_user_id = %(from)s) LIMIT 1", {'id': user_id, 'from': current_user.id})
+            if cur.fetchone()[0]==0:
+                cur.execute("INSERT INTO accountcontrol (blocked, fake, from_user_id, to_user_id) VALUES (false, true, %(from)s, %(to)s)", {'from': current_user.id, 'to': user_id})
+                conn.commit()
+            else:
+                cur.execute("UPDATE accountcontrol SET fake='true' WHERE from_user_id=%(from)s AND to_user_id=%(to)s", {'from': current_user.id, 'to': user_id})
+                conn.commit()
             cur.close()
             conn.close()
             flash('The user has been reported')
@@ -401,8 +406,11 @@ def upldfile():
             output, file_path = upload_file_to_s3(file1, app.config["S3_BUCKET"], path)
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, %(profil_id)s, %(date_added)s)", {'title': file1.filename, 'path': file_path, 'profil_id': current_user.id, 'date_added': date.today()})
-            conn.commit()
+            #check if total image < 5    
+            cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+            if cur.fetchone()[0] < 5:
+                cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, %(profil_id)s, %(date_added)s)", {'title': file1.filename, 'path': file_path, 'profil_id': current_user.id, 'date_added': date.today()})
+                conn.commit()
             cur.close()
             conn.close()
             return ("OK")
@@ -915,7 +923,7 @@ def search():
     blacklisted_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name, username FROM users LIMIT 50;")
+    cur.execute("SELECT id, first_name, username FROM users LIMIT 30;")
     profil_list = cur.fetchall()
     cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
     blacklisted_elems = cur.fetchall()

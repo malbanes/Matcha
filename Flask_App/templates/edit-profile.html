@@ -50,26 +50,25 @@
         </div>
     </row>
     <row class="row justify-content-end" style="max-width: 756px;">
-        <button type="submit" class="btn btn-secondary mb-2 mr-2" data-toggle="modal" data-target="#modal-fullscreen-xl" {{ 'disabled' if total_img==0}}>Modifier</button>
-        <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#photoModal">
-            Ajouter
+        <button type="submit" class="btn btn-secondary mb-2 mr-2" data-toggle="modal" data-target="#modal-fullscreen-xl" {{ 'disabled' if total_img==0}}>Edit</button>
+        <button type="button" class="btn btn-primary mb-2 {{ 'd-none' if total_img >= 5 }}" {{ 'disabled' if total_img >= 5 }} data-toggle="modal" data-target="#photoModal">
+            Add
         </button>
     </row>
 
     </div>
-
-
 
     <!--Section Description-->
     <div class="h2 text-deepblue mt-5">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-quote section-icon" viewBox="0 0 16 16">
             <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388c0-.351.021-.703.062-1.054.062-.372.166-.703.31-.992.145-.29.331-.517.559-.683.227-.186.516-.279.868-.279V3c-.579 0-1.085.124-1.52.372a3.322 3.322 0 0 0-1.085.992 4.92 4.92 0 0 0-.62 1.458A7.712 7.712 0 0 0 9 7.558V11a1 1 0 0 0 1 1h2Zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612c0-.351.021-.703.062-1.054.062-.372.166-.703.31-.992.145-.29.331-.517.559-.683.227-.186.516-.279.868-.279V3c-.579 0-1.085.124-1.52.372a3.322 3.322 0 0 0-1.085.992 4.92 4.92 0 0 0-.62 1.458A7.712 7.712 0 0 0 3 7.558V11a1 1 0 0 0 1 1h2Z"/>
           </svg>
-        Ma description
+        My bio
     </div>
     <div id="bio-error" class="invalid-feedback" style="display:none;">
         Une erreur est survenue
     </div>
+    <small class="form-text text-muted mb-2"> Mandatory fields for us to find people who match you.</small>
     <div class="row justify-content-between">
         <div class="col">
                 <div class="reflist-content">
@@ -91,14 +90,14 @@
             <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
             <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
           </svg>
-        Je suis
+        I am
     </div>
     <!--Sub Section Hashtags-->
     <div class="subtitle text-deepblue">
-        Mes interets
+        My interests
     </div>
     <div id="interest-error" class="invalid-feedback" style="display:none;">
-        Une erreur est survenue
+        An error occur
     </div>
     <ul class="list-inline" id="hashtagList">
         {% for i in interest %}
@@ -109,17 +108,17 @@
             <strong>" + "</strong>
         </button>
     <div class="subtitle text-deepblue mb-0 mt-4">
-        Informations principales
+        Primary info
     </div>
-    <small class="form-text text-muted mb-2"> Champs obligatoire pour que nous trouvons des personnes qui vous correspondent.</small>
+    <small class="form-text text-muted mb-2"> Mandatory fields for us to find people who match you.</small>
     <div id="primary-error" class="invalid-feedback" style="display:none;">
-        Une erreur est survenue
+        An error occur
     </div>
     <div class="row justify-content-between">
         <div class="col">
             <div class="reflist-list__item">
                 <div class="reflist-content">
-                    <div class="reflist-field">Mon Genre</div>
+                    <div class="reflist-field">Gender</div>
                     <div class="reflist-value" id="my-gender">{{ genre }}</div>
                 </div>
             </div> 
@@ -136,7 +135,7 @@
         <div class="col">
             <div class="reflist-list__item">
                 <div class="reflist-content">
-                    <div class="reflist-field">Mon orientation sexuelle</div>
+                    <div class="reflist-field">Sexual orientation</div>
                     <div class="reflist-value" id="my-orient">{{ orientation }}</div>
                 </div>
             </div> 
@@ -283,10 +282,10 @@
         <div class="modal-body">
           <form id="bio-form" method="POST">
             <div class="form-group">
-                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100"></textarea>
+                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100">{{ bio }}</textarea>
                 <div class="row">
                     <div class="col">
-                        <div class="counter" id="counter"></div>
+                        <div class="counter" id="counter">{{ bio|length }}/100</div>
                     </div>
                     <div class="col">
                         <button type="button" class="btn btn-secondary mb-2 mt-2" data-dismiss="modal">annuler</button>
@@ -318,7 +317,7 @@
                     <input type="text" class="live-search-box form-control" placeholder="search here" />
                 </div>
                     <ul class="live-search-list list-inline" type="None">
-                        {% for i in full_interest %}
+                    {% for i in full_interest %}
                         <li class="list-inline-item">
                             <div class="custom-control custom-checkbox mx-2 d-inline-flex">
                                 <input type="checkbox" class="custom-control-input" id={{i[0]}} name="check" value={{i[0]}}>
@@ -589,10 +588,11 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
     });
 });
 
+
 jQuery(document).ready(function($){
   
 $('.live-search-list li').each(function(){
-$(this).attr('data-search-term', $(this).text().toLowerCase());
+    $(this).attr('data-search-term', $(this).text().toLowerCase());
 });
   
 $('.live-search-box').on('keyup', function(){
@@ -600,15 +600,14 @@ $('.live-search-box').on('keyup', function(){
 var searchTerm = $(this).val().toLowerCase();
   
     $('.live-search-list li').each(function(){
-  
-        if ($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) {
-            $(this).show();
-        } else {
-            $(this).hide();
+        if (searchTerm != "") {
+            if ($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
         }
-  
     });
-  
 });
   
 });

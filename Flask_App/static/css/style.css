@@ -11,6 +11,11 @@
     text-align: center;
 }
 
+.lazy {
+    background-image: none!important;
+    background-color: #F1F1FA;
+ }
+
 .msg-error{
     color:#c20000;
     background-color: #d69f9f;
@@ -117,6 +122,10 @@ ul {
 
 .center {
     text-align: center;
+}
+
+.to-front {
+    z-index: 1;
 }
 
 
