@@ -22,13 +22,13 @@ def create_app():
     app.config['SECRET_KEY'] = 'secret-key-goes-here'
 
     # mail settings
-    app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+    app.config['MAIL_SERVER'] = 'smtp.mail.yahoo.com'
     app.config['MAIL_PORT'] = 465
     app.config['MAIL_USE_TLS'] = False
     app.config['MAIL_USE_SSL'] = True
 
     # gmail authentication
-    app.config['MAIL_USERNAME'] = "noreply42project@gmail.com"
+    app.config['MAIL_USERNAME'] = "noreply42project@yahoo.com"
     app.config['MAIL_PASSWORD'] = ""
 
     # S3 upload

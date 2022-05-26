@@ -437,6 +437,7 @@ def setimgprofil():
             position = order.index(int(img_id))
             print(position)
             cur.execute("UPDATE profil SET image_profil=%(fav)s WHERE user_id=%(id)s", {'fav': position, 'id': current_user.id})
+            cur.execute("UPDATE profil SET image_profil_id=%(fav)s WHERE user_id=%(id)s", {'fav': img_id, 'id': current_user.id})
             conn.commit()
             cur.close()
             return ("success")

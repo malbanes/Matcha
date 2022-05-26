@@ -29,13 +29,16 @@ def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, 
     updated_score = updated_score + (report_num * 20)
     # if  active -7 days +50
     # if  active +7 days -50
-    date_buffer = datetime.now() - timedelta(days=7)
-    print(date_buffer)
-    if (date_buffer.date() < lact_co_date) == True:
-        updated_score = updated_score + 50
-        print("recent")
-    else:
-        updated_score = updated_score - 50
+    try:
+        date_buffer = datetime.now() - timedelta(days=7)
+        print(date_buffer)
+        if (date_buffer.date() < lact_co_date) == True:
+            updated_score = updated_score + 50
+            print("recent")
+        else:
+            updated_score = updated_score - 50
+    except:
+        print("Never connected")
     # if  match  +150
     updated_score = updated_score + (match_num  * 150)
     if updated_score < 0:

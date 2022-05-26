@@ -8,6 +8,6 @@ def send_email(to, subject, template):
         subject,
         recipients=[to],
         html=template,
-        sender="noreply42project@gmail.com"
+        sender="noreply42project@yahoo.com"
     )
     mail.send(msg)
