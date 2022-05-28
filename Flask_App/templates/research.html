@@ -48,14 +48,14 @@
         {% for i in all_users %}
         <div class="d-inline-flex">
           <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
-            <a id="link{{ loop.index0 }}" href="{{ url_for('main.showprofile', username=i[4]) }}">
+            <a id="link{{ loop.index0 }}" href="{{ url_for('main.showprofile', username=i[1]) }}">
               <div class="card-img-top">
                   <div id="img{{ loop.index0 }}" class="rounded-square-picture_match nophoto rounded-demi lazy" style="min-height:12rem; background-image: url({{i[3]}})" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
               </div>
             </a>
             <div class="card-body center bg-light rounded-demi-invert">
-              <h4 id="title{{ loop.index0 }}" class="card-title mb-0">{{i[4]}}</h5>
-              <small><p id="info{{ loop.index0 }}" class="card-text text-muted">{{i[1]}} ans . {{i[2]}}</p></small>
+              <h4 id="title{{ loop.index0 }}" class="card-title mb-0">{{i[1]}}</h5>
+              <small><p id="info{{ loop.index0 }}" class="card-text text-muted">{{i[2]}} ans . {{i[3]}}</p></small>
               <div class="align-baseline">
                   <a id="like{{ loop.index0 }}" href="#" class="">Like</a>
               </div>
@@ -120,7 +120,7 @@
                 {% for i in full_interest %}
                 <li class="list-inline-item" style="display: none;">
                     <div class="custom-control custom-checkbox mx-2 d-inline-flex">
-                        <input type="checkbox" class="custom-control-input" id={{i[0]}} name="check" value={{i[0]}}>
+                        <input type="checkbox" class="custom-control-input" id={{i[0]}} name="searchcheck" value={{i[0]}}>
                         <label class="custom-control-label" for={{i[0]}}>{{ i[1] }}</label>
                     </div>
                 </li>

@@ -61,13 +61,13 @@
                       </div>
                     </div>
                   {% else %}
-                    <svg id="like_img" onclick="like_gesture({{ profil[1] }})" class="gray-color {{ 'red-color' if like_send>0}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                    <svg id="like_img{{ profil[1] }}" onclick="like_gesture({{ profil[1] }})" class="gray-color {{ 'red-color' if like_send>0}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
                       <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                     </svg>
                   {% endif %}
                 </div>
                 <div class="col">
-                    <p id="like_message"> {{ like_message }} </p>
+                    <p id="like_message{{ profil[1] }}"> {{ like_message }} </p>
                 </div>
             </div>
 
@@ -83,7 +83,7 @@
                 <svg class="gray-color {{ 'green-color' if profil[9]==true}} ml-2 mb-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
                     <circle cx="8" cy="8" r="8"/>
                 </svg>
-            </br><span class="profil_info"> {{age}} ans, {{localisation}} </span>
+            </br><span id="{{ profil[1] }}" class="profil_info"> {{age}} ans, {{localisation}} </span>
                 <!-- Is Connected -->
                 {% if profil[9] == false %}
           </br><span><small> Last log : {{ profil[10] }} </small></span>
@@ -195,119 +195,20 @@
 {% endblock %}
 
 {% block script %}
-<script>
 
-//Like Gesture
-function like_gesture(user_id) {
-        var like_img = document.getElementById('like_img');
-        var is_liked = like_img.classList.contains("red-color");
-        if (is_liked == true) {
-            delete_like(user_id);
-        }
-        else {
-            add_like(user_id);
-        }
-    }
+    <script src="{{url_for('static', filename='js/like.js')}}"></script>  
 
-function add_like(user_id) {
-    $.ajax({
-            type: 'POST',
-            url: '/addlike',
-            data: {"data":user_id},
-            success: function(data) {
-                if (data == "") {
-                  console.log('Une erreur est survenue');
-                }
-                else {
-                    var like_img = document.getElementById('like_img');
-                    like_img.classList.add("red-color");
-                    var like_message = document.getElementById('like_message');
-                    like_message.style.display = "none";
-                    add_notification(user_id , 0, "1");
 
-                }
-            },
-        });
-}
+    <script type="text/javascript" charset="utf-8">
 
-function delete_like(user_id) {
-    $.ajax({
-            type: 'POST',
-            url: '/dellike',
-            data: {"data":user_id},
-            success: function(data) {
-                if (data == 'KO') {
-                  console.log('Une erreur est survenue');
-                }
-                else {
-                    var like_img = document.getElementById('like_img');
-                    like_img.classList.remove("red-color");
-                    var like_message = document.getElementById('like_message');
-                    like_message.style.display = "block";
-                    var socket = io();
-                    socket.emit('new_notif', {'content': "-1", 'receiver' : user_id, 'notif_type': 0});
-                    console.log("user "+data+" Unliké");
+      $(document).ready(function() {
+        var elem = document.getElementsByClassName('profil_info');
+        var receiver_id = elem[0].id;
+        add_notification(receiver_id, 1, 1);
+      });
 
-                }
-            },
-        });
-}
+    </script>
 
-//Report Gesture
-function report(user_id) {
-    $.ajax({
-            type: 'POST',
-            url: '/report',
-            data: {"data":user_id},
-            success: function(data) {
-              location.reload();
-            },
-        });
-}
 
-//Report Gesture
-function block(user_id) {
-    $.ajax({
-            type: 'POST',
-            url: '/block',
-            data: {"data":user_id},
-            success: function(data) {
-                if (data == 'KO') {
-                  console.log('Une erreur est survenue');
-                }
-                else {
-                  console.log("user "+data+" Bloqué");
-                  var blockelem = document.getElementById('blockbtn');
-                  blockelem.classList.add('d-none');
-                  var unblockelem = document.getElementById('unblockbtn');
-                  unblockelem.classList.remove('d-none');
-                  location.reload();
-                  }
-            },
-        });
-}
-
-function unblock(user_id) {
-    $.ajax({
-            type: 'POST',
-            url: '/unblock',
-            data: {"data":user_id},
-            success: function(data) {
-                if (data == 'KO') {
-                  console.log('Une erreur est survenue');
-                }
-                else {
-                  console.log("user "+data+" Débloqué");
-                  var unblockelem = document.getElementById('unblockbtn');
-                  unblockelem.classList.add('d-none');
-                  var blockelem = document.getElementById('blockbtn');
-                  blockelem.classList.remove('d-none');
-                  location.reload();
-                }
-            },
-        });
-}
-
-</script>
 {% endblock %}
 

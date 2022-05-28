@@ -130,6 +130,13 @@ def showprofile(username):
     else:
         like_message = ""
 
+    #Add Visit or Update visit
+    cur.execute("SELECT COUNT(id) FROM visites WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': user_id})
+    visit_send = cur.fetchone()[0]
+    if visit_send == 0:
+        cur.execute("INSERT INTO visites (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
+        conn.commit()
+
     cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     image_profil = cur.fetchone()
     if image_profil:
@@ -154,7 +161,7 @@ def showprofile(username):
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('show_profile.html', profil=profil, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send, like_message=like_message)
+    return render_template('show_profile.html', profil=profil,user_id=user_id, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send, like_message=like_message)
 
 
 @main.route('/addlike', methods = ['POST'])
@@ -181,7 +188,7 @@ def addlike():
 
             return (error)
         else:
-            return ("")
+            return ("KO")
 
 @main.route('/delnotif', methods = ['POST'])
 @login_required
@@ -270,17 +277,19 @@ def block():
     if request.method == 'POST':
         user_id = request.form['data']
         conn = get_db_connection()
-        cur = conn.cursor()  
+        cur = conn.cursor()
         cur.execute("SELECT to_user_id FROM accountcontrol WHERE (to_user_id=%(id)s AND blocked = true) LIMIT 1", {'id': user_id})
         to_user_id = cur.fetchone()
         if to_user_id != None:
             to_user_id = to_user_id[0]
-        print(to_user_id)
-        print(user_id)
         if user_id and str(to_user_id) != str(user_id):
-            print(user_id)      
-            cur.execute("INSERT INTO accountcontrol (blocked, fake, from_user_id, to_user_id) VALUES (true, false, %(from)s, %(to)s)", {'from': current_user.id, 'to': user_id})
-            conn.commit()
+            cur.execute("SELECT COUNT(to_user_id) FROM accountcontrol WHERE (to_user_id=%(id)s AND from_user_id = %(from)s) LIMIT 1", {'id': user_id, 'from': current_user.id})
+            if cur.fetchone()[0]==0:
+                cur.execute("INSERT INTO accountcontrol (blocked, fake, from_user_id, to_user_id) VALUES (true, false, %(from)s, %(to)s)", {'from': current_user.id, 'to': user_id})
+                conn.commit()
+            else:
+                cur.execute("UPDATE accountcontrol SET blocked='true' WHERE from_user_id=%(from)s AND to_user_id=%(to)s", {'from': current_user.id, 'to': user_id})
+                conn.commit()
             cur.close()
             conn.close()
             flash('The user has been blocked')
@@ -297,19 +306,16 @@ def block():
 def unblock():
     if request.method == 'POST':
         user_id = request.form['data']
-        print(user_id)
         conn = get_db_connection()
         cur = conn.cursor()  
         try:
-            print("hello")
-            cur.execute("DELETE FROM accountcontrol WHERE (from_user_id=%(user)s AND to_user_id=%(id)s AND blocked = true)", {'user': current_user.id, 'id': user_id})
+            cur.execute("UPDATE accountcontrol SET blocked=false WHERE (from_user_id=%(user)s AND to_user_id=%(id)s AND blocked = true)", {'user': current_user.id, 'id': user_id})
             conn.commit()
             cur.close()
             conn.close()
             flash('The user has been unblocked')
             return (user_id)
         except: 
-            print("error")
             flash('Issue while unblocking user, try again later')
             cur.close()
             conn.close()
@@ -325,10 +331,7 @@ def report():
         cur = conn.cursor()  
         cur.execute("SELECT COUNT(to_user_id) FROM accountcontrol WHERE (to_user_id=%(id)s AND fake = true) LIMIT 1", {'id': user_id})
         to_user_id = cur.fetchone()[0]
-        print(to_user_id)
-        print(user_id) 
         if user_id and to_user_id==0:
-            print(user_id)  
             cur.execute("SELECT COUNT(to_user_id) FROM accountcontrol WHERE (to_user_id=%(id)s AND from_user_id = %(from)s) LIMIT 1", {'id': user_id, 'from': current_user.id})
             if cur.fetchone()[0]==0:
                 cur.execute("INSERT INTO accountcontrol (blocked, fake, from_user_id, to_user_id) VALUES (false, true, %(from)s, %(to)s)", {'from': current_user.id, 'to': user_id})
@@ -344,7 +347,7 @@ def report():
             cur.close()
             conn.close()
             flash('The user is already reported')
-            return ("KO")
+            return (user_id)
 
 # edit profile page that return 'edit-profile'
 @main.route('/edit-profile') 
@@ -542,14 +545,12 @@ def account():
     onglet = None
     section = 'like'
     blocked_list = []
+    likes_list = []
+    views_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s and blocked=true)", {'id': current_user.id})
-    blocked_users = cur.fetchall()
-    for i in blocked_users:
-        cur.execute("SELECT * FROM users WHERE id=%(id)s LIMIT 1", {'id': i})
-        blocked_profil = cur.fetchone()
-        blocked_list.append([str(blocked_profil[4]) + " " + str(blocked_profil[5]), i[0], str(blocked_profil[1])])
+
+    # Current user profil gesture
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     profil = cur.fetchone()
     cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
@@ -576,6 +577,44 @@ def account():
         image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
     else :
         image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+    
+    # Select blocked user_id
+    cur.execute("SELECT to_user_id from accountcontrol WHERE from_user_id=%(id)s and blocked=true;", {'id':current_user.id})
+    blocked_users=cur.fetchall()
+    for i in blocked_users:
+        cur.execute("SELECT id, username from users where users.id=%(id)s LIMIT 1;", {'id': i})
+        blocked_profil = cur.fetchone()
+        blocked_list.append([blocked_profil[0], blocked_profil[1]])
+  
+    #set blocked_list for views and likes + exclude current_user
+    blocked_string = str(current_user.id)+','.join([str(elem[0]) for elem in blocked_users])
+    # Select Like user_id
+    cur.execute("SELECT sender_id FROM likes WHERE receiver_id='{0}' AND sender_id NOT IN ({1});".format(current_user.id, blocked_string))
+    like_users=cur.fetchall()
+    for i in like_users:
+        cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1;", {'id': i})
+        like_profil = cur.fetchone()
+        #calc age
+        user_age = age(like_profil[2])
+        #did i like this person ? 
+        cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': like_profil[0]})
+        is_like = cur.fetchone()[0]
+        likes_list.append([like_profil[0], like_profil[1], user_age, like_profil[3], is_like])
+    # Select visites user_id
+
+    #cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
+    cur.execute("SELECT sender_id FROM visites WHERE receiver_id='{0}' AND sender_id NOT IN ({1});".format(current_user.id, blocked_string))
+    visite_users=cur.fetchall()
+    for i in visite_users:
+        cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1;", {'id': i})
+        visite_profil = cur.fetchone()
+        #calc age
+        user_age = age(like_profil[2])
+        #did i like this person ? 
+        cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': like_profil[0]})
+        is_like = cur.fetchone()[0]
+        views_list.append([visite_profil[0], visite_profil[1], user_age, visite_profil[3], is_like])
+    
     if request.method=='GET':
         if current_user.confirmed is False:
             flash('Please confirm your account!', 'warning')
@@ -584,7 +623,7 @@ def account():
             onglet = request.args.get('onglet')
         if request.args.get('section') != None :
             section = request.args.get('section')
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list, is_bio=is_bio, birthdate=birthdate)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list,likes_list=likes_list, views_list=views_list, is_bio=is_bio, birthdate=birthdate)
     else:
         if 'deletemyaccount' in request.form:
             officialdelete = request.form.get('deletemyaccount')
@@ -695,7 +734,8 @@ def account():
         cur.close()
         conn.close()
 
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list, is_bio=is_bio, birthdate=birthdate)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list,likes_list=likes_list, views_list=views_list, is_bio=is_bio, birthdate=birthdate)
+
 
 # match page that return 'match'
 @main.route('/match')
@@ -910,13 +950,127 @@ def trisearch():
     #return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
 
     
-    
-    
-    
+# New Search thet return 'search'
+@main.route('/research', methods=['GET', 'POST'])
+@main.route('/research/page/<int:page>', methods=['GET', 'POST'])
+@login_required
+@check_confirmed
+def research(page=1):
+    final_users = []
+    conn = get_db_connection()
+    cur = conn.cursor()
+    #Page doit être > 0 car offset ne prend pas de négatif
+    if int(page) < 1:
+        page = 1
+    offset = (page - 1) * 20
+    # Select blocked user_id
+    cur.execute("SELECT to_user_id from accountcontrol WHERE from_user_id=%(id)s and blocked=true;", {'id':current_user.id})
+    blocked_users=cur.fetchall()
+    blocked_list = ','.join([str(elem[0]) for elem in blocked_users])
+    blocked_list = str(current_user.id) + ','+ blocked_list
+    # Select list of all interests
+    cur.execute("SELECT * FROM \"Interest\";")
+    full_interest = cur.fetchall()
+
+    # On GET Return All Users except block and current
+    if request.method=='GET':
+        # Get number of pages
+        cur.execute("SELECT COUNT(id) FROM users WHERE id NOT IN ({0});".format(blocked_list))
+        total_users = cur.fetchone()[0]
+        max_page = int((total_users/20)+1)
+        if ((total_users % 20) > 0) :
+            max_page+1
+        # Select all user from page=page except blocked ones
+        cur.execute("SELECT id FROM users WHERE id NOT IN ({0}) ORDER BY date_added desc LIMIT 20 OFFSET '{1}';".format(blocked_list, offset))
+        profil_list = cur.fetchall()
+        for user in profil_list:
+            cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
+            user_details = cur.fetchone()
+            #calc age
+            user_age = age(user_details[2])
+            final_users.append([user_details[0], user_details[1], user_age, user_details[3]])
+        cur.close()
+        conn.close()
+        return render_template('research.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
+    # On POST return Users that match Search Inputs
+    if request.method=='POST':
+        if 'ageMinSearch' in request.form:
+            ageMinSearch = request.form.get('ageMinSearch')
+            ageMaxSearch = request.form.get('ageMaxSearch')
+            citySearch = request.form.get('citySearch')
+            locRangeSearch = request.form.get('locRangeSearch')
+            scoreMinSearch = request.form.get('scoreMinSearch')
+            scoreMaxSearch = request.form.get('scoreMaxSearch')
+            hashtags_id = request.form.getlist('searchcheck') 
+            hashtag_user_list = []
+            #to meter#
+            locRangeSearch = int(locRangeSearch)
+            print("locRange:"+locRangeSearch)
+            # Prepare Select Qwery
+            select_stmt = " FROM profil WHERE user_id NOT IN ("+blocked_list+")"
+            data = {}
+            #Age qwery
+            if ageMinSearch != '' and ageMaxSearch != '':
+                #before#
+                ageMinComp = age_period(ageMinSearch)
+                #after#
+                ageMaxComp = age_period(ageMaxSearch)
+                select_stmt = select_stmt+" AND age between %(amax)s and %(amin)s"
+                data['amax'] = ageMaxComp
+                data['amin'] = ageMinComp
+            #Score qwery
+            if scoreMinSearch != '' and scoreMaxSearch != '':
+                scoreMinSearch = int(scoreMinSearch)
+                scoreMaxSearch = int(scoreMaxSearch)
+                select_stmt = select_stmt+" AND score between %(smin)s and %(smax)s"
+                data['smin'] = scoreMinSearch
+                data['smax'] = scoreMaxSearch
+            #Location qwery
+                #locRangeSearch
+            if citySearch != '':
+                cur.execute("SELECT city from ")
+
+            #Hashtags qwery
+            if hashtags_id and hashtags_id[0] != '':
+                cur.execute("SELECT user_id FROM \"ProfilInterest\" WHERE interest_id=%(int1)s", {'int1': hashtags_id[0]})
+                hashtags_users_list = cur.fetchall()
+                for user in hashtags_users_list:
+                    exclude=0
+                    for hashtag_id in hashtags_id:
+                        cur.execute("SELECT COUNT(user_id) FROM \"ProfilInterest\" WHERE interest_id=%(int)s AND user_id=%(uid)s", {'int': hashtag_id, 'uid': user})
+                        is_tag = cur.fetchone()[0]
+                        if ( is_tag == 0):
+                            exclude = exclude+1
+                    if exclude == 0:
+                        hashtag_user_list.append(user)
+                hashtag_user_list_str = ','.join([str(elem[0]) for elem in hashtag_user_list])
+                select_stmt = select_stmt+" AND user_id IN ("+hashtag_user_list_str+")"
+            # Get number of pages
+            get_page_qwery = "SELECT COUNT(id)" + select_stmt
+            cur.execute(get_page_qwery, data)
+            user_num = cur.fetchone()[0]
+            max_page = int((user_num/20)+1)
+            if ((user_num % 20) > 0) :
+                max_page+1
+            #Final qwery  
+            select_stmt = "SELECT user_id" + select_stmt
+            select_stmt = select_stmt + " ORDER BY last_log desc LIMIT 20 OFFSET %(offs)s"
+            data['offs'] = offset
+            cur.execute(select_stmt, data)
+            profil_list = cur.fetchall()
+            for user in profil_list:
+                cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
+                user_details = cur.fetchone()
+                #calc age
+                user_age = age(user_details[2])
+                final_users.append([user_details[0], user_details[1], user_age, user_details[3]])
+    cur.close()
+    conn.close()
+    return render_template('research.html', max_page=max_page, current_page=page, all_users = final_users, user_num=user_num, full_interest=full_interest)
 
 
 
-# search page that return 'match'
+# search page that return 'search'
 @main.route('/search', methods=['GET', 'POST'])
 @login_required
 @check_confirmed
@@ -1042,8 +1196,13 @@ def addnotif():
         if receiver_id :
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
-            conn.commit()
+            cur.execute("SELECT COUNT(id) FROM notifications WHERE (receiver_id=%(id)s AND notif_type=1 AND sender_id = %(from)s) LIMIT 1", {'id': receiver_id, 'from': current_user.id})
+            if cur.fetchone()[0]==0:
+                cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
+                conn.commit()
+            else:
+                cur.execute("UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s", {'from': current_user.id, 'to': receiver_id, 'd': notif_date})
+                conn.commit()
 
             cur.close()
             conn.close()

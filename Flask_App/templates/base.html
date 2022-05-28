@@ -205,7 +205,7 @@ function add_notification(receiver, notif_type, content) {
                         var totalcounter = document.getElementById('globalcounter');
                         //console.log("like:"+data.likes+", view:"+data.views+", msg: "+data.msgs+", total: "+data.total);
 
-                        if (likecounter != null) {
+                        if (likecounter) {
                             if (Number.isInteger(data.likes)) {
                             if (data.likes > 0) {
                             likecounter.innerHTML = data.likes;
@@ -214,40 +214,41 @@ function add_notification(receiver, notif_type, content) {
                             else {
                                 likecounter.classList.add('d-none');
                             }
+                            if (Number.isInteger(data.views)) {
+                                if (data.views > 0) {
+                                viewcounter.innerHTML = data.views;
+                                viewcounter.classList.remove('d-none');
+                                }
+                                else {
+                                    viewcounter.classList.add('d-none');
+                                }
+                            }
+                            if (Number.isInteger(data.msgs)) {
+                                if (data.msgs > 0) {
+                                    messagecounter.innerHTML = data.msgs;
+                                    messagecounter.classList.remove('d-none');
+                                }
+                                else {
+                                    messagecounter.classList.add('d-none');
+                                }
+                            }
+                            if (Number.isInteger(data.total)) {
+                                if (data.total > 0) {
+                                    totalcounter.innerHTML = data.total;
+                                    totalcounter.classList.remove('d-none');
+                                }
+                             else {
+                                    totalcounter.classList.add('d-none');
+                                }
+                            }
+
                         }
-                        if (Number.isInteger(data.views)) {
-                            if (data.views > 0) {
-                            viewcounter.innerHTML = data.views;
-                            viewcounter.classList.remove('d-none');
-                            }
-                            else {
-                                viewcounter.classList.add('d-none');
-                            }
-                        }
-                        if (Number.isInteger(data.msgs)) {
-                            if (data.msgs > 0) {
-                                messagecounter.innerHTML = data.msgs;
-                                messagecounter.classList.remove('d-none');
-                            }
-                            else {
-                                messagecounter.classList.add('d-none');
-                            }
-                        }
-                        if (Number.isInteger(data.total)) {
-                            if (data.total > 0) {
-                                totalcounter.innerHTML = data.total;
-                                totalcounter.classList.remove('d-none');
-                            }
-                            else {
-                                totalcounter.classList.add('d-none');
-                            }
-                        }
-                        }
-                        
                     }
-                },
-                });
-            }
+                        
+                }
+            },
+        });
+    }
 
     function read_notification(notif_type, username) {
     $.ajax({
