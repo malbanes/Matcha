@@ -31,6 +31,7 @@ GENRE = ["Non-binaire", "Men", "Women"]
 ORIENTATION = ["Bisexuel", "Heterosexuel", "Homosexuel"]
 rooms = []
 NOTIF_TYPE = ["like", "view", "message"]
+OFFSET = 20
 
 
 
@@ -839,7 +840,6 @@ def notification():
 def trisearch():
     sort = []
     if request.method == 'POST':
-        print("hello")
         print(request.form.get('ageCheck'))
         print(request.form.get('ageCheckOrder'))
         print(request.form.get('distCheck'))
@@ -962,33 +962,88 @@ def research(page=1):
     #Page doit être > 0 car offset ne prend pas de négatif
     if int(page) < 1:
         page = 1
-    offset = (page - 1) * 20
+    offset = (page - 1) * OFFSET
     # Select blocked user_id
     cur.execute("SELECT to_user_id from accountcontrol WHERE from_user_id=%(id)s and blocked=true;", {'id':current_user.id})
     blocked_users=cur.fetchall()
     blocked_list = ','.join([str(elem[0]) for elem in blocked_users])
-    blocked_list = str(current_user.id) + ','+ blocked_list
+    if blocked_list != '':
+        blocked_list = str(current_user.id) + ','+ blocked_list
+    else:
+        blocked_list = str(current_user.id)
     # Select list of all interests
     cur.execute("SELECT * FROM \"Interest\";")
     full_interest = cur.fetchall()
+    #Select right Gender
+    cur.execute("SELECT genre_id, orientation_id FROM profil WHERE user_id=%(id)s LIMIT 1;", {'id': current_user.id})
+    user_details = cur.fetchone()
+    print(user_details)
+    # Si l'user est un homme
+    if user_details[0] == 1:
+        # Si l'user est Hetero
+        if user_details[1] == 1:
+            #select femme et (hetero ou bi) ou non-binaire  A
+            select_gender = "AND (p.genre_id=2 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
+        #si user est un homme gay
+        elif user_details[1] == 2:
+            #select homme et (gay ou bi) ou non binaire  B
+            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=0)"
+        #si user est un homme bi
+        elif user_details[1] == 0:
+            #select homme et (gay ou bi) ou femme et (hetero ou bi) ou non binaire  B + A
+            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=2 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
+    elif user_details[0] == 2:
+        #si user est une femme et hetero
+        if user_details[1] == 1:
+            #select homme et (hetero ou bi) ou non-binaire C
+            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
+        #si user est une femme et gay
+        elif user_details[1] == 2:
+            #select femme et (gay ou bi) ou non-binaire D
+            select_gender = "AND (p.genre_id=2 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=0)"
+        #si user est une femme et bi
+        elif user_details[1] == 0:
+            #select homme et (hetero ou bi) ou femme et (gay ou bi) ou non-binaire C + D
+            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=2 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
+    #si user est non-binaire et hetero
+    elif user_details[1] == 1:
+        #select homme et femme hetero
+        select_gender = "AND p.orientation_id=1"
+    #si user est non-binaire gay
+    elif user_details[1] == 2:
+        #select homme et femme gay
+        select_gender = "AND p.orientation_id=2"
+    #si user est non-binaire et bi
+    elif user_details[1] == 0:
+        #select all
+        select_gender=""
 
     # On GET Return All Users except block and current
     if request.method=='GET':
+        user_age = 18
         # Get number of pages
-        cur.execute("SELECT COUNT(id) FROM users WHERE id NOT IN ({0});".format(blocked_list))
+        cur.execute("SELECT COUNT(id) FROM search WHERE user_id='{0}' AND list_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
         total_users = cur.fetchone()[0]
-        max_page = int((total_users/20)+1)
-        if ((total_users % 20) > 0) :
+        if total_users > 0:                       
+            cur.execute("SELECT list_id FROM search WHERE user_id='{0}' AND list_id NOT IN ({1}) ORDER BY id desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET, offset))
+            profil_list = cur.fetchall()
+        else:
+            cur.execute("SELECT COUNT(users.id) FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1};".format(blocked_list, select_gender))
+            total_users = cur.fetchone()[0]
+            print("Ma super selection on GENDER")
+            # Select all user from page=page except blocked ones
+            cur.execute("SELECT users.id FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1} ORDER BY p.genre_id desc, p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(blocked_list, select_gender, OFFSET, offset))
+            profil_list = cur.fetchall()
+        max_page = int((total_users/OFFSET)+1)
+        if ((total_users % OFFSET) > 0) :
             max_page+1
-        # Select all user from page=page except blocked ones
-        cur.execute("SELECT id FROM users WHERE id NOT IN ({0}) ORDER BY date_added desc LIMIT 20 OFFSET '{1}';".format(blocked_list, offset))
-        profil_list = cur.fetchall()
         for user in profil_list:
             cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
             user_details = cur.fetchone()
             #calc age
-            user_age = age(user_details[2])
-            final_users.append([user_details[0], user_details[1], user_age, user_details[3]])
+            if user_details:
+                user_age = age(user_details[2])
+                final_users.append([user_details[0], user_details[1], user_age, user_details[3]])
         cur.close()
         conn.close()
         return render_template('research.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
@@ -1004,7 +1059,7 @@ def research(page=1):
             hashtags_id = request.form.getlist('searchcheck') 
             hashtag_user_list = []
             #to meter#
-            locRangeSearch = int(locRangeSearch)
+            #locRangeSearch = int(locRangeSearch)
             print("locRange:"+locRangeSearch)
             # Prepare Select Qwery
             select_stmt = " FROM profil WHERE user_id NOT IN ("+blocked_list+")"
@@ -1027,8 +1082,8 @@ def research(page=1):
                 data['smax'] = scoreMaxSearch
             #Location qwery
                 #locRangeSearch
-            if citySearch != '':
-                cur.execute("SELECT city from ")
+            #if citySearch != '':
+                #cur.execute("SELECT city from ")
 
             #Hashtags qwery
             if hashtags_id and hashtags_id[0] != '':
@@ -1049,12 +1104,29 @@ def research(page=1):
             get_page_qwery = "SELECT COUNT(id)" + select_stmt
             cur.execute(get_page_qwery, data)
             user_num = cur.fetchone()[0]
-            max_page = int((user_num/20)+1)
-            if ((user_num % 20) > 0) :
+            max_page = int((user_num/OFFSET)+1)
+            if ((user_num % OFFSET) > 0) :
                 max_page+1
-            #Final qwery  
+            #Final qwery
             select_stmt = "SELECT user_id" + select_stmt
-            select_stmt = select_stmt + " ORDER BY last_log desc LIMIT 20 OFFSET %(offs)s"
+            select_all = select_stmt + "ORDER BY last_log desc;"
+            cur.execute(select_stmt, data)
+            all_profil_list = cur.fetchall()
+
+            #SET current search List
+            #cur.execute("SELECT COUNT(id) FROM search WHERE user_id=%(id)s", {'id': current_user.id})
+            #if cur.fetchone()[0]==0:                     
+            #    cur.execute("INSERT INTO search (user_id, list) VALUES ('{0}', '{1}')".format(current_user.id, search_list)) 
+            #    conn.commit()
+            #else:
+            #    cur.execute("UPDATE search SET list=%(l)s WHERE user_id=%(id)s", {'l': search_list, 'id': current_user.id})
+            #    conn.commit()
+            cur.execute("DELETE FROM search WHERE user_id = %(id)s", {'id': current_user.id})
+            for user in all_profil_list:
+                cur.execute("INSERT INTO search (user_id, list_id) VALUES (%(id)s, %(lid)s)", {'id': current_user.id, 'lid': user})
+                conn.commit()
+            # Get Final UserList
+            select_stmt = select_stmt + " ORDER BY last_log desc LIMIT 20 OFFSET %(offs)s;"
             data['offs'] = offset
             cur.execute(select_stmt, data)
             profil_list = cur.fetchall()
@@ -1193,6 +1265,7 @@ def addnotif():
         notif_type = int(request.form['notif_type'])
         content = request.form['content']
         notif_date = float(datetime.now().timestamp())
+        return_str="KO"
         if receiver_id :
             conn = get_db_connection()
             cur = conn.cursor()
@@ -1200,15 +1273,16 @@ def addnotif():
             if cur.fetchone()[0]==0:
                 cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
                 conn.commit()
+                return_str = NOTIF_TYPE[int(request.form['notif_type'])]
             else:
                 cur.execute("UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s", {'from': current_user.id, 'to': receiver_id, 'd': notif_date})
                 conn.commit()
-
+                return_str("Old")
             cur.close()
             conn.close()
-            return (NOTIF_TYPE[int(request.form['notif_type'])])
+            return (return_str)
         else:
-            return ("KO")
+            return (return_str)
 
 @main.route('/readnotification', methods = ['POST'])
 def readnotif():

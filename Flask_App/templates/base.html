@@ -174,11 +174,13 @@ function add_notification(receiver, notif_type, content) {
                 if (data == 'KO') {
                   console.log('Une erreur est survenue');
                 }
+                else if (data=="Old"){
+                    //Do something If notification is update
+                }
                 else {
                     //Call notif dynamique
                     var socket = io();
                     socket.emit('new_notif', {'content': content, 'receiver' : receiver, 'notif_type': notif_type});
-
                 }
             },
         });
