@@ -869,64 +869,20 @@ def trisearch():
             else:
                 sort.append(["hashtag", "-"])
     print(sort)
-    blacklisted_list = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name, username FROM users LIMIT 50;")
-    profil_list = cur.fetchall()
-    cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
-    blacklisted_elems = cur.fetchall()
-    for i in blacklisted_elems:
-        cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1;", {'id': i[0]})
-        blacklisted_list.append(cur.fetchone())
-    print(profil_list)
-    print(blacklisted_list)
-    print(len(profil_list))
-    profil_list = [x for x in profil_list if x not in blacklisted_list]
-    profil_list = [x for x in profil_list if x not in blacklisted_list]
-    print(len(profil_list))
-    final_users = []
-    cur.execute("SELECT * FROM \"Interest\";")
-    full_interest = cur.fetchall()
-    for user in profil_list:
-        if user[0] != current_user.id:
-            cur.execute("SELECT image_profil, age, location_id, score FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user[0]})
-            user_details = cur.fetchone()
-            #print(user[0])
-            #print(user_details)
-            if user_details != None:
-                image_profil = user_details[0]
-                #print(image_profil)
-                cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': user[0]})
-                all_images = cur.fetchall()
-                try:
-                    fav_image = all_images[int(image_profil)][1]
+    cur.execute("SELECT list_id FROM search WHERE user_id=%('id')s", {'id': current_user.id})
+    search_list = cur.fetchall()
+    search_list_str = ','.join([str(elem[0]) for elem in search_list])
+    # Prepare select tri with previous search Result
+    select_stmt = "SELECT user_id FROM profil WHERE user_id IN ("+ search_list_str +")" 
 
-                except:
-                    all_images.append([0, 'test/no-photo.png']) 
-                    all_images.append([1, 'test/no-photo.png'])
-                    all_images.append([2, 'test/no-photo.png'])
-                    all_images.append([3, 'test/no-photo.png'])
-                    all_images.append([4, 'test/no-photo.png'])
-                    fav_image = all_images[int(image_profil)][1]
-                #print("all_images")
-                #print(all_images)
-                #print(fav_image)
-                if fav_image:
-                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
-                else :
-                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
-                user_age = str(age(user_details[1]))
-                cur.execute("SELECT city FROM location WHERE id=%(id)s LIMIT 1", {'id': user_details[2]})
-                user_location = cur.fetchone()[0]
-                final_users.append([user[1], user_age, user_location, image_profil_path, user[2], user_details[3]])
-                #print(len(final_users))
-    #print(profil_list)
     cur.close()
     conn.close()
+    
     for elem in sort:
         if elem[0] == "age" and elem[1] == "+":
-            final_users = sorted(final_users, key=lambda tup: tup[1], reverse=False)
+            select_stmt = select_stmt + "ORDER BY age desc"
         elif elem[0] == "age" and elem[1] == "-":
             final_users = sorted(final_users, key=lambda tup: tup[1], reverse=True)
         if elem[0] == "dist" and elem[1] == "+":
@@ -1024,13 +980,12 @@ def research(page=1):
         # Get number of pages
         cur.execute("SELECT COUNT(id) FROM search WHERE user_id='{0}' AND list_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
         total_users = cur.fetchone()[0]
-        if total_users > 0:                       
-            cur.execute("SELECT list_id FROM search WHERE user_id='{0}' AND list_id NOT IN ({1}) ORDER BY id desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET, offset))
+        if total_users > 0:       
+            cur.execute("SELECT list_id FROM search INNER JOIN profil p on search.list_id=p.user_id AND search.user_id='{0}' AND list_id NOT IN ({1}) ORDER BY p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET, offset))
             profil_list = cur.fetchall()
         else:
             cur.execute("SELECT COUNT(users.id) FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1};".format(blocked_list, select_gender))
             total_users = cur.fetchone()[0]
-            print("Ma super selection on GENDER")
             # Select all user from page=page except blocked ones
             cur.execute("SELECT users.id FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1} ORDER BY p.genre_id desc, p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(blocked_list, select_gender, OFFSET, offset))
             profil_list = cur.fetchall()
