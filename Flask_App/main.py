@@ -1059,6 +1059,12 @@ def research(page=1):
                             final_profil_list_id.append(i)
                         else:
                             print("remove user")
+                #Ensuite, tu la formate pour rentrer dans une requete sql :
+                final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
+                if final_profil_list_id_str:
+                    #On rajoute l'élément à la requete en préparation:
+                    select_stmt = select_stmt+" AND user_id IN ("+final_profil_list_id_str+")"
+                print(final_profil_list_id_str)
 
             #Hashtags qwery
             if hashtags_id and hashtags_id[0] != '':
@@ -1074,9 +1080,13 @@ def research(page=1):
                     if exclude == 0:
                         hashtag_user_list.append(user)
                 hashtag_user_list_str = ','.join([str(elem[0]) for elem in hashtag_user_list])
-                select_stmt = select_stmt+" AND user_id IN ("+hashtag_user_list_str+")"
+                if hashtag_user_list_str:
+                    select_stmt = select_stmt+" AND user_id IN ("+hashtag_user_list_str+")"
+                print(select_stmt)
+            
             # Get number of pages
             get_page_qwery = "SELECT COUNT(id)" + select_stmt
+            print(get_page_qwery)
             cur.execute(get_page_qwery, data)
             user_num = cur.fetchone()[0]
             max_page = int((user_num/OFFSET)+1)
@@ -1106,11 +1116,17 @@ def research(page=1):
             cur.execute(select_stmt, data)
             profil_list = cur.fetchall()
             for user in profil_list:
-                cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
+                cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
                 user_details = cur.fetchone()
                 #calc age
                 user_age = age(user_details[2])
-                final_users.append([user_details[0], user_details[1], user_age, user_details[3]])
+                if user_details[4] is not None:
+                    cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
+                    user_image = cur.fetchone()
+                    user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
+                else: 
+                    user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+                final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
     cur.close()
     conn.close()
     return render_template('research.html', max_page=max_page, current_page=page, all_users = final_users, user_num=user_num, full_interest=full_interest)
