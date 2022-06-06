@@ -993,12 +993,18 @@ def research(page=1):
         if ((total_users % OFFSET) > 0) :
             max_page+1
         for user in profil_list:
-            cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
+            cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
             user_details = cur.fetchone()
             #calc age
             if user_details:
                 user_age = age(user_details[2])
-                final_users.append([user_details[0], user_details[1], user_age, user_details[3]])
+                if user_details[4] is not None:
+                    cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
+                    user_image = cur.fetchone()
+                    user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
+                else: 
+                    user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+                final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
         cur.close()
         conn.close()
         return render_template('research.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
@@ -1013,6 +1019,7 @@ def research(page=1):
             scoreMaxSearch = request.form.get('scoreMaxSearch')
             hashtags_id = request.form.getlist('searchcheck') 
             hashtag_user_list = []
+            final_profil_list_id = []
             #to meter#
             #locRangeSearch = int(locRangeSearch)
             print("locRange:"+locRangeSearch)
@@ -1037,8 +1044,21 @@ def research(page=1):
                 data['smax'] = scoreMaxSearch
             #Location qwery
                 #locRangeSearch
-            #if citySearch != '':
-                #cur.execute("SELECT city from ")
+            if citySearch != '':
+                get_long, get_lat, city_name = localize_text(citySearch)
+                cur.execute("SELECT user_id, location_id FROM profil")
+                profil_list_id = cur.fetchall()
+                for i in profil_list_id:
+                    if i[0] != current_user.id:
+                        cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
+                        coordinates_others = cur.fetchone()
+                        off_distance = distance(get_long, get_lat, coordinates_others[0], coordinates_others[1])
+                        print(off_distance)
+                        if off_distance <= float(locRangeSearch):
+                            print("keep user")
+                            final_profil_list_id.append(i)
+                        else:
+                            print("remove user")
 
             #Hashtags qwery
             if hashtags_id and hashtags_id[0] != '':

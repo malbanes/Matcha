@@ -1,9 +1,8 @@
 create table search
 (
-    id             serial
-            primary key,
+    id             serial primary key,
     user_id       integer default 0 not null,
-    list_id       integer default 0 not null,
+    list_id       integer default 0 not null
 );
 
 alter table search
