@@ -38,6 +38,15 @@ $( function() {
     max: 99,
     values: [ 18, 99 ],
     slide: function( event, ui ) {
+      if (ui.values[ 0 ] == ui.values[ 1 ])
+      {
+        if (ui.values[ 1 ] == 99) {
+          ui.values[ 0 ] = ui.values[ 0 ] - 1;
+        }
+        else {
+          ui.values[ 1 ] = ui.values[ 1 ]  + 1;
+        }
+      }
       $( "#ageRangeSearch" ).val( ui.values[ 0 ] + " ans" + " et "  + ui.values[ 1 ] + " ans" );
       $("#ageMinSearch").val(ui.values[ 0 ]);
       $("#ageMaxSearch").val(ui.values[ 1 ]);

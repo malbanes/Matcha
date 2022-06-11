@@ -11,6 +11,7 @@ from threading import Lock
 from __init__ import create_app, get_db_connection
 from login_decorator import check_confirmed
 from age_calc import age, age_period
+from gender_id import set_gender_orientation
 
 from localization import localize_text, distance, localize_user
 from datetime import date, datetime
@@ -880,12 +881,18 @@ def trisearch():
     data['lat'] = current_user_loc[0]
     data['long'] = current_user_loc[1]
 
+    search_list_str = ""
     cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
     search_list = cur.fetchall()
     search_list_str = ','.join([str(elem[0]) for elem in search_list])
 
     # Prepare select tri with previous search Result
-    select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id AND p.user_id IN ("+ search_list_str +") " 
+    select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id "
+    if search_list_str != "":
+        select_stmt = select_stmt + "AND p.user_id IN ("+ search_list_str +") "
+    else:
+        select_gender= set_gender_orientation()
+        select_stmt = select_stmt + select_gender
     select_stmt = select_stmt + "LEFT JOIN location as l ON p.location_id=l.id "
     select_stmt = select_stmt + 'LEFT JOIN \"ProfilInterest\"  pi ON users.id = pi.user_id AND pi.interest_id IN (SELECT interest_id FROM \"ProfilInterest\"  WHERE user_id=%(id)s) '
     select_stmt = select_stmt + "GROUP BY users.id, p.age, p.score, l.latitude, l.longitude "
@@ -985,34 +992,38 @@ def filtresearch():
             age_qwery = "AND p.age BETWEEN %(amax)s and %(amin)s "
         # Prepare location qwery
         elif elem[0] == "city":
-            locRange = request.form.get('locRange')
-            print(locRange)
-            get_long, get_lat, city_name = localize_text(elem[1])
-            cur.execute("SELECT user_id, location_id FROM profil")
-            profil_list_id = cur.fetchall()
-            for i in profil_list_id:
-                if i[0] != current_user.id:
-                    cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
-                    coordinates_others = cur.fetchone()
-                    off_distance = distance(get_long, get_lat, coordinates_others[0], coordinates_others[1])
-                    if off_distance <= float(locRange):
-                        final_profil_list_id.append(i)
-                    else:
-                        print("remove user")
-            #Ensuite, tu la formate pour rentrer dans une requete sql :
-            print(final_profil_list_id)
-            final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
-            if final_profil_list_id_str:
-                #On rajoute l'élément à la requete en préparation:
-                loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
-                print(loc_qwery)
+             locRange = request.form.get('locRange')
+             print(locRange)
+             get_long, get_lat, city_name = localize_text(elem[1])
+             cur.execute("SELECT user_id, location_id FROM profil")
+             profil_list_id = cur.fetchall()
+             for i in profil_list_id:
+                 if i[0] != current_user.id:
+                     cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
+                     coordinates_others = cur.fetchone()
+                     off_distance = distance(get_long, get_lat, coordinates_others[0], coordinates_others[1])
+                     if off_distance <= float(locRange):
+                         final_profil_list_id.append(i)
+                     else:
+                         print("remove user")
+             #Ensuite, tu la formate pour rentrer dans une requete sql :
+             print(final_profil_list_id)
+             final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
+             if final_profil_list_id_str:
+                 #On rajoute l'élément à la requete en préparation:
+                 loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
+                 print(loc_qwery)
         # Prepare score qwery
         elif elem[0] == "score":
             scoreMinSearch = int(elem[1])
             scoreMaxSearch = int(elem[2])
-            data['smin'] = scoreMinSearch
-            data['smax'] = scoreMaxSearch
-            score_qwery = "AND p.score BETWEEN %(smin)s and %(smax)s "
+            if scoreMinSearch == scoreMaxSearch:
+                score_qwery = "AND p.score = %(smin)s"
+                data['smin'] = scoreMinSearch
+            else:
+                data['smin'] = scoreMinSearch
+                data['smax'] = scoreMaxSearch
+                score_qwery = "AND p.score BETWEEN %(smin)s and %(smax)s "
         # Prepare hashtag qwery
         elif elem[0] == "hashtag" and elem[1]:
             interest_str = ','.join([str(interest_id) for interest_id in elem[1]])
@@ -1035,12 +1046,19 @@ def filtresearch():
                 hashtag_match_str = ','.join([str(user_id) for user_id in hashtag_match])
                 hash_qwery = "AND p.user_id IN ("+ hashtag_match_str +") "
     
+    search_list_str = ""
     cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
     search_list = cur.fetchall()
     search_list_str = ','.join([str(elem[0]) for elem in search_list])
 
+
     # Prepare select filtre with previous search Result
-    select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id AND p.user_id IN ("+ search_list_str +") " 
+    select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id "
+    if search_list_str != "":
+        select_stmt = select_stmt + "AND p.user_id IN ("+ search_list_str +") " 
+    else:
+        select_gender= set_gender_orientation()
+        select_stmt = select_stmt + select_gender
     if hash_qwery != "":
             select_stmt = select_stmt + hash_qwery
     if score_qwery != "":
@@ -1048,7 +1066,7 @@ def filtresearch():
     if age_qwery != "":        
         select_stmt = select_stmt + age_qwery
     if loc_qwery != "":
-        select_stmt = select_stmt + loc_qwery
+         select_stmt = select_stmt + loc_qwery
 
     select_stmt = select_stmt + "ORDER BY p.last_log DESC"
     select_stmt = select_stmt + " LIMIT 20 OFFSET 0;"
@@ -1102,48 +1120,7 @@ def search(page=1):
     cur.execute("SELECT * FROM \"Interest\";")
     full_interest = cur.fetchall()
     #Select right Gender
-    cur.execute("SELECT genre_id, orientation_id FROM profil WHERE user_id=%(id)s LIMIT 1;", {'id': current_user.id})
-    user_details = cur.fetchone()
-    print(str(current_user.id))
-    # Si l'user est un homme
-    if user_details[0] == 1:
-        # Si l'user est Hetero
-        if user_details[1] == 1:
-            #select femme et (hetero ou bi) ou non-binaire  A
-            select_gender = "AND (p.genre_id=2 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
-        #si user est un homme gay
-        elif user_details[1] == 2:
-            #select homme et (gay ou bi) ou non binaire  B
-            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=0)"
-        #si user est un homme bi
-        elif user_details[1] == 0:
-            #select homme et (gay ou bi) ou femme et (hetero ou bi) ou non binaire  B + A
-            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=2 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
-    elif user_details[0] == 2:
-        #si user est une femme et hetero
-        if user_details[1] == 1:
-            #select homme et (hetero ou bi) ou non-binaire C
-            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
-        #si user est une femme et gay
-        elif user_details[1] == 2:
-            #select femme et (gay ou bi) ou non-binaire D
-            select_gender = "AND (p.genre_id=2 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=0)"
-        #si user est une femme et bi
-        elif user_details[1] == 0:
-            #select homme et (hetero ou bi) ou femme et (gay ou bi) ou non-binaire C + D
-            select_gender = "AND (p.genre_id=1 AND (p.orientation_id=0 or p.orientation_id=2) OR p.genre_id=2 AND (p.orientation_id=1 or p.orientation_id=0) OR p.genre_id=0)"
-    #si user est non-binaire et hetero
-    elif user_details[1] == 1:
-        #select homme et femme hetero
-        select_gender = "AND p.orientation_id=1"
-    #si user est non-binaire gay
-    elif user_details[1] == 2:
-        #select homme et femme gay
-        select_gender = "AND p.orientation_id=2"
-    #si user est non-binaire et bi
-    elif user_details[1] == 0:
-        #select all
-        select_gender=""
+    select_gender= set_gender_orientation()
 
     # On GET Return All Users except block and current
     if request.method=='GET':
@@ -1195,7 +1172,7 @@ def search(page=1):
             #locRangeSearch = int(locRangeSearch)
             print("locRange:"+locRangeSearch)
             # Prepare Select Qwery
-            select_stmt = " FROM profil WHERE user_id NOT IN ("+blocked_list+")"
+            select_stmt = " FROM profil WHERE user_id NOT IN ("+blocked_list+") " + select_gender
             data = {}
             #Age qwery
             if ageMinSearch != '' and ageMaxSearch != '':
@@ -1210,9 +1187,13 @@ def search(page=1):
             if scoreMinSearch != '' and scoreMaxSearch != '':
                 scoreMinSearch = int(scoreMinSearch)
                 scoreMaxSearch = int(scoreMaxSearch)
-                select_stmt = select_stmt+" AND score between %(smin)s and %(smax)s"
-                data['smin'] = scoreMinSearch
-                data['smax'] = scoreMaxSearch
+                if scoreMinSearch == scoreMaxSearch:
+                    select_stmt = select_stmt+" AND score = %(smin)s"
+                    data['smin'] = scoreMinSearch
+                else:
+                    select_stmt = select_stmt+" AND score between %(smin)s and %(smax)s"
+                    data['smin'] = scoreMinSearch
+                    data['smax'] = scoreMaxSearch
             #Location qwery
                 #locRangeSearch
             #if citySearch != '':
