@@ -992,27 +992,27 @@ def filtresearch():
             age_qwery = "AND p.age BETWEEN %(amax)s and %(amin)s "
         # Prepare location qwery
         elif elem[0] == "city":
-             locRange = request.form.get('locRange')
-             print(locRange)
-             get_long, get_lat, city_name = localize_text(elem[1])
-             cur.execute("SELECT user_id, location_id FROM profil")
-             profil_list_id = cur.fetchall()
-             for i in profil_list_id:
-                 if i[0] != current_user.id:
-                     cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
-                     coordinates_others = cur.fetchone()
-                     off_distance = distance(get_long, get_lat, coordinates_others[0], coordinates_others[1])
-                     if off_distance <= float(locRange):
-                         final_profil_list_id.append(i)
-                     else:
-                         print("remove user")
-             #Ensuite, tu la formate pour rentrer dans une requete sql :
-             print(final_profil_list_id)
-             final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
-             if final_profil_list_id_str:
-                 #On rajoute l'élément à la requete en préparation:
-                 loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
-                 print(loc_qwery)
+            locRange = request.form.get('locRange')
+            print(locRange)
+            get_long, get_lat, city_name = localize_text(elem[1])
+            cur.execute("SELECT user_id, location_id FROM profil")
+            profil_list_id = cur.fetchall()
+            for i in profil_list_id:
+                if i[0] != current_user.id:
+                    cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
+                    coordinates_others = cur.fetchone()
+                    off_distance = distance(get_long, get_lat, coordinates_others[0], coordinates_others[1])
+                    if off_distance <= float(locRange):
+                        final_profil_list_id.append(i)
+                    else:
+                        print("remove user")
+            #Ensuite, tu la formate pour rentrer dans une requete sql :
+            print(final_profil_list_id)
+            final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
+            if final_profil_list_id_str:
+                #On rajoute l'élément à la requete en préparation:
+                loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
+                print(loc_qwery)
         # Prepare score qwery
         elif elem[0] == "score":
             scoreMinSearch = int(elem[1])
