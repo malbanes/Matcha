@@ -13,16 +13,16 @@
       <!--left side-->
       <div class="col position-fixe bg-deepblue" style="max-width:70px;">
           <ul class="list-group mt-4" style="position:fixed;">
-              <li class="text-white mb-4">
-                  <button type="button" class="btn btn-outline-light"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
-                    <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
-                  </svg></button>
-              </li>
-              <li class="text-white mt-4">
-                  <button type="button" class="btn btn-outline-light"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-                      <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z"/>
-                  </svg></button>
-              </li>
+            <li class="text-white mt-4">
+              <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#triModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
+                <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+              </svg></button>
+          </li>
+          <li class="text-white mt-4">
+              <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#filterModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                  <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z"/>
+              </svg></button>
+          </li>
           </ul>
       </div>
 
@@ -92,6 +92,165 @@
 
 </div>
 
+<!-- Modal Filtre -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="filterModalLabel">Filtre</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Filtre Form-->
+        <form method="POST" id="filtre-match-form">
+          <!-- Age -->
+          <div class="form-check d-inline">
+            <input class="form-check-input" type="checkbox" name="ageFiltreCheck" id="ageFiltreCheck">
+            <div class="h5 no-margin text-deepblue d-inline">Age</div>
+          </div>
+          <p class="no-margin">
+            <label for="ageRange">Entre </label>
+            <input type="text" id="ageRange" readonly style="border:0;">
+          </p>
+          <div id="slider-range"></div>
+          <input id="ageMin" name="ageMin" type="hidden" value="18">
+          <input id="ageMax" name="ageMax" type="hidden" value="99">
+          <!-- Localisation -->
+          </br></br>
+          <div class="form-check d-inline">
+            <input class="form-check-input" type="checkbox" name="locFiltreCheck" id="locFiltreCheck">
+            <div class="h5 no-margin text-deepblue d-inline">Location</div>
+          </div>
+          <label for="city">City</label>
+          <input id="city" type="text" name="city"></br>
+            <label for="locRange">Distance: </label> <p id="locRangeLabel" class="no-margin d-inline">5 Km</p>
+            <input onchange="changeLocRange(this.value)" type="range" name="locRange" class="custom-range small-bar d-inline align-middle" min="5" max="100" step="1" id="locRange">
+          <!-- Score interval -->
+        </br>
+          <p class="no-margin">
+            <div class="form-check d-inline">
+              <input class="form-check-input" type="checkbox" name="scoreFiltreCheck" id="scoreFiltreCheck">
+              <div class="h5 no-margin text-deepblue d-inline">Score</div>
+            </div>
+            <label for="scoreRange">Entre </label>
+            <input type="text" id="scoreRange" readonly style="border:0;">
+          </p>
+          <div id="slider-score-range"></div>
+          <input id="scoreMin" name="scoreMin" type="hidden" value="0">
+          <input id="scoreMax" name="scoreMax" type="hidden" value="9999">
+          <!-- Hashtags -->
+        </br>
+          <div class="form-check d-inline">
+            <input class="form-check-input" type="checkbox" name="hashtagFiltreCheck" id="hashtagFiltreCheck">
+            <div class="h5 no-margin text-deepblue d-inline">Hashtags</div>
+          </div>
+
+          <div class="input-group mb-3">
+            <input type="text" class="live-search-box form-control" placeholder="search here" />
+        </div>
+            <ul class="live-search-list list-inline" type="None">
+                {% for i in full_interest %}
+                <li class="list-inline-item" style="display: none;">
+                    <div class="custom-control custom-checkbox mx-2 d-inline-flex">
+                        <input type="checkbox" class="custom-control-input" id=filtre-{{i[0]}} name="check" value={{i[0]}}>
+                        <label class="custom-control-label" for=filtre-{{i[0]}}>{{ i[1] }}</label>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <div class="col-auto mr-auto">
+          <p class="no-padding" id="filtre-search-reset">Reset</p>
+        </div>
+        <div class="col-auto">
+          <button type="buton" id="filtre-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tri -->
+<div class="modal fade" id="triModal" tabindex="-1" aria-labelledby="triModalLabel" aria-hidden="true">
+
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="triModalLabel">Tri</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Tri Form-->
+        <form method="POST" id="tri-match-form">
+          <!-- Age -->
+          <div class="h5 text-deepblue">Trier par: </div>
+            <div class="form-check d-inline">
+              <input class="form-check-input" type="checkbox" name="ageCheck" id="ageCheck">
+              <label class="form-check-label align-top" for="ageCheck">Age</label>
+            </div>
+            <div class="form-check d-inline no-padding">
+              <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+                <input onchange="changeIt(this)" id="ageCheckOrder" name="ageCheckOrder" type="checkbox" checked="checked">
+                <span class="checkmark"></span>
+              </label>
+            </div></br></br>
+          <!-- Distance -->
+            <div class="form-check d-inline">
+              <input class="form-check-input" type="checkbox" name="distCheck" id="distCheck">
+              <label class="form-check-label align-top" for="distCheck">Distance</label>
+            </div>
+            <div class="form-check d-inline no-padding">
+              <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+                <input onchange="changeIt(this)" id="distCheckOrder" name="distCheckOrder" type="checkbox" checked="checked">
+                <span class="checkmark"></span>
+              </label>
+            </div></br></br>
+          <!-- Score -->
+          <div class="form-check d-inline">
+            <input class="form-check-input" type="checkbox" name="scoreCheck" id="scoreCheck">
+            <label class="form-check-label align-top" for="scoreCheck">Score</label>
+          </div>
+          <div class="form-check d-inline no-padding">
+            <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+              <input onchange="changeIt(this)" id="scoreCheckOrder" name="scoreCheckOrder" type="checkbox" checked="checked">
+              <span class="checkmark"></span>
+            </label>
+          </div></br></br>
+          <!-- Hashtags -->
+          <div class="form-check d-inline">
+            <input class="form-check-input" type="checkbox" id="hashtagCheck" name="hashtagCheck">
+            <label class="form-check-label align-top" for="hashtagCheck">Hashtag</label>
+          </div>
+          <div class="form-check d-inline no-padding">
+            <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+              <input onchange="changeIt(this)" id="hashtagCheckOrder" name="hashtagCheckOrder" type="checkbox" checked="checked">
+              <span class="checkmark"></span>
+            </label>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <div class="col-auto mr-auto">
+          <p class="no-padding" id="tri-search-reset">Reset</p>
+        </div>
+        <div class="col-auto">
+          <button type="buton" id="tri-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="{{url_for('static', filename='js/match.js')}}"></script>  
 
 <script>
 function toggle_display(i){
@@ -100,8 +259,6 @@ function toggle_display(i){
   el = document.getElementById(i);
      el.className += ' remove-card';
      el.parentNode.removeChild(el);
-
-
 }
 </script>
 
