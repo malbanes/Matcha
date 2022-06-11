@@ -839,6 +839,8 @@ def notification():
 @check_confirmed
 def trisearch():
     sort = []
+    final_users = []
+
     if request.method == 'POST':
         print(request.form.get('ageCheck'))
         print(request.form.get('ageCheckOrder'))
@@ -848,70 +850,218 @@ def trisearch():
         print(request.form.get('scoreCheckOrder'))
         print(request.form.get('hashtagCheck'))
         print(request.form.get('hashtagCheckOrder'))
-        if request.form.get('ageCheck') == "on":
-            if request.form.get('ageCheckOrder') == "on":
-                sort.append(["age", "+"])
-            else:
-                sort.append(["age", "-"])
-        if request.form.get('distCheck') == "on":
-            if request.form.get('distCheckOrder') == "on":
-                sort.append(["dist", "+"])
-            else:
-                sort.append(["dist", "-"])
-        if request.form.get('scoreCheck') == "on":
-            if request.form.get('scoreCheckOrder') == "on":
-                sort.append(["score", "+"])
-            else:
-                sort.append(["score", "-"])
         if request.form.get('hashtagCheck') == "on":
             if request.form.get('hashtagCheckOrder') == "on":
                 sort.append(["hashtag", "+"])
             else:
                 sort.append(["hashtag", "-"])
-    print(sort)
+        if request.form.get('distCheck') == "on":
+            if request.form.get('distCheckOrder') == "on":
+                sort.append(["dist", "+"])
+            else:
+                sort.append(["dist", "-"])
+        if request.form.get('ageCheck') == "on":
+            if request.form.get('ageCheckOrder') == "on":
+                sort.append(["age", "+"])
+            else:
+                sort.append(["age", "-"])
+        if request.form.get('scoreCheck') == "on":
+            if request.form.get('scoreCheckOrder') == "on":
+                sort.append(["score", "+"])
+            else:
+                sort.append(["score", "-"])
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT list_id FROM search WHERE user_id=%('id')s", {'id': current_user.id})
+
+    # Get Location of current user to calculate distance
+    cur.execute("SELECT latitude, longitude from location WHERE id=(SELECT location_id FROM profil WHERE user_id=%(id)s);", {'id': current_user.id})
+    current_user_loc = cur.fetchone()
+    data = {'id': current_user.id}
+    data['lat'] = current_user_loc[0]
+    data['long'] = current_user_loc[1]
+
+    cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
     search_list = cur.fetchall()
     search_list_str = ','.join([str(elem[0]) for elem in search_list])
+
     # Prepare select tri with previous search Result
-    select_stmt = "SELECT user_id FROM profil WHERE user_id IN ("+ search_list_str +")" 
+    select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id AND p.user_id IN ("+ search_list_str +") " 
+    select_stmt = select_stmt + "LEFT JOIN location as l ON p.location_id=l.id "
+    select_stmt = select_stmt + 'LEFT JOIN \"ProfilInterest\"  pi ON users.id = pi.user_id AND pi.interest_id IN (SELECT interest_id FROM \"ProfilInterest\"  WHERE user_id=%(id)s) '
+    select_stmt = select_stmt + "GROUP BY users.id, p.age, p.score, l.latitude, l.longitude "
+    select_stmt = select_stmt + "ORDER BY "
+
+    elem_lengh = len(sort)
+    print("My array lenght is: ", str(elem_lengh))
+    for elem in sort:
+        if elem[0] == "age" and elem[1] == "+":
+            select_stmt = select_stmt + "p.age DESC"
+        elif elem[0] == "age" and elem[1] == "-":
+            select_stmt = select_stmt + "p.age"
+        if elem[0] == "dist" and elem[1] == "+":
+            select_stmt = select_stmt + "ABS( (l.latitude) - (%(lat)s) ) + ABS( (l.longitude) - (%(long)s) )"
+        elif elem[0] == "dist" and elem[1] == "-":
+            select_stmt = select_stmt + "ABS( (l.latitude) - (%(lat)s) ) + ABS( (l.longitude) - (%(long)s) ) DESC"
+        if elem[0] == "score" and elem[1] == "+":
+            select_stmt = select_stmt + "p.score"
+        elif elem[0] == "score" and elem[1] == "-":
+            select_stmt = select_stmt + "p.score DESC"
+        if elem[0] == "hashtag" and elem[1] =="+":
+            select_stmt = select_stmt + "count(pi.interest_id)"
+        elif elem[0] == "hashtag" and elem[1] =="-":
+            select_stmt = select_stmt + "count(pi.interest_id) DESC"
+        if elem_lengh > 1:
+            select_stmt = select_stmt + ", "
+        elem_lengh = elem_lengh -1
+
+    select_stmt = select_stmt + " LIMIT 20 OFFSET 0;"
+    cur.execute(select_stmt, data)
+    all_profil_list = cur.fetchall()
+    for user in all_profil_list:
+        cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
+        user_details = cur.fetchone()
+        #calc age
+        if user_details:
+            user_age = age(user_details[2])
+            if user_details[4] is not None:
+                cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
+                user_image = cur.fetchone()
+                user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
+            else: 
+                user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+            final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
+    cur.close()
+    conn.close()
+    return {
+        'all_users': final_users
+    }
+    #return render_template('search.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
+
+
+@main.route('/filtresearch', methods = ['POST'])
+@login_required
+@check_confirmed
+def filtresearch():
+    filtre = []
+    existing_list = []
+    final_users = []
+    age_qwery = ""
+    loc_qwery = ""
+    score_qwery = ""
+    hash_qwery = ""
+    hash_id = ""
+
+    if request.method == 'POST':
+        if request.form.get('ageFiltreCheck') == "on":
+            if request.form.get('ageMin') !='' and request.form.get('ageMax') != '':
+                filtre.append(["age", request.form.get('ageMin'), request.form.get('ageMax')])
+        if request.form.get('locFiltreCheck') == "on":
+            if request.form.get('city') != '':
+                filtre.append(["city", request.form.get('city')])
+        if request.form.get('scoreFiltreCheck') == "on":
+            if request.form.get('scoreMin') != '' and request.form.get('scoreMax') != '':
+                filtre.append(["score", request.form.get('scoreMin'), request.form.get('scoreMax')])
+        if request.form.get('hashtagFiltreCheck') == "on":
+            hash_id = request.form.getlist("check")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    #Check if hashtag exist in bdd
+    if (hash_id != ""):
+        for elem in hash_id:
+            cur.execute("SELECT id FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': elem})
+            existing_list.append(cur.fetchone()[0])
+        filtre.append(["hashtag", existing_list])
+    nbr_hashtag = len(existing_list)
+    # Construct request by checked filtre
+    data = {'id': current_user.id}
+    for elem in filtre:
+        # Prepare age qwery
+        if elem[0] == "age":
+            ageMinComp = age_period(elem[1])
+            ageMaxComp = age_period(elem[2])
+            data['amax'] = ageMaxComp
+            data['amin'] = ageMinComp
+            age_qwery = "AND p.age BETWEEN %(amax)s and %(amin)s "
+        # Prepare location qwery
+        #elif elem[0] == "city":
+        # Prepare score qwery
+        elif elem[0] == "score":
+            scoreMinSearch = int(elem[1])
+            scoreMaxSearch = int(elem[2])
+            data['smin'] = scoreMinSearch
+            data['smax'] = scoreMaxSearch
+            score_qwery = "AND p.score BETWEEN %(smin)s and %(smax)s "
+        # Prepare hashtag qwery
+        elif elem[0] == "hashtag" and elem[1]:
+            interest_str = ','.join([str(interest_id) for interest_id in elem[1]])
+            hashtag_match = []
+            cur.execute("SELECT user_id, COUNT(interest_id) FROM \"ProfilInterest\"  WHERE user_id !=%(id)s AND interest_id IN ("+ interest_str +") GROUP BY user_id ORDER BY COUNT(interest_id) desc;", {'id': current_user.id})
+            potential_hash_match = cur.fetchall()
+            for potential in potential_hash_match:
+                if potential[1] >= nbr_hashtag:
+                    hashtag_match.append(potential[0])
+                else:
+                    # Si on à terminer de checker les user ok, on sort de la boucle - CF Order by
+                    break
+            if len(hashtag_match) == 0:
+                # Return render - Aucuns match retourne 0 users
+                print("ERROR: No user to match interest")
+                return {
+                    'all_users': []
+                }
+            else :
+                hashtag_match_str = ','.join([str(user_id) for user_id in hashtag_match])
+                hash_qwery = "AND p.user_id IN ("+ hashtag_match_str +") "
+    
+    cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
+    search_list = cur.fetchall()
+    search_list_str = ','.join([str(elem[0]) for elem in search_list])
+
+    # Prepare select filtre with previous search Result
+    select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id AND p.user_id IN ("+ search_list_str +") " 
+    if hash_qwery != "":
+            select_stmt = select_stmt + hash_qwery
+    if score_qwery != "":
+        select_stmt = select_stmt + score_qwery
+    if age_qwery != "":        
+        select_stmt = select_stmt + age_qwery
+    # if loc_qwery != "":
+            #select_stmt = select_stmt + loc_qwery
+
+    select_stmt = select_stmt + "ORDER BY p.last_log DESC"
+    select_stmt = select_stmt + " LIMIT 20 OFFSET 0;"
+
+    cur.execute(select_stmt, data)
+    all_profil_list = cur.fetchall()
+    for user in all_profil_list:
+        cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
+        user_details = cur.fetchone()
+        #calc age
+        user_age = age(user_details[2])
+        if user_details[4] is not None:
+            cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
+            user_image = cur.fetchone()
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
+        else: 
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+        final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
 
     cur.close()
     conn.close()
-    
-    for elem in sort:
-        if elem[0] == "age" and elem[1] == "+":
-            select_stmt = select_stmt + "ORDER BY age desc"
-        elif elem[0] == "age" and elem[1] == "-":
-            final_users = sorted(final_users, key=lambda tup: tup[1], reverse=True)
-        if elem[0] == "dist" and elem[1] == "+":
-            final_users = sorted(final_users, key=lambda tup: tup[2], reverse=False)
-        elif elem[0] == "dist" and elem[1] == "-":
-            final_users == final_users.sort(key=lambda tup: tup[2], reverse=True)
-        if elem[0] == "score" and elem[1] == "+":
-            final_users = sorted(final_users, key=lambda tup: tup[3], reverse=False)
-        elif elem[0] == "score" and elem[1] == "-":
-            final_users = sorted(final_users, key=lambda tup: tup[3], reverse=True)
-        #if elem[0] = "hashtag" and elem[1] ="+":
-        #    final_users = sorted(final_users, key=lambda tup: tup[1], reverse=False)
-        #elif elem[0] = "hashtag" and elem[1] ="-":
-        #    final_users = sorted(final_users, key=lambda tup: tup[1], reverse=True)
-    print(final_users)
-
     return {
-        'all_users': final_users,
-        'full_interest': full_interest
+        'all_users': final_users
     }
-    #return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
+    #return render_template('search.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
+
 
     
 # New Search thet return 'search'
-@main.route('/research', methods=['GET', 'POST'])
-@main.route('/research/page/<int:page>', methods=['GET', 'POST'])
+@main.route('/search', methods=['GET', 'POST'])
+@main.route('/search/page/<int:page>', methods=['GET', 'POST'])
 @login_required
 @check_confirmed
-def research(page=1):
+def search(page=1):
     final_users = []
     conn = get_db_connection()
     cur = conn.cursor()
@@ -933,7 +1083,7 @@ def research(page=1):
     #Select right Gender
     cur.execute("SELECT genre_id, orientation_id FROM profil WHERE user_id=%(id)s LIMIT 1;", {'id': current_user.id})
     user_details = cur.fetchone()
-    print(user_details)
+    print(str(current_user.id))
     # Si l'user est un homme
     if user_details[0] == 1:
         # Si l'user est Hetero
@@ -1007,7 +1157,7 @@ def research(page=1):
                 final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
         cur.close()
         conn.close()
-        return render_template('research.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
+        return render_template('search.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
     # On POST return Users that match Search Inputs
     if request.method=='POST':
         if 'ageMinSearch' in request.form:
@@ -1044,6 +1194,8 @@ def research(page=1):
                 data['smax'] = scoreMaxSearch
             #Location qwery
                 #locRangeSearch
+            #if citySearch != '':
+                #cur.execute("SELECT city from ")
             if citySearch != '':
                 get_long, get_lat, city_name = localize_text(citySearch)
                 cur.execute("SELECT user_id, location_id FROM profil")
@@ -1065,7 +1217,6 @@ def research(page=1):
                     #On rajoute l'élément à la requete en préparation:
                     select_stmt = select_stmt+" AND user_id IN ("+final_profil_list_id_str+")"
                 print(final_profil_list_id_str)
-
             #Hashtags qwery
             if hashtags_id and hashtags_id[0] != '':
                 cur.execute("SELECT user_id FROM \"ProfilInterest\" WHERE interest_id=%(int1)s", {'int1': hashtags_id[0]})
@@ -1082,12 +1233,14 @@ def research(page=1):
                 hashtag_user_list_str = ','.join([str(elem[0]) for elem in hashtag_user_list])
                 if hashtag_user_list_str:
                     select_stmt = select_stmt+" AND user_id IN ("+hashtag_user_list_str+")"
-                print(select_stmt)
+                else:
+                    print("No user found")
+                    return render_template('search.html', max_page=1, current_page=1, all_users = [], user_num=0, full_interest=full_interest)
             
             # Get number of pages
             get_page_qwery = "SELECT COUNT(id)" + select_stmt
-            print(get_page_qwery)
             cur.execute(get_page_qwery, data)
+            print(get_page_qwery)
             user_num = cur.fetchone()[0]
             max_page = int((user_num/OFFSET)+1)
             if ((user_num % OFFSET) > 0) :
@@ -1129,126 +1282,8 @@ def research(page=1):
                 final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
     cur.close()
     conn.close()
-    return render_template('research.html', max_page=max_page, current_page=page, all_users = final_users, user_num=user_num, full_interest=full_interest)
+    return render_template('search.html', max_page=max_page, current_page=page, all_users = final_users, user_num=user_num, full_interest=full_interest)
 
-
-
-# search page that return 'search'
-@main.route('/search', methods=['GET', 'POST'])
-@login_required
-@check_confirmed
-def search():
-    blacklisted_list = []
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT id, first_name, username FROM users LIMIT 30;")
-    profil_list = cur.fetchall()
-    cur.execute("SELECT to_user_id FROM accountcontrol WHERE (from_user_id=%(id)s AND blocked = true)", {'id': current_user.id})
-    blacklisted_elems = cur.fetchall()
-    for i in blacklisted_elems:
-        cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
-        blacklisted_list.append(cur.fetchone())
-    print(profil_list)
-    print(blacklisted_list)
-    print(len(profil_list))
-    profil_list = [x for x in profil_list if x not in blacklisted_list]
-    print(len(profil_list))
-    if request.method=='POST':
-        if 'ageMinSearch' in request.form:
-            print("blablabebfbeizfi")
-            profil_list = []
-            final_profil_list_id = []
-            ageMinSearch = request.form.get('ageMinSearch')
-            ageMaxSearch = request.form.get('ageMaxSearch')
-            citySearch = request.form.get('citySearch')
-            locRangeSearch = request.form.get('locRangeSearch')
-            scoreMinSearch = request.form.get('scoreMinSearch')
-            scoreMaxSearch = request.form.get('scoreMaxSearch')
-            #before#
-            ageMinComp = age_period(ageMinSearch)
-            #after#
-            ageMaxComp = age_period(ageMaxSearch)
-            #to meter#
-            locRangeSearch = int(locRangeSearch)
-            print(locRangeSearch)
-            if citySearch == '':
-                cur.execute("SELECT user_id FROM profil WHERE age between %(max)s and %(min)s AND score between %(smin)s and %(smax)s", {'max': ageMaxComp, 'min': ageMinComp, 'smin': int(scoreMinSearch), 'smax': int(scoreMaxSearch)})
-                profil_list_id = cur.fetchall()
-                print(profil_list)
-                for i in profil_list_id:
-                    cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
-                    if i[0] != current_user.id:
-                        profil_list.append(cur.fetchone())
-            else:
-                cur.execute("SELECT user_id, location_id FROM profil WHERE age between  %(max)s and %(min)s AND score between %(smin)s and %(smax)s", {'max': ageMaxComp, 'min': ageMinComp, 'smin': int(scoreMinSearch), 'smax': int(scoreMaxSearch)})
-                profil_list_id = cur.fetchall()
-                cur.execute("SELECT location_id FROM profil WHERE user_id = %(id)s LIMIT 1", {'id': current_user.id})
-                loc_me = cur.fetchone()
-                cur.execute("SELECT latitude, longitude FROM location WHERE id = %(id)s LIMIT 1", {'id': loc_me[0]})
-                coordinates_me = cur.fetchone()
-                for i in profil_list_id:
-                    if i[0] != current_user.id:
-                        cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
-                        coordinates_others = cur.fetchone()
-                        off_distance = distance(coordinates_me[0], coordinates_me[1], coordinates_others[0], coordinates_others[1])
-                        print(off_distance)
-                        if off_distance <= float(locRangeSearch):
-                            print("keep user")
-                            final_profil_list_id.append(i)
-                        else:
-                            print("remove user")
-                print("hiiiiii")
-                for i in final_profil_list_id:
-                    cur.execute("SELECT id, first_name, username FROM users where id=%(id)s LIMIT 1", {'id': i[0]})
-                    profil_list.append(cur.fetchone())
-            cur.close()
-            conn.close()
-    #print(profil_list)
-    profil_list = [x for x in profil_list if x not in blacklisted_list]
-    print(len(profil_list))
-    final_users = []
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM \"Interest\";")
-    full_interest = cur.fetchall()
-    for user in profil_list:
-        if user[0] != current_user.id:
-            cur.execute("SELECT image_profil, age, location_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user[0]})
-            user_details = cur.fetchone()
-            #print(user[0])
-            #print(user_details)
-            if user_details != None:
-                image_profil = user_details[0]
-                #print(image_profil)
-                cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': user[0]})
-                all_images = cur.fetchall()
-                try:
-                    fav_image = all_images[int(image_profil)][1]
-
-                except:
-                    all_images.append([0, 'test/no-photo.png']) 
-                    all_images.append([1, 'test/no-photo.png'])
-                    all_images.append([2, 'test/no-photo.png'])
-                    all_images.append([3, 'test/no-photo.png'])
-                    all_images.append([4, 'test/no-photo.png'])
-                    fav_image = all_images[int(image_profil)][1]
-                #print("all_images")
-                #print(all_images)
-                #print(fav_image)
-                if fav_image:
-                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
-                else :
-                    image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
-                user_age = str(age(user_details[1]))
-                cur.execute("SELECT city FROM location WHERE id=%(id)s LIMIT 1", {'id': user_details[2]})
-                user_location = cur.fetchone()[0]
-                final_users.append([user[1], user_age, user_location, image_profil_path, user[2]])
-                #print(len(final_users))
-    #print(profil_list)
-    cur.close()
-    conn.close()
-    return render_template('research.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
-    
 @main.route('/addnotification', methods = ['POST'])
 def addnotif():
     if request.method == 'POST':

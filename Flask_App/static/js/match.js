@@ -94,13 +94,18 @@ $( function() {
     });
     $('.live-search-box').on('keyup', function(){  
       var searchTerm = $(this).val().toLowerCase();
-      $('.live-search-list li').each(function(){ 
-          if ($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) {
+      searchTerm = searchTerm.replace(/ /g, "");
+      //[BUG] sanitize = txt.rstrip(",.qsw") ou Regex "allow a-z car toLowerCase activé" (erreur front console on spécial char)
+      if (searchTerm != "") { 
+        $('.live-search-list li').each(function(){ 
+          //if ($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) {
+          if (($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) || ($(this).filter('[data-tag *= ' + searchTerm+ ']').length > 0 || searchTerm.length < 1) ) {
               $(this).show();
           } else {
               $(this).hide();
           }
         });
+      }
     });
   });
 
@@ -191,29 +196,45 @@ $(function() {
 });
 
 //Filtre Ajax Gesture
-$(function() {
-  $('#filtre-match-btn').click(function(e) {
-      e.preventDefault();
-      var form_data = new FormData($('#filtre-match-form')[0]);
-      $.ajax({
-          type: 'POST',
-          url: '/filtrematch',
-          data: form_data,
-          contentType: false,
-          cache: false,
-          processData: false,
-          success: function(data) {
-              if (data == 'KO') {
-                  console.log("FILTRE KO");
-                  location.reload();
-              }
-              else {
-                  console.log("C'est Filtré !!");
-                  location.reload();
-              }
-          },
-      });
-  });
+  $(function() {
+    $('#filtre-search-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#filtre-search-form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/filtresearch',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'KO') {
+                  console.log("Filtre SEARCH KO");
+                  //location.reload();
+                }
+                else {
+                  console.log("Filtre search OK")
+                  var size = data.all_users.length;
+                  for (let index = 0; index < size; ++index) {
+                    var element = data.all_users[index];
+                    // ...use `element`...
+                    var link = document.getElementById('link'+index);
+                    if (link != null) {
+                      var newlink = "http://127.0.0.1:5000/showprofile/"+element[1];
+                      link.href = newlink;
+                      var img = document.getElementById('img'+index);
+                      img.style.backgroundImage = "url('"+element[4]+"')";
+                      var title = document.getElementById('title'+index);
+                      title.innerHTML= element[1];
+                      var info = document.getElementById('info'+index);
+                      info.innerHTML = element[2] + " ans . "+element[3];
+                      var like = document.getElementById('like'+index);
+                    }
+                  }
+                }
+            },
+        });
+    });
 });
 
 //------------------------------//
@@ -245,14 +266,14 @@ $(function() {
                     // ...use `element`...
                     var link = document.getElementById('link'+index);
                     if (link != null) {
-                      var newlink = "http://127.0.0.1:5000/showprofile/"+element[4];
+                      var newlink = "http://127.0.0.1:5000/showprofile/"+element[1];
                       link.href = newlink;
                       var img = document.getElementById('img'+index);
-                      img.style.backgroundImage = "url('"+element[3]+"')";
+                      img.style.backgroundImage = "url('"+element[4]+"')";
                       var title = document.getElementById('title'+index);
-                      title.innerHTML= element[4];
+                      title.innerHTML= element[1];
                       var info = document.getElementById('info'+index);
-                      info.innerHTML = element[1] + " ans . "+element[2];
+                      info.innerHTML = element[2] + " ans . "+element[3];
                       var like = document.getElementById('like'+index);
                     }
                   }
@@ -261,3 +282,4 @@ $(function() {
         });
     });
 });
+
