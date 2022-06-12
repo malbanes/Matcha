@@ -740,10 +740,72 @@ def account():
 
 
 # match page that return 'match'
-@main.route('/match')
+@main.route('/match', methods=['GET', 'POST'])
 @login_required
 @check_confirmed
 def match():
+    final_profil_list_id = []
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    #unavailable if profile is not completed
+    ##TO DO
+
+    #remove blocked profiles
+    # Select blocked user_id
+    cur.execute("SELECT to_user_id from accountcontrol WHERE from_user_id=%(id)s and blocked=true;", {'id':current_user.id})
+    blocked_users=cur.fetchall()
+    blocked_list = ','.join([str(elem[0]) for elem in blocked_users])
+    if blocked_list != '':
+        blocked_list = str(current_user.id) + ','+ blocked_list
+    else:
+        blocked_list = str(current_user.id)
+
+    if request.method=='GET':
+        #L’orientation sexuelle définie
+        ##use set_gender_orientation
+        select_gender = set_gender_orientation()
+
+        #Leur proximité géographique avec l’utilisateur ;
+        ##use the loc system
+        cur.execute("SELECT location_id FROM profil WHERE  id =%(id)s LIMIT 1", {'id': current_user.id})
+        location_id = cur.fetchone()[0]
+        print(location_id)
+        cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': location_id})
+        current_user_coordinates = cur.fetchone()
+        print(current_user_coordinates)
+        cur.execute("SELECT user_id, location_id FROM profil")
+        profil_list_id = cur.fetchall()
+        for i in profil_list_id:
+            if i[0] != current_user.id:
+                cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
+                coordinates_others = cur.fetchone()
+                off_distance = distance(current_user_coordinates[0], current_user_coordinates[1], coordinates_others[0], coordinates_others[1])
+                print(off_distance)
+                if off_distance <= float(5000):
+                    print("keep user")
+                    final_profil_list_id.append(i)
+                else:
+                    print("remove user")
+        #Ensuite, tu la formate pour rentrer dans une requete sql :
+        print(final_profil_list_id)
+        final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
+        if final_profil_list_id_str:
+            #On rajoute l'élément à la requete en préparation:
+            loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
+            print(loc_qwery)
+
+
+        #Le raport de matching par centre d’intérêts ;
+        ## 
+
+        #Leur score de popularité.
+        ##
+        cur.execute("SELECT score FROM profil WHERE id =%(id)s LIMIT 1", {'id': current_user.id})
+        user_score = cur.fetchone()[0]
+
+    #cur.execute("SELECT users.id FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1} ORDER BY p.genre_id desc, p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(blocked_list, select_gender, OFFSET, offset))
+    profil_list = cur.fetchall()
     return render_template('match.html')
 
 
@@ -1001,11 +1063,13 @@ def filtresearch():
                 if i[0] != current_user.id:
                     cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
                     coordinates_others = cur.fetchone()
-                    off_distance = distance(get_long, get_lat, coordinates_others[0], coordinates_others[1])
+                    off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
                     if off_distance <= float(locRange):
                         final_profil_list_id.append(i)
                     else:
                         print("remove user")
+                    print(float(locRange))
+                    print(off_distance)
             #Ensuite, tu la formate pour rentrer dans une requete sql :
             print(final_profil_list_id)
             final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
@@ -1206,7 +1270,7 @@ def search(page=1):
                     if i[0] != current_user.id:
                         cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
                         coordinates_others = cur.fetchone()
-                        off_distance = distance(get_long, get_lat, coordinates_others[0], coordinates_others[1])
+                        off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
                         print(off_distance)
                         if off_distance <= float(locRangeSearch):
                             print("keep user")
