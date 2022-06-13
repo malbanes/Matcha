@@ -23,13 +23,17 @@ function changeIt(i) {
 }
 
 // Filtre Gesture //
+function changeLocRangeSearch(loc) {
+    document.getElementById("locRangeSearchLabel").innerHTML = loc + " Km";
+    document.getElementById("locRangeLabel").innerHTML = loc + " Km";
+}
+
 function changeLocRange(loc) {
   document.getElementById("locRangeLabel").innerHTML = loc + " Km";
 }
 
-function changeLocRange(loc) {
-  document.getElementById("locRangeSearchLabel").innerHTML = loc + " Km";
-}
+
+
 
 $( function() {
   $( "#slider-range-search" ).slider({
