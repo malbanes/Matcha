@@ -132,6 +132,9 @@ ul {
     z-index: 1;
 }
 
+.clickable {
+    cursor: pointer;
+}
 
 
 /********************************/

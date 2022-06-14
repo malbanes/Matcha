@@ -265,7 +265,7 @@ $(function() {
             cache: false,
             processData: false,
             success: function(data) {
-                if (data == 'KO') {
+                if (data.error == 1) {
                   console.log(" TRIER SEARCH KO");
                   //location.reload();
                 }
@@ -294,6 +294,58 @@ $(function() {
     });
 });
 
+
+
+//Tri Reset Ajax gesture
+$(function() {
+  $('#tri-search-reset').click(function(e) {
+      e.preventDefault();
+      $.ajax({
+          type: 'POST',
+          url: '/triresetsearch',
+          data: 0,
+          contentType: false,
+          cache: false,
+          processData: false,
+          success: function(data) {
+              if (data == "KO") {
+                console.log("RESET Tri SEARCH KO");
+              }
+              else {
+                console.log("RESET Tri search OK")
+                /* Reset UI */
+                location = '/search';
+              }
+          },
+      });
+  });
+});
+
+//Filtre Reset Ajax gesture
+$(function() {
+  $('#filtre-search-reset').click(function(e) {
+      e.preventDefault();
+      $.ajax({
+          type: 'POST',
+          url: '/filtreresetsearch',
+          data: 0,
+          contentType: false,
+          cache: false,
+          processData: false,
+          success: function(data) {
+              if (data == "KO") {
+                console.log("RESET FILTRE SEARCH KO");
+              }
+              else {
+                console.log("RESET Filtre search OK")
+                /* Reset UI */
+                location = '/search';
+              }
+          },
+      });
+  });
+});
+
 //Filtre Ajax Gesture
 $(function() {
   $('#filtre-search-btn').click(function(e) {
@@ -308,7 +360,7 @@ $(function() {
           cache: false,
           processData: false,
           success: function(data) {
-              if (data == 'KO') {
+              if (data.error == 1) {
                 console.log("Filtre SEARCH KO");
                 //location.reload();
               }

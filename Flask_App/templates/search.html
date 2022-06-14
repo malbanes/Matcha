@@ -93,18 +93,18 @@
           </a>
         </li>
         {% for i in range(1, max_page+1) %}
-          {% if i == (max_page-1) and current_page+1 >= 2 and current_page <= max_page-4 %}
+          {% if i == (max_page) and current_page+1 >= 2 and current_page <= max_page-3 %}
+          <li class="page-item disabled"><a class="page-link inactive" href=""> ... </a></li>
+          {% endif %}
+          {% if i == 2 and max_page > 4 and current_page-1 >= 3 %}
           <li class="page-item disabled"><a class="page-link inactive" href=""> ... </a></li>
           {% endif %}
           {% if i == 1 %}
             <li class="page-item {{ 'active' if i==current_page }}"><a class="page-link" href="{{ url_for('main.search', page=(i)) }}"> {{ i }} </a></li>
           {% elif i >= (current_page-1) and i <=(current_page+1) %}
             <li class="page-item {{ 'active' if i==current_page }}"><a class="page-link" href="{{ url_for('main.search', page=(i)) }}"> {{ i }} </a></li>
-          {% elif i == (max_page-1) and i <=max_page %}
+          {% elif i == (max_page) and i <=max_page+1 %}
             <li class="page-item {{ 'active' if i==current_page }}"><a class="page-link" href="{{ url_for('main.search', page=(i)) }}"> {{ i }} </a></li>            
-          {% endif %}
-          {% if i == 1 and max_page-1 > 4 and current_page-1 >= 3 %}
-            <li class="page-item disabled"><a class="page-link inactive" href=""> ... </a></li>
           {% endif %}
         {% endfor %}
         <li class="page-item {{ 'disabled' if current_page == max_page }}">
@@ -271,7 +271,7 @@
       </div>
       <div class="modal-footer">
         <div class="col-auto mr-auto">
-          <p class="no-padding" id="filtre-search-reset">Reset</p>
+          <p class="no-padding clickable" id="filtre-search-reset">Reset</p>
         </div>
         <div class="col-auto">
           <button type="buton" id="filtre-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
@@ -345,7 +345,7 @@
       </div>
       <div class="modal-footer">
         <div class="col-auto mr-auto">
-          <p class="no-padding" id="tri-search-reset">Reset</p>
+          <p class="no-padding clickable" id="tri-search-reset">Reset</p>
         </div>
         <div class="col-auto">
           <button type="buton" id="tri-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>

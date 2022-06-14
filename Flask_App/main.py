@@ -961,6 +961,12 @@ def trisearch():
     select_stmt = select_stmt + "ORDER BY "
 
     elem_lengh = len(sort)
+    if elem_lengh == 0:
+        return {
+            'all_users': [],
+            'error' : 1
+        }
+
     print("My array lenght is: ", str(elem_lengh))
     for elem in sort:
         if elem[0] == "age" and elem[1] == "+":
@@ -993,7 +999,8 @@ def trisearch():
     cur.close()
     conn.close()
     return {
-        'all_users': []
+        'all_users': [],
+        'error' : 0
     }
     #return render_template('search.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
 
@@ -1023,6 +1030,7 @@ def filtresearch():
                 filtre.append(["score", request.form.get('scoreMin'), request.form.get('scoreMax')])
         if request.form.get('hashtagFiltreCheck') == "on":
             hash_id = request.form.getlist("check")
+
     conn = get_db_connection()
     cur = conn.cursor()
     #Check if hashtag exist in bdd
@@ -1032,6 +1040,12 @@ def filtresearch():
             existing_list.append(cur.fetchone()[0])
         filtre.append(["hashtag", existing_list])
     nbr_hashtag = len(existing_list)
+    # Check if at least 1 filter is selected
+    if (len(filtre) == 0):
+        return {
+            'all_users': [],
+            'error' : 1
+        }
     # Construct request by checked filtre
     data = {'id': current_user.id}
     for elem in filtre:
@@ -1092,7 +1106,8 @@ def filtresearch():
                 # Return render - Aucuns match retourne 0 users
                 print("ERROR: No user to match interest")
                 return {
-                    'all_users': []
+                    'all_users': [],
+                    'error' : 0
                 }
             else :
                 hashtag_match_str = ','.join([str(user_id) for user_id in hashtag_match])
@@ -1156,12 +1171,47 @@ def filtresearch():
     conn.close()
     return {
         'all_users': [],
-        'user_num' : total_user
+        'error' : 0
     }
     #return render_template('search.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
 
 
-    
+@main.route('/filtreresetsearch', methods = ['POST'])
+@login_required
+@check_confirmed
+def filtreresetsearch():
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT id FROM search WHERE user_id=%(id)s AND is_filter=true", {'id':current_user.id})
+        filtered_user = cur.fetchall()
+        for user in filtered_user:
+            cur.execute("UPDATE search SET is_filter=false WHERE id=%(id)s", {'id':user})
+            conn.commit()
+        cur.close()
+        conn.close()
+        return("OK")
+    return("KO")
+
+@main.route('/triresetsearch', methods = ['POST'])
+@login_required
+@check_confirmed
+def triresetsearch():
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT id FROM search WHERE user_id=%(id)s", {'id':current_user.id})
+        search_user = cur.fetchall()
+        for user in search_user:
+            cur.execute("UPDATE search SET position=0 WHERE id=%(id)s", {'id':user})
+            conn.commit()
+        cur.close()
+        conn.close()
+        return("OK")
+    return("KO")
+
 # New Search thet return 'search'
 @main.route('/search', methods=['GET', 'POST'])
 @main.route('/search/page/<int:page>', methods=['GET', 'POST'])

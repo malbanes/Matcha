@@ -56,9 +56,6 @@
     background-image: url('../img/add-photo.png')
   }
 
-  .clickable {
-    cursor: pointer;
-  }
 
   .edit-icon {
     cursor: pointer;
