@@ -40,24 +40,29 @@
   {% endfor %}-->
   <div class="container container-match">
 
-    <div class="h2 text-deepblue mb-4">
-        {{ user_num }} célibataires
+    <div id="total_user" class="h2 text-deepblue mb-4">
+        {{ user_num }} singles
     </div>
-
-    {% if all_users == [] %}
-      <div class="col">
+      <div id="no-user-message" class="col {{ 'd-none' if all_users != [] }}">
         <div class="text-center mt-4">
           <h3>No more users</h3>
           <p> Try other filters and criterias. </p>
           <p class="text-pink"> Good luck ! </p>
         </div>
       </div>
-    {% endif %}
+
+      {% if is_search == false %}
+      <div class="text-center mt-4">
+        <h3>Welcome to the Search part !</h3>
+        <p> Select some criteria to find other people. </p>
+        <p class="text-pink"> See below the SCORE top 20 </p>
+      </div>
+      {% endif %}
 
     <div class="">
         {% for i in all_users %}
-        <div class="d-inline-flex">
-          <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
+        <div id="card{{ loop.index0 }}" class="d-inline-flex">
+          <div class="card no-border custom-size-12 mx-2 mb-2 mt-2">
             <a id="link{{ loop.index0 }}" href="{{ url_for('main.showprofile', username=i[1]) }}">
               <div class="card-img-top">
                 <div id="img{{ loop.index0 }}" class="rounded-square-picture_match nophoto rounded-demi lazy" style="min-height:12rem; background-image: url({{i[4]}})" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
@@ -72,11 +77,11 @@
             </div>
           </div>
         </div>
-          
         {% endfor %}
     </div>
+
     <!-- Pagination -->
-    {% if max_page != 0 and current_page <= max_page %}
+    {% if max_page != 0 and current_page <= max_page and is_search == true %}
     <nav aria-label="...">
       <ul class="pagination pagination-sm justify-content-center mt-4">
         <li class="page-item {{ 'disabled' if current_page == 1 }}">
@@ -88,23 +93,19 @@
           </a>
         </li>
         {% for i in range(1, max_page+1) %}
-
           {% if i == (max_page-1) and current_page+1 >= 2 and current_page <= max_page-4 %}
           <li class="page-item disabled"><a class="page-link inactive" href=""> ... </a></li>
           {% endif %}
-
           {% if i == 1 %}
             <li class="page-item {{ 'active' if i==current_page }}"><a class="page-link" href="{{ url_for('main.search', page=(i)) }}"> {{ i }} </a></li>
           {% elif i >= (current_page-1) and i <=(current_page+1) %}
             <li class="page-item {{ 'active' if i==current_page }}"><a class="page-link" href="{{ url_for('main.search', page=(i)) }}"> {{ i }} </a></li>
-          {% elif i >= (max_page-1) and i <=max_page %}
+          {% elif i == (max_page-1) and i <=max_page %}
             <li class="page-item {{ 'active' if i==current_page }}"><a class="page-link" href="{{ url_for('main.search', page=(i)) }}"> {{ i }} </a></li>            
           {% endif %}
-
           {% if i == 1 and max_page-1 > 4 and current_page-1 >= 3 %}
             <li class="page-item disabled"><a class="page-link inactive" href=""> ... </a></li>
           {% endif %}
-
         {% endfor %}
         <li class="page-item {{ 'disabled' if current_page == max_page }}">
           <a class="page-link" href="{{ url_for('main.search', page=(current_page+1)) }}">
@@ -209,6 +210,8 @@
       <div class="modal-body">
         <!-- Filtre Form-->
         <form method="POST" id="filtre-search-form">
+          <!-- Current page -->
+          <input type="hidden" name="current_page" id="current_page" value={{current_page}}>
           <!-- Age -->
           <div class="form-check d-inline">
             <input class="form-check-input" type="checkbox" name="ageFiltreCheck" id="ageFiltreCheck">

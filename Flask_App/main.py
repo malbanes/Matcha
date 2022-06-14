@@ -983,26 +983,17 @@ def trisearch():
             select_stmt = select_stmt + ", "
         elem_lengh = elem_lengh -1
 
-    select_stmt = select_stmt + " LIMIT 20 OFFSET 0;"
     cur.execute(select_stmt, data)
     all_profil_list = cur.fetchall()
+    position = 1
     for user in all_profil_list:
-        cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
-        user_details = cur.fetchone()
-        #calc age
-        if user_details:
-            user_age = age(user_details[2])
-            if user_details[4] is not None:
-                cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
-                user_image = cur.fetchone()
-                user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
-            else: 
-                user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
-            final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
+        cur.execute("UPDATE search set position=%(pos)s WHERE user_id=%(id)s AND list_id=%(lid)s", {'pos': position, 'id': current_user.id, 'lid':user})
+        conn.commit()
+        position = position +1
     cur.close()
     conn.close()
     return {
-        'all_users': final_users
+        'all_users': []
     }
     #return render_template('search.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
 
@@ -1032,7 +1023,6 @@ def filtresearch():
                 filtre.append(["score", request.form.get('scoreMin'), request.form.get('scoreMax')])
         if request.form.get('hashtagFiltreCheck') == "on":
             hash_id = request.form.getlist("check")
-
     conn = get_db_connection()
     cur = conn.cursor()
     #Check if hashtag exist in bdd
@@ -1054,29 +1044,27 @@ def filtresearch():
             age_qwery = "AND p.age BETWEEN %(amax)s and %(amin)s "
         # Prepare location qwery
         elif elem[0] == "city":
-            locRange = request.form.get('locRange')
-            print(locRange)
-            get_long, get_lat, city_name = localize_text(elem[1])
-            cur.execute("SELECT user_id, location_id FROM profil")
-            profil_list_id = cur.fetchall()
-            for i in profil_list_id:
-                if i[0] != current_user.id:
-                    cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
-                    coordinates_others = cur.fetchone()
-                    off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
-                    if off_distance <= float(locRange):
-                        final_profil_list_id.append(i)
-                    else:
-                        print("remove user")
-                    print(float(locRange))
-                    print(off_distance)
-            #Ensuite, tu la formate pour rentrer dans une requete sql :
-            print(final_profil_list_id)
-            final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
-            if final_profil_list_id_str:
-                #On rajoute l'élément à la requete en préparation:
-                loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
-                print(loc_qwery)
+             locRange = request.form.get('locRange')
+             print(locRange)
+             get_long, get_lat, city_name = localize_text(elem[1])
+             cur.execute("SELECT user_id, location_id FROM profil")
+             profil_list_id = cur.fetchall()
+             for i in profil_list_id:
+                 if i[0] != current_user.id:
+                     cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
+                     coordinates_others = cur.fetchone()
+                     off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
+                     if off_distance <= float(locRange):
+                         final_profil_list_id.append(i)
+                     else:
+                         print("remove user")
+             #Ensuite, tu la formate pour rentrer dans une requete sql :
+             print(final_profil_list_id)
+             final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
+             if final_profil_list_id_str:
+                 #On rajoute l'élément à la requete en préparation:
+                 loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
+                 print(loc_qwery)
         # Prepare score qwery
         elif elem[0] == "score":
             scoreMinSearch = int(elem[1])
@@ -1115,7 +1103,6 @@ def filtresearch():
     search_list = cur.fetchall()
     search_list_str = ','.join([str(elem[0]) for elem in search_list])
 
-
     # Prepare select filtre with previous search Result
     select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id "
     if search_list_str != "":
@@ -1132,8 +1119,23 @@ def filtresearch():
     if loc_qwery != "":
          select_stmt = select_stmt + loc_qwery
 
+
     select_stmt = select_stmt + "ORDER BY p.last_log DESC"
-    select_stmt = select_stmt + " LIMIT 20 OFFSET 0;"
+
+    cur.execute(select_stmt, data)
+    filtre_profil_list = cur.fetchall()
+    filtre_list_str = ','.join([str(elem[0]) for elem in filtre_profil_list])
+    total_user = len(filtre_profil_list)
+
+    upd_search_qwery = "UPDATE search SET is_filter=True WHERE user_id=%(id)s AND list_id NOT IN ("+ filtre_list_str +") " 
+    upd_data = {'id': current_user.id}
+    cur.execute(upd_search_qwery, upd_data)
+    conn.commit()
+    upd_search_qwery = "UPDATE search SET is_filter=False WHERE user_id=%(id)s AND list_id IN ("+ filtre_list_str +") " 
+    cur.execute(upd_search_qwery, upd_data)
+    conn.commit()
+
+    select_stmt = select_stmt + " LIMIT 20;"
 
     cur.execute(select_stmt, data)
     all_profil_list = cur.fetchall()
@@ -1153,7 +1155,8 @@ def filtresearch():
     cur.close()
     conn.close()
     return {
-        'all_users': final_users
+        'all_users': [],
+        'user_num' : total_user
     }
     #return render_template('search.html', all_users = final_users, user_num=len(final_users), full_interest=full_interest)
 
@@ -1166,6 +1169,7 @@ def filtresearch():
 @check_confirmed
 def search(page=1):
     final_users = []
+    is_search = False
     conn = get_db_connection()
     cur = conn.cursor()
     #Page doit être > 0 car offset ne prend pas de négatif
@@ -1190,16 +1194,18 @@ def search(page=1):
     if request.method=='GET':
         user_age = 18
         # Get number of pages
-        cur.execute("SELECT COUNT(id) FROM search WHERE user_id='{0}' AND list_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
+        cur.execute("SELECT COUNT(id) FROM search WHERE user_id='{0}' AND is_filter=false AND list_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
         total_users = cur.fetchone()[0]
         if total_users > 0:       
-            cur.execute("SELECT list_id FROM search INNER JOIN profil p on search.list_id=p.user_id AND search.user_id='{0}' AND list_id NOT IN ({1}) ORDER BY p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET, offset))
+            cur.execute("SELECT list_id FROM search INNER JOIN profil p on search.list_id=p.user_id AND search.user_id='{0}' AND is_filter=false AND list_id NOT IN ({1}) ORDER BY position, p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET, offset))
             profil_list = cur.fetchall()
+            is_search = True
         else:
+            is_search = False
             cur.execute("SELECT COUNT(users.id) FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1};".format(blocked_list, select_gender))
             total_users = cur.fetchone()[0]
             # Select all user from page=page except blocked ones
-            cur.execute("SELECT users.id FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1} ORDER BY p.genre_id desc, p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(blocked_list, select_gender, OFFSET, offset))
+            cur.execute("SELECT users.id FROM users INNER JOIN profil p on users.id=p.user_id AND users.id NOT IN ({0}) {1} ORDER BY score DESC LIMIT '{2}';".format(blocked_list, select_gender, OFFSET))
             profil_list = cur.fetchall()
         max_page = int((total_users/OFFSET)+1)
         if ((total_users % OFFSET) > 0) :
@@ -1219,9 +1225,10 @@ def search(page=1):
                 final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
         cur.close()
         conn.close()
-        return render_template('search.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
+        return render_template('search.html', is_search=is_search, max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
     # On POST return Users that match Search Inputs
     if request.method=='POST':
+        is_search = True
         if 'ageMinSearch' in request.form:
             ageMinSearch = request.form.get('ageMinSearch')
             ageMaxSearch = request.form.get('ageMaxSearch')
@@ -1277,6 +1284,8 @@ def search(page=1):
                             final_profil_list_id.append(i)
                         else:
                             print("remove user")
+                        print(float(locRange))
+                        print(off_distance)
                 #Ensuite, tu la formate pour rentrer dans une requete sql :
                 final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
                 if final_profil_list_id_str:
@@ -1301,7 +1310,7 @@ def search(page=1):
                     select_stmt = select_stmt+" AND user_id IN ("+hashtag_user_list_str+")"
                 else:
                     print("No user found")
-                    return render_template('search.html', max_page=1, current_page=1, all_users = [], user_num=0, full_interest=full_interest)
+                    return render_template('search.html', max_page=1, is_search=is_search, current_page=1, all_users = [], user_num=0, full_interest=full_interest)
             
             # Get number of pages
             get_page_qwery = "SELECT COUNT(id)" + select_stmt
@@ -1348,7 +1357,7 @@ def search(page=1):
                 final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
     cur.close()
     conn.close()
-    return render_template('search.html', max_page=max_page, current_page=page, all_users = final_users, user_num=user_num, full_interest=full_interest)
+    return render_template('search.html', max_page=max_page, is_search=is_search, current_page=page, all_users = final_users, user_num=user_num, full_interest=full_interest)
 
 @main.route('/addnotification', methods = ['POST'])
 def addnotif():

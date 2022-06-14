@@ -270,7 +270,8 @@ $(function() {
                   //location.reload();
                 }
                 else {
-                  var size = data.all_users.length;
+                  location = '/search';
+                  /*var size = data.all_users.length;
                   for (let index = 0; index < size; ++index) {
                     var element = data.all_users[index];
                     // ...use `element`...
@@ -286,7 +287,7 @@ $(function() {
                       info.innerHTML = element[2] + " ans . "+element[3];
                       var like = document.getElementById('like'+index);
                     }
-                  }
+                  }*/
                 }
             },
         });
@@ -297,6 +298,7 @@ $(function() {
 $(function() {
   $('#filtre-search-btn').click(function(e) {
       e.preventDefault();
+      $('#current_page').val(1);
       var form_data = new FormData($('#filtre-search-form')[0]);
       $.ajax({
           type: 'POST',
@@ -312,10 +314,22 @@ $(function() {
               }
               else {
                 console.log("Filtre search OK")
-                var size = data.all_users.length;
-                for (let index = 0; index < size; ++index) {
+                /* Reset UI */
+                location = '/search';
+                /*$('#total_user').html(data.user_num + " singles");
+                if (data.user_num == 0) {
+                  $('#no-user-message').removeClass('d-none');
+                }
+                else {
+                  $('#no-user-message').addClass('d-none');
+                }*/
+                /* Populate user_list card */
+                /*var size = data.all_users.length;
+                for (var index = 0; index < size; ++index) {
                   var element = data.all_users[index];
                   // ...use `element`...
+                  $('#card'+ index).removeClass('d-none');
+                  $('#card'+ index).addClass('d-inline-flex');
                   var link = document.getElementById('link'+index);
                   if (link != null) {
                     var newlink = "http://127.0.0.1:5000/showprofile/"+element[1];
@@ -329,9 +343,72 @@ $(function() {
                     var like = document.getElementById('like'+index);
                   }
                 }
+                for (var oindex = size; oindex < 20; ++oindex) {
+                  $('#card'+ oindex).removeClass('d-inline-flex');
+                  $('#card'+ oindex).addClass('d-none');
+                }*/
               }
           },
       });
   });
 });
+
+function filtredynamique(page) {
+
+  $('#current_page').val(page);
+  
+  var form_data = new FormData($('#filtre-search-form')[0]);
+  $.ajax({
+      type: 'POST',
+      url: '/filtresearch',
+      data: form_data,
+      contentType: false,
+      cache: false,
+      processData: false,
+      success: function(data) {
+          if (data == 'KO') {
+            console.log("Filtre SEARCH KO");
+            //location.reload();
+          }
+          else {
+            /* Reset UI */
+            $('#total_user').html(data.user_num + " singles");
+            if (data.user_num == 0) {
+              $('#no-user-message').removeClass('d-none');
+            }
+            else {
+              $('#no-user-message').addClass('d-none');
+            }
+            /* Populate user_list card */
+            var size = data.all_users.length;
+            for (var index = 0; index < size; ++index) {
+              var element = data.all_users[index];
+              // ...use `element`...
+              $('#card'+ index).removeClass('d-none');
+              $('#card'+ index).addClass('d-inline-flex');
+              var link = document.getElementById('link'+index);
+              if (link != null) {
+                var newlink = "http://127.0.0.1:5000/showprofile/"+element[1];
+                link.href = newlink;
+                var img = document.getElementById('img'+index);
+                img.style.backgroundImage = "url('"+element[4]+"')";
+                var title = document.getElementById('title'+index);
+                title.innerHTML= element[1];
+                var info = document.getElementById('info'+index);
+                info.innerHTML = element[2] + " ans . "+element[3];
+                var like = document.getElementById('like'+index);
+              }
+            }
+            for (var oindex = size; oindex < 20; ++oindex) {
+              $('#card'+ oindex).removeClass('d-inline-flex');
+              $('#card'+ oindex).addClass('d-none');
+            }
+          }
+      },
+  });
+
+}
+
+
+
 

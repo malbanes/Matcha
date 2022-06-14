@@ -3,7 +3,9 @@ create table search
     id      serial
         primary key,
     user_id integer default 0 not null,
-    list_id integer default 0 not null
+    list_id integer default 0 not null,
+    position integer default 0 not null,
+    is_filter boolean default false not null
 );
 
 alter table search

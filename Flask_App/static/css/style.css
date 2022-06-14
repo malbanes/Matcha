@@ -75,6 +75,10 @@ ul {
     background-size: cover;
   }
 
+.custom-size-12 {
+    width: 12rem!important;
+}
+
 .text-pink {
     color: #ed147d;
   }
