@@ -303,6 +303,7 @@ function add_notification(receiver, notif_type, content) {
 
             var socket = io();
 
+
             socket.on('connect', function() {
                 socket.emit('join_request');
             });
@@ -351,7 +352,6 @@ function add_notification(receiver, notif_type, content) {
 
             // SETUP NOTIFICATION ON READY
             get_notification();
-
 
 
     });

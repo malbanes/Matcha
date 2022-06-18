@@ -14,6 +14,9 @@ create table "ProfilInterest"
 alter table "ProfilInterest"
     owner to agu;
 
+alter sequence "ProfilInterest_id_seq"
+    restart with 5320;
+
 grant select, usage on sequence "ProfilInterest_id_seq" to sammy;
 
 create unique index profilinterest_id_uindex

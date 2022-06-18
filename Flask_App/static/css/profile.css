@@ -43,6 +43,15 @@
     margin: 0.4rem;
   }
 
+  .del-button {
+    color: red;
+    cursor: pointer;
+  }
+
+  .del-button:hover {
+    color: rgb(140, 146, 166);
+  }
+
 
   .nophoto {
     background-image: url('../img/no-photo.png')

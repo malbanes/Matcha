@@ -382,7 +382,7 @@ def editprofile():
     interest_list = []
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
-        interest_list.append(cur.fetchone()[0].rstrip())
+        interest_list.append([cur.fetchone()[0].rstrip(), id[0]])
     cur.execute("SELECT * FROM \"Interest\";")
     full_interest = cur.fetchall()
     cur.close()
@@ -496,6 +496,8 @@ def updprim():
         cur = conn.cursor()
         cur.execute("UPDATE profil SET genre_id=%(genre)s, orientation_id=%(orientation)s WHERE user_id=%(id)s", {'genre': gender, 'orientation': orient, 'id': current_user.id})
         conn.commit()
+        cur.execute("DELETE FROM search WHERE user_id = %(id)s", {'id': current_user.id})
+        conn.commit()
         cur.close()
         conn.close()
         if (gender) :
@@ -522,22 +524,40 @@ def updhash():
         if (hash_id):
             conn = get_db_connection()
             cur = conn.cursor()
-            try:
-                cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
-            except: 
-                print("no hash  for the user")
             for i in hash_id:
-                cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(id)s, %(int)s)", {'id': current_user.id, 'int': i})
-                conn.commit()
-            for id in hash_id:
-                cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id})
-                existing_list.append(cur.fetchone()[0].rstrip())
-                print(existing_list)
+                cur.execute("SELECT COUNT(id) FROM \"ProfilInterest\" WHERE user_id=%(uid)s AND interest_id=%(int)s", {'uid': current_user.id, 'int': i })
+                is_exist = cur.fetchone()[0]
+                if is_exist == 0:
+                    cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(uid)s, %(int)s)", {'uid': current_user.id, 'int': i})
+                    conn.commit()
+                    cur.execute("SELECT id, hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': i})
+                    existing_elem = cur.fetchone()
+                    existing_list.append([existing_elem[0], existing_elem[1].rstrip()])
+                    print(existing_list)
             cur.close()
             conn.close()
             return jsonify(existing_list)
         else:
             return ("KO")
+
+@main.route('/delhashtag', methods = ['POST'])
+@login_required
+@check_confirmed
+def delhash():
+    if request.method == 'POST':
+        hashtag = request.form['data']
+        if (hashtag):
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id=%(id)s AND interest_id=%(int)s", {'id': current_user.id, 'int':hashtag})
+            conn.commit()
+            cur.close()
+            conn.close()
+            return (hashtag)
+        else:
+            return ("KO")
+
+        
 
 # account profile page that return 'account'
 @main.route('/account', methods=['GET', 'POST'])

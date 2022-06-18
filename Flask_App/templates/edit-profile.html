@@ -101,7 +101,9 @@
     </div>
     <ul class="list-inline" id="hashtagList">
         {% for i in interest %}
-        <li class="list-inline-item dealbreaker">#{{ i }}</li>
+        <li id="{{ i[1] }}int" class="list-inline-item dealbreaker">#{{ i[0] }}
+            <sup id="{{ i[1] }}del" onclick="delhashtag({{ i[1] }})" class="del-button ml-2">X</span>
+        </li>
         {% endfor %}
     </ul>
         <button type="submit" class="dealbreaker btn btn-primary mb-2" data-toggle="modal" data-target="#editHashtagModal">
@@ -549,9 +551,19 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
                     for (var item in data)
                     {
                         var li = document.createElement("li");
-                        li.innerHTML = "#" + data[item];
+                        li.innerHTML = "#" + data[item][1];
                         li.classList.add("list-inline-item");
                         li.classList.add("dealbreaker");
+                        li.id=data[item][0]+"int";
+                        var sup = document.createElement("sup");
+                        sup.classList.add("del-button");
+                        sup.classList.add("ml-2");
+                        sup.innerHTML = "X";
+                        sup.id = data[item][0]+"del";
+                        sup.onclick = function() { 
+                            delhashtag(this.id);
+                         };
+                        li.appendChild(sup);
                         document.getElementById("hashtagList").appendChild(li);
                     }
                 }
@@ -559,6 +571,31 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
         });
     });
 });
+
+// Filtre Gesture //
+function delhashtag(hash_id) {
+    hash_secure_id = null;
+    if (hash_id != "") {
+        hash_secure_id = parseInt(hash_id);
+    }
+    if (hash_secure_id != null) {
+        $.ajax({
+          type: 'POST',
+          url: '/delhashtag',
+          data: {'data':hash_secure_id},
+          success: function(data) {
+              if (data == 'KO') {
+                console.log("Erreur delete");
+              }
+              else {
+                id = data+"int";
+                el = document.getElementById(id)
+                el.parentNode.removeChild(el);
+              } //End else
+          },
+      });
+    }
+}
 
 
 
@@ -589,29 +626,27 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
 });
 
 
-jQuery(document).ready(function($){
-  
-$('.live-search-list li').each(function(){
-    $(this).attr('data-search-term', $(this).text().toLowerCase());
-});
-  
-$('.live-search-box').on('keyup', function(){
-  
-var searchTerm = $(this).val().toLowerCase();
-  
+  //Hashtag search
+  jQuery(document).ready(function($){
     $('.live-search-list li').each(function(){
-        if (searchTerm != "") {
-            if ($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        }
+      $(this).attr('data-search-term', $(this).text().toLowerCase());
     });
-});
-  
-});
-
+    $('.live-search-box').on('keyup', function(){  
+      var searchTerm = $(this).val().toLowerCase();
+      searchTerm = searchTerm.replace(/ /g, "");
+      //[BUG] sanitize = txt.rstrip(",.qsw") ou Regex "allow a-z car toLowerCase activé" (erreur front console on spécial char)
+      if (searchTerm != "") { 
+        $('.live-search-list li').each(function(){ 
+          //if ($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) {
+          if (($(this).filter('[data-search-term *= ' + searchTerm + ']').length > 0 || searchTerm.length < 1) || ($(this).filter('[data-tag *= ' + searchTerm+ ']').length > 0 || searchTerm.length < 1) ) {
+              $(this).show();
+          } else {
+              $(this).hide();
+          }
+        });
+      }
+    });
+  });
 
 </script>
 {% endblock %}
