@@ -8,6 +8,8 @@ create table "Interest"
 
 alter table "Interest"
     owner to agu;
+alter sequence "Interest_id_seq"
+    restart with 1360;
 
 grant select, usage on sequence "Interest_id_seq" to sammy;
 

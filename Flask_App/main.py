@@ -520,8 +520,26 @@ def updprim():
 def updhash():
     if request.method == 'POST':
         hash_id = request.form.getlist("check")
+        newhash = request.form['newhash']
         existing_list = []
-        if (hash_id):
+        
+        #TO DO: Chech if newhash exist and secure variable
+        #TO DO: check if newtag existe insensible a la casse ToLowercase(newhash) existe en bdd (TolowerCase(hashtag))
+        #TO DO: Si exist ou caractère interdi, return "KO"
+        if (newhash):
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO \"Interest\" (hashtag) VALUES (%(hash)s) ", {'hash': newhash})
+            conn.commit()
+            cur.execute("SELECT id, hashtag FROM \"Interest\" WHERE hashtag=%(hash)s LIMIT 1", {'hash': newhash})
+            existing_elem = cur.fetchone()
+            existing_list.append([existing_elem[0], existing_elem[1].rstrip()])
+            cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(uid)s, %(int)s)", {'uid': current_user.id, 'int': existing_elem[0]})
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify(existing_list)
+        elif (hash_id):
             conn = get_db_connection()
             cur = conn.cursor()
             for i in hash_id:
@@ -627,9 +645,9 @@ def account():
         cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1;", {'id': i})
         visite_profil = cur.fetchone()
         #calc age
-        user_age = age(like_profil[2])
+        user_age = age(visite_profil[2])
         #did i like this person ? 
-        cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': like_profil[0]})
+        cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': visite_profil[0]})
         is_like = cur.fetchone()[0]
         views_list.append([visite_profil[0], visite_profil[1], user_age, visite_profil[3], is_like])
     
