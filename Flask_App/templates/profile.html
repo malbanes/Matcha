@@ -15,10 +15,10 @@
         <!--left side-->
         <div class="col-sm" style="max-width:270px;">
             <div class="rounded-square-picture">
-            {% if image_profil == "0" %}
+            {% if image_profil == [] %}
               <div class="rounded-square-picture__content nophoto no-cursor" data-test="profile-rounded-square-picture"></div>
             {% else %}
-              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil}})"></div>
+              <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil[1]}})"></div>
             {% endif %}
             </div>
             <div class="d-inline-flex p-2">
@@ -117,7 +117,7 @@
                       </ol>
                       <div class="carousel-inner">
                         <div class="carousel-item active">
-                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{image_profil}}"></div>
+                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{image_profil[1]}}"></div>
                           <div class="carousel-caption d-md-block my_carousel_caption_top">
                               <div class="row justify-content-between mx-auto carousel-inner-icon">
                                   <button class="edit-icon bg-dark-gray image_fav no-margin" disabled>
@@ -129,11 +129,9 @@
                           </div>  
                       </div>
                         {% for i in images_path %}
-                          {% if i[1] != image_profil %}
                               <div class="carousel-item">
                                   <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{i[1]}})"></div>
                               </div>
-                          {% endif %}
                         {% endfor %}
                       </div>
                       <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">

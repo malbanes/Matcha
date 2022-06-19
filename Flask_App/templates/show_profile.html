@@ -40,7 +40,7 @@
         <!--left side-->
         <div class="col-sm" style="max-width:270px;">
             <div class="rounded-square-picture">
-              <div class="rounded-square-picture__content {{ 'no-cursor nophoto' if not image_profil|length }}" {{ 'style=background-image:url(' + image_profil + ')' if image_profil|length }} data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
+              <div class="rounded-square-picture__content {{ 'no-cursor nophoto' if not image_profil[1]|length }}" {{ 'style=background-image:url(' + image_profil[1] + ')' if image_profil[1]|length }} data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
             </div>
             <div class="d-inline-flex p-2">
                 <img class="edit-icon mr-2 no-cursor" src="{{url_for('static', filename='img/etoile.png')}}" alt="score">
@@ -50,7 +50,7 @@
         
             <div class="row">
                 <div class="col-2 no-padding">
-                  {% if not image_profil|length %}
+                  {% if not image_profil[1]|length %}
                     <div class="col-auto mb-2 dropright">
                       <svg xmlns="http://www.w3.org/2000/svg" class="text-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false" width="25" height="25" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
                           <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
@@ -154,7 +154,7 @@
                       </ol>
                       <div class="carousel-inner">
                         <div class="carousel-item active">
-                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{image_profil}}"></div>
+                          <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{image_profil[1]}}"></div>
                           <div class="carousel-caption d-md-block my_carousel_caption_top">
                               <div class="row justify-content-between mx-auto carousel-inner-icon">
                                   <button class="edit-icon bg-dark-gray image_fav no-margin" disabled>
@@ -166,11 +166,9 @@
                           </div>  
                       </div>
                         {% for i in images_path %}
-                          {% if i[1] != image_profil %}
                               <div class="carousel-item">
                                   <div class="d-block img-fluid svg my_bg" style="height: 70vh; background-image: url({{i[1]}})"></div>
                               </div>
-                          {% endif %}
                         {% endfor %}
                       </div>
                       <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">

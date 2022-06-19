@@ -48,6 +48,7 @@ def index():
 @check_confirmed
 def profile():
     images_path = []
+    fav_image = []
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
@@ -61,21 +62,18 @@ def profile():
         score = str(0)
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
-    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
+    # get fav image               
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
-    if image_profil:
-        image_profil_id = str(image_profil[0])
-    else :
-        image_profil_id = "0"
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
+    fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
+    fav_image.append(image_profil[0])
+    fav_image.append(fav_image_path)
+    cur.execute("SELECT id, path FROM images WHERE profil_id=(select id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': current_user.id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
-    total_img = len(images_path)
-    if images_path != []:
-        fav_image = images_path[int(image_profil_id)][1]
-    else:
-        fav_image = "0"
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    total_img = cur.fetchone()[0]
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
     interest = cur.fetchall()
     interest_list = []
@@ -95,6 +93,7 @@ def profile():
 @check_confirmed
 def showprofile(username):
     images_path = []
+    fav_image = []
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE username=%(username)s LIMIT 1", {'username': username})
@@ -105,6 +104,7 @@ def showprofile(username):
     user_username = str(showuser_details[1])
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     profil = cur.fetchone()
+    profil_id = profil[0]
     age_num = str(age(profil[5]))
     description = profil[6]
     score = str(profil[8])
@@ -139,19 +139,17 @@ def showprofile(username):
         cur.execute("INSERT INTO visites (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
         conn.commit()
 
-    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': profil_id})
     image_profil = cur.fetchone()
-    if image_profil:
-        image_profil_id = str(image_profil[0])
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': user_id})
+    fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
+    fav_image.append(image_profil[0])
+    fav_image.append(fav_image_path)
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': profil_id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
-    total_img = len(images_path)
-    if images_path != []:
-        fav_image = images_path[int(image_profil_id)][1]
-    else:
-        fav_image = "0"
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    total_img = cur.fetchone()[0]
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': user_id})
     interest = cur.fetchall()
     interest_list = []
@@ -357,20 +355,22 @@ def report():
 @check_confirmed
 def editprofile():
     image_path = dict()
+    fav_image = []
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
+    # get fav image               
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
-    if image_profil != None:
-        image_profil_id = str(image_profil[0])
-    print(image_profil_id)
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
+    fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
+    fav_image.append(image_profil[0])
+    fav_image.append(fav_image_path)
+    print("fav img: "+str(fav_image[0])+","+fav_image[1])
+
+    cur.execute("SELECT id, path FROM images WHERE profil_id=(select id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': current_user.id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
+    print("toutes les images: ")
     print(all_images)
-    if all_images != []:
-        fav_image = all_images[int(image_profil_id)][0]
-    else:
-        fav_image = None
+
     cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     i_am = cur.fetchone()
     i_am_bio = str(i_am[0])
@@ -385,14 +385,15 @@ def editprofile():
         interest_list.append([cur.fetchone()[0].rstrip(), id[0]])
     cur.execute("SELECT * FROM \"Interest\";")
     full_interest = cur.fetchall()
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    total_img = cur.fetchone()[0]
     cur.close()
     conn.close()
     for key, imgpth in all_images:
         image_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
-    total_img = len(image_path)
-    if total_img != 5:
+    if total_img < 5:
         image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/no-photo.png")
-    return render_template('edit-profile.html', image_profil=str(fav_image), images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
+    return render_template('edit-profile.html', image_profil=fav_image, images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
 
 @main.route('/uploadajax', methods = ['POST'])
 @login_required
@@ -413,9 +414,14 @@ def upldfile():
             cur = conn.cursor()
             #check if total image < 5    
             cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
-            if cur.fetchone()[0] < 5:
-                cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, %(profil_id)s, %(date_added)s)", {'title': file1.filename, 'path': file_path, 'profil_id': current_user.id, 'date_added': date.today()})
+            result = cur.fetchone()[0]
+            if result < 5:
+                cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, (SELECT id FROM profil WHERE user_id=%(id)s), %(date_added)s)", {'title': file1.filename, 'path': file_path, 'id': current_user.id, 'date_added': date.today()})
                 conn.commit()
+            if result == 0:
+                cur.execute("SELECT FROM images id WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s) LIMIT 1", {'id': current_user.id})
+                fav_id = cur.fetchone()[0]
+                cur.execute("UPDATE profil SET image_profil_id=%(fav)s WHERE user_id=%(id)s", {'fav': fav_id, 'id': current_user.id})
             cur.close()
             conn.close()
             return ("OK")
@@ -430,18 +436,8 @@ def setimgprofil():
         img_id = request.form['data']
         print(img_id)
         if img_id :
-            order = []
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("SELECT id FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
-            all_images = cur.fetchall()
-            print(all_images)
-            for i in all_images:
-                order.append(int(i[0]))
-            print(order)
-            position = order.index(int(img_id))
-            print(position)
-            cur.execute("UPDATE profil SET image_profil=%(fav)s WHERE user_id=%(id)s", {'fav': position, 'id': current_user.id})
             cur.execute("UPDATE profil SET image_profil_id=%(fav)s WHERE user_id=%(id)s", {'fav': img_id, 'id': current_user.id})
             conn.commit()
             cur.close()
@@ -456,6 +452,10 @@ def delimg():
     if request.method == 'POST':
         img_id = request.form['data']
         if img_id :
+            # IF img_id == image_profil_id :
+            # remplacer par une autre image disponnible.
+            # Id pas d'image dispo' mettre image_profil_id à null
+            # delete l'image
             return (img_id)
         else:
             return ("KO")
@@ -587,14 +587,10 @@ def account():
     is_bio = 0
     if bio != '':
         is_bio = 1
-    cur.execute("SELECT image_profil FROM profil WHERE user_id=%(id)s", {'id': current_user.id})
+    cur.execute("SELECT image_profil_id FROM profil WHERE user_id=%(id)s", {'id': current_user.id})
     image_profil = cur.fetchone()[0]
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s", {'id': current_user.id})
-    all_images = cur.fetchall()
-    if all_images != []:
-        fav_image = all_images[int(image_profil)][1]
-    else:
-        fav_image = None
+    cur.execute("SELECT path FROM images WHERE id=%(id)s", {'id': image_profil})
+    fav_image = cur.fetchone()[0]
     if fav_image :
         image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
     else :
@@ -1448,7 +1444,7 @@ def addnotif():
             else:
                 cur.execute("UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s", {'from': current_user.id, 'to': receiver_id, 'd': notif_date})
                 conn.commit()
-                return_str("Old")
+                return_str = "Old"
             cur.close()
             conn.close()
             return (return_str)
