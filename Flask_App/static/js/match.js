@@ -15,10 +15,10 @@ function changeIt(i) {
   var node;
   node = i.parentElement.getElementsByTagName("small");
   if (i.checked) {
-    node[0].innerHTML = "Croissant";
+    node[0].innerHTML = "Increase";
   }
   else {
-    node[0].innerHTML = "Décroissant";
+    node[0].innerHTML = "Decrease";
   }
 }
 

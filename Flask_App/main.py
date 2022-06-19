@@ -63,17 +63,19 @@ def profile():
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
     # get fav image               
-    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select user_id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
     fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
     fav_image.append(image_profil[0])
     fav_image.append(fav_image_path)
-    cur.execute("SELECT id, path FROM images WHERE profil_id=(select id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': current_user.id, 'fav':image_profil[0]})
+    cur.execute("SELECT id, path FROM images WHERE profil_id=(select user_id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
-    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT user_id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
+    if total_img > 5:
+        total_img = 5
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
     interest = cur.fetchall()
     interest_list = []
@@ -139,17 +141,20 @@ def showprofile(username):
         cur.execute("INSERT INTO visites (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
         conn.commit()
 
-    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': profil_id})
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': user_id})
     image_profil = cur.fetchone()
+    print(image_profil)
     fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
     fav_image.append(image_profil[0])
     fav_image.append(fav_image_path)
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': profil_id, 'fav':image_profil[0]})
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': user_id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
-    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT user_id FROM profil WHERE user_id=%(id)s);", { 'id': user_id})
     total_img = cur.fetchone()[0]
+    if total_img > 5:
+        total_img = 5
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': user_id})
     interest = cur.fetchall()
     interest_list = []
@@ -359,14 +364,15 @@ def editprofile():
     conn = get_db_connection()
     cur = conn.cursor()
     # get fav image               
-    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select user_id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
+    print(image_profil)
     fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
     fav_image.append(image_profil[0])
     fav_image.append(fav_image_path)
     print("fav img: "+str(fav_image[0])+","+fav_image[1])
 
-    cur.execute("SELECT id, path FROM images WHERE profil_id=(select id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': current_user.id, 'fav':image_profil[0]})
+    cur.execute("SELECT id, path FROM images WHERE profil_id=(select user_id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     print("toutes les images: ")
     print(all_images)
@@ -385,7 +391,7 @@ def editprofile():
         interest_list.append([cur.fetchone()[0].rstrip(), id[0]])
     cur.execute("SELECT * FROM \"Interest\";")
     full_interest = cur.fetchall()
-    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT user_id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
     cur.close()
     conn.close()
@@ -848,7 +854,9 @@ def match():
 @login_required
 @check_confirmed
 def chat():
-
+    print(current_user)
+    print(current_user.id)
+    print(current_user.is_authenticated)
     usersList = [] 
     matchList = []
     roomsList = []
@@ -884,7 +892,7 @@ def chat():
         else :
             roomsList.append(u+current_user.username)
 
-    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user.id, onlineList=onlineList, notifList=notifList)
+    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user, onlineList=onlineList, notifList=notifList)
 
 # notification page that return 'notification'
 @main.route('/notification') 

@@ -36,7 +36,7 @@
   <div class="container" style="height: 30rem;">
 
     <div class="card myabsolute" style="width: 18rem; z-index: 0;">
-      <p> Plus de match désolé </p>
+      <p> No match anymore - sorry </p>
     </div>
 
   {% for i in range(1,4) %}
@@ -98,7 +98,7 @@
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="filterModalLabel">Filtre</h5>
+        <h5 class="modal-title" id="filterModalLabel">Filter</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -112,7 +112,7 @@
             <div class="h5 no-margin text-deepblue d-inline">Age</div>
           </div>
           <p class="no-margin">
-            <label for="ageRange">Entre </label>
+            <label for="ageRange">Between </label>
             <input type="text" id="ageRange" readonly style="border:0;">
           </p>
           <div id="slider-range"></div>
@@ -135,7 +135,7 @@
               <input class="form-check-input" type="checkbox" name="scoreFiltreCheck" id="scoreFiltreCheck">
               <div class="h5 no-margin text-deepblue d-inline">Score</div>
             </div>
-            <label for="scoreRange">Entre </label>
+            <label for="scoreRange">Between </label>
             <input type="text" id="scoreRange" readonly style="border:0;">
           </p>
           <div id="slider-score-range"></div>
@@ -181,7 +181,7 @@
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="triModalLabel">Tri</h5>
+        <h5 class="modal-title" id="triModalLabel">Sort</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -190,13 +190,13 @@
         <!-- Tri Form-->
         <form method="POST" id="tri-match-form">
           <!-- Age -->
-          <div class="h5 text-deepblue">Trier par: </div>
+          <div class="h5 text-deepblue">Sort by: </div>
             <div class="form-check d-inline">
               <input class="form-check-input" type="checkbox" name="ageCheck" id="ageCheck">
               <label class="form-check-label align-top" for="ageCheck">Age</label>
             </div>
             <div class="form-check d-inline no-padding">
-              <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+              <label class="mycontainer d-inline align-top"><small class="gray-color">Increase</small>
                 <input onchange="changeIt(this)" id="ageCheckOrder" name="ageCheckOrder" type="checkbox" checked="checked">
                 <span class="checkmark"></span>
               </label>
@@ -207,7 +207,7 @@
               <label class="form-check-label align-top" for="distCheck">Distance</label>
             </div>
             <div class="form-check d-inline no-padding">
-              <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+              <label class="mycontainer d-inline align-top"><small class="gray-color">Increase</small>
                 <input onchange="changeIt(this)" id="distCheckOrder" name="distCheckOrder" type="checkbox" checked="checked">
                 <span class="checkmark"></span>
               </label>
@@ -218,7 +218,7 @@
             <label class="form-check-label align-top" for="scoreCheck">Score</label>
           </div>
           <div class="form-check d-inline no-padding">
-            <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+            <label class="mycontainer d-inline align-top"><small class="gray-color">Increase</small>
               <input onchange="changeIt(this)" id="scoreCheckOrder" name="scoreCheckOrder" type="checkbox" checked="checked">
               <span class="checkmark"></span>
             </label>
@@ -229,7 +229,7 @@
             <label class="form-check-label align-top" for="hashtagCheck">Hashtag</label>
           </div>
           <div class="form-check d-inline no-padding">
-            <label class="mycontainer d-inline align-top"><small class="gray-color">Croissant</small>
+            <label class="mycontainer d-inline align-top"><small class="gray-color">Increase</small>
               <input onchange="changeIt(this)" id="hashtagCheckOrder" name="hashtagCheckOrder" type="checkbox" checked="checked">
               <span class="checkmark"></span>
             </label>

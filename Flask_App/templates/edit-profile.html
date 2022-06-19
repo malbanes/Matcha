@@ -241,10 +241,10 @@
       <div class="modal-content">
         <form method="post" id="upload-file" enctype="multipart/form-data">
         <div class="modal-body center">
-            <span class="text-small">Ajoutez une photo pour attirer l'attention des membres.</span>
+            <span class="text-small">Add a picture to get attention from the community</span>
                 <!-- Modal image-->
                 <div id="upload-error" class="invalid-feedback" style="display:none;">
-                    Une erreur est survenue
+                    An error occurred
                 </div>
             <div class="row">
                 <div class="col mx-auto">
@@ -263,7 +263,7 @@
             </div> <!-- End modal image-->
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">retour</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Return</button>
           <button id="upload-file-btn" type="button" class="btn btn-primary">Save changes</button>
         </div>
         </form>
@@ -276,7 +276,7 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editBioModalLabel">Biographie</h5>
+          <h5 class="modal-title" id="editBioModalLabel">Biography</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -290,7 +290,7 @@
                         <div class="counter" id="counter">{{ bio|length }}/100</div>
                     </div>
                     <div class="col">
-                        <button type="button" class="btn btn-secondary mb-2 mt-2" data-dismiss="modal">annuler</button>
+                        <button type="button" class="btn btn-secondary mb-2 mt-2" data-dismiss="modal">Cancel</button>
                         <button id="bio-btn" type="button" class="btn btn-primary mb-2 mt-2" data-dismiss="modal" >Confirm</button>
                     </div>
                 </div>
@@ -359,7 +359,7 @@
               <div class="form-group">
                 <bold class="form-text text-muted">Your gender :</bold>
                 <select class="form-select form-select-sm mb-3" name="newGender" aria-label="gender select">
-                    <option value="0" {{ 'selected' if genre=="Non-binaire"}}>Non-binaire</option>
+                    <option value="0" {{ 'selected' if genre=="Non-binaire"}}>Non-binary</option>
                     <option value="1" {{ 'selected' if genre=="Men"}} >Men</option>
                     <option value="2" {{ 'selected' if genre=="Women"}}>Women</option>
                 </select>
@@ -367,9 +367,9 @@
               <div class="form-group">
                 <bold class="form-text text-muted">Your sexual orientation :</bold>
                 <select class="form-select form-select-sm" name="newOrient" aria-label="orientation select">
-                    <option value="0" {{ 'selected' if orientation=="Bisexuel"}}>Bisexuel</option>
-                    <option value="1" {{ 'selected' if orientation=="Heterosexuel"}}>Heterosexuel</option>
-                    <option value="2" {{ 'selected' if orientation=="Homosexuel"}}>Homosexuel</option>
+                    <option value="0" {{ 'selected' if orientation=="Bisexuel"}}>Bisexual</option>
+                    <option value="1" {{ 'selected' if orientation=="Heterosexuel"}}>Heterosexual</option>
+                    <option value="2" {{ 'selected' if orientation=="Homosexuel"}}>Homosexual</option>
                 </select>
               </div>
               <div class="center">
