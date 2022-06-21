@@ -200,10 +200,27 @@
     <script type="text/javascript" charset="utf-8">
 
       $(document).ready(function() {
-        var elem = document.getElementsByClassName('profil_info');
-        var receiver_id = elem[0].id;
-        add_notification(receiver_id, 1, 1);
+        add_visite();
       });
+
+
+    function add_visite() {
+      var elem = document.getElementsByClassName('profil_info');
+      var receiver_id = elem[0].id;
+      $.ajax({
+        type: 'POST',
+        url: '/addvisite',
+        data: {"data":receiver_id},
+        success: function(data) {
+            if (data == "KO") {
+              //console.log('Une erreur est survenue');
+            }
+            else {
+              add_notification(receiver_id , 1, 1);
+              }
+        },
+      });
+    }
 
     </script>
 

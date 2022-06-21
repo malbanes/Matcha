@@ -186,10 +186,10 @@
                 <!-- Reflist Title -->
                 <ul class="nav nav-tabs" style="flex-wrap: nowrap;" id="refTab" role="tablist">
                   <li class="nav-item">
-                    <a class="nav-link link dark {{ 'active' if section=='like'}}" id="like-tab" data-toggle="tab" href="#like" role="tab" aria-controls="like" aria-selected="true">Like</a>
+                    <a class="nav-link link dark {{ 'active' if section=='like'}}" id="like-tab" onclick="read_notification(0, 0)" data-toggle="tab" href="#like" role="tab" aria-controls="like" aria-selected="true">Like</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link link dark {{ 'active' if section=='visit'}}"" id="visit-tab" data-toggle="tab" href="#visit" role="tab" aria-controls="visit" aria-selected="false">Visite</a>
+                    <a class="nav-link link dark {{ 'active' if section=='visit'}}" id="visit-tab" onclick="read_notification(1, 0)" data-toggle="tab" href="#visit" role="tab" aria-controls="visit" aria-selected="false">Visite</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link link dark" id="blocked-tab" data-toggle="tab" href="#blocked" role="tab" aria-controls="blocked" aria-selected="false">Blocked</a>
@@ -207,16 +207,12 @@
                       <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
                         <a href="{{ url_for('main.showprofile', username=i[1]) }}">
                           <div class="card-img-top">                                                                                                                                                                           
-                            <!-- <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match2" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; {{ 'background-image:url(' + i[0] + ')' if i[0] ==0 }}"></div> //-->
-                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match3" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url('../static/img/no-photo.png')"></div>
+                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match2" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image:url( {{i[5]}} )"></div>
                           </div>
                         </a>
                         <div class="card-body center">
                           <h4 class="card-title mb-0">{{i[1]}}</h5>
                             <small><p class="card-text text-muted mb-2">{{i[2]}} ans . {{i[3]}}</p></small>
-                            <svg id="like_img{{ i[0] }}" onclick="like_gesture({{ i[0] }})" class="gray-color {{ 'red-color' if i[4]>0}}" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
-                              <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
-                            </svg>
                           </div>
                       </div>
                     </div>
@@ -234,14 +230,12 @@
                       <div class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
                         <a href="{{ url_for('main.showprofile', username=i[1]) }}">
                           <div class="card-img-top">                                                                                                                                                                           
-                            <!-- <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match2" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; {{ 'background-image:url(' + i[0] + ')' if i[0] ==0 }}"></div> //-->
-                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match3" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url('../static/img/no-photo.png')"></div>
+                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match2" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image:url( {{i[5]}} )"></div>
                           </div>
                         </a>
                         <div class="card-body center">
                           <h4 class="card-title mb-0">{{i[1]}}</h5>
                             <small><p class="card-text text-muted mb-2">{{i[2]}} ans . {{i[3]}}</p></small>
-                            <button class="btn btn-secondary clickable" onclick="like({{ i[0] }})">Like</button>
                           </div>
                       </div>
                     </div>
@@ -260,7 +254,7 @@
                       <div id="{{i[0]}}block" class="card no-border mx-2 mb-2 mt-2" style="width: 12rem;">
                         <a href="{{ url_for('main.showprofile', username=i[1]) }}">
                           <div class="card-img-top">
-                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match3" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image: url('../static/img/no-photo.png')"></div>
+                            <div class="rounded-square-picture_match nophoto" data-test="profile-rounded-square-match2" data-toggle="modal" data-target="#modal-fullscreen-xl" style="min-height:12rem; background-image:url( {{i[2]}} )"></div>
                           </div>
                         </a>
                         <div class="card-body center">

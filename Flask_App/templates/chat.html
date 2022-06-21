@@ -99,13 +99,13 @@
 
             {% for messages in messagesList[loop.index0] %}
 
-            <div class="date-text {{ 'right' if current_user == messages[1] }}"><small > 
+            <div class="date-text {{ 'right' if current_user.id == messages[1] }}"><small > 
               {{ messages[4]|strftime }} 
             </small></div>
-            <div class="message_container {{ 'right' if current_user == messages[1] }}">
-              <div class="{{ 'message_content_user' if current_user == messages[1] else 'message_content_other' }}">
+            <div class="message_container {{ 'right' if current_user.id == messages[1] }}">
+              <div class="{{ 'message_content_user' if current_user.id == messages[1] else 'message_content_other' }}">
                 <div class="">
-                  {% if current_user != messages[1] %}
+                  {% if current_user.id != messages[1] %}
                   {{ user }} : 
                   {% endif %}
                   {{ messages[3] }}
