@@ -5,9 +5,11 @@ function like_gesture(user_id) {
     var like_img = document.getElementById(like_id);
     var is_liked = like_img.classList.contains("red-color");
     if (is_liked == true) {
+        console.log("Delete a like");
         delete_like(user_id);
     }
     else {
+        console.log("Add a like");
         add_like(user_id);
     }
 }
@@ -30,7 +32,8 @@ $.ajax({
                 if (like_message) {
                     like_message.style.display = "none";
                 }
-                add_notification(user_id , 0, "1");
+                console.log("Add notification like");
+                add_notification(user_id , 0, 1);
             }
         },
     });
@@ -54,8 +57,16 @@ $.ajax({
                 if (like_message) {
                     like_message.style.display = "block";
                 }
-                var socket = io();
-                socket.emit('new_notif', {'content': "-1", 'receiver' : user_id, 'notif_type': 0});
+                if (data != "Old") {
+                    var socket = io();
+                    if (data == "Match") {
+                        console.log("This is a match !");
+                        socket.emit('new_notif', {'content': "1", 'receiver' : user_id, 'notif_type': 3});
+                    }
+                    else {
+                        socket.emit('new_notif', {'content': "-1", 'receiver' : user_id, 'notif_type': 0});
+                    }
+                }
             }
         },
     });

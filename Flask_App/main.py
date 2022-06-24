@@ -42,6 +42,18 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
+# we initialize our flask app using the  __init__.py function 
+app = create_app()
+#Spécification de la bibliothèque à utiliser pour le traitement asynchrone
+# `threading`, `eventlet`, `gevent`Peut être sélectionné parmi
+async_mode = None
+
+#Objet Flask, asynchrone_Créer un objet serveur SocketIO en spécifiant le mode
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+thread_lock = Lock()
+
+
 # profile page that return 'profile'
 @main.route('/profile') 
 @login_required
@@ -63,19 +75,19 @@ def profile():
     genre = GENRE[profil[2]]
     orientation = ORIENTATION[profil[3]]
     # get fav image               
-    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select user_id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
     fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
     fav_image.append(image_profil[0])
     fav_image.append(fav_image_path)
-    cur.execute("SELECT id, path FROM images WHERE profil_id=(select user_id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
-    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT user_id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
-    if total_img > 5:
-        total_img = 5
+    #if total_img > 5:
+    #    total_img = 5
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
     interest = cur.fetchall()
     interest_list = []
@@ -106,7 +118,6 @@ def showprofile(username):
     user_username = str(showuser_details[1])
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
     profil = cur.fetchone()
-    profil_id = profil[0]
     age_num = str(age(profil[5]))
     description = profil[6]
     score = str(profil[8])
@@ -134,27 +145,20 @@ def showprofile(username):
     else:
         like_message = ""
 
-    #Add Visit or Update visit
-    cur.execute("SELECT COUNT(id) FROM visites WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': user_id})
-    visit_send = cur.fetchone()[0]
-    if visit_send == 0:
-        cur.execute("INSERT INTO visites (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
-        conn.commit()
-
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': user_id})
     image_profil = cur.fetchone()
     print(image_profil)
     fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
     fav_image.append(image_profil[0])
     fav_image.append(fav_image_path)
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': user_id, 'fav':image_profil[0]})
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': user_id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     for key, imgpth in all_images:
         images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
     cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT user_id FROM profil WHERE user_id=%(id)s);", { 'id': user_id})
     total_img = cur.fetchone()[0]
-    if total_img > 5:
-        total_img = 5
+    #if total_img > 5:
+    #    total_img = 5
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': user_id})
     interest = cur.fetchall()
     interest_list = []
@@ -179,18 +183,39 @@ def addlike():
         if user_id :
             conn = get_db_connection()
             cur = conn.cursor()
-            
-            cur.execute("SELECT COUNT(*) FROM accountcontrol WHERE (from_user_id=%(id)s AND to_user_id=%(tid)s AND blocked = true) LIMIT 1", {'id': user_id, 'tid': current_user.id})
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE (from_user_id=%(id)s AND to_user_id=%(tid)s AND blocked = true) LIMIT 1", {'id': user_id, 'tid': current_user.id})
             is_block = cur.fetchone()[0]
-            if is_block == 0:
+            cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;",{'sid': current_user.id , 'rid': user_id})
+            is_exist = cur.fetchone()[0]
+            if is_block == 0 and is_exist == 0:
                 cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
                 conn.commit()
             else:
-                error = "An error occur"
+                error = "KO"
             cur.close()
             conn.close()
+            return (error)
+        else:
+            return ("KO")
 
-
+@main.route('/addvisite', methods = ['POST'])
+@login_required
+@check_confirmed
+def addvisite():
+    if request.method == 'POST':
+        error = ""
+        user_id = request.form['data']
+        if user_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+            #Add Visit or Update visit
+            cur.execute("SELECT COUNT(id) FROM visites WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': user_id})
+            visit_send = cur.fetchone()[0]
+            if visit_send == 0:
+                cur.execute("INSERT INTO visites (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
+                conn.commit()
+            cur.close()
+            conn.close()
             return (error)
         else:
             return ("KO")
@@ -262,16 +287,32 @@ def sendmessage():
 @check_confirmed
 def dellike():
     if request.method == 'POST':
+        error = ""
         user_id = request.form['data']
         if user_id :
+            error = user_id
             conn = get_db_connection()
             cur = conn.cursor()
+            # If Like was a Match: generate notification type like-1 ?
+            cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id='{0}' AND receiver_id='{1}';".format(user_id, current_user.id))
+            if cur.fetchone()[0] > 0:
+                # Was a match
+                cur.execute("SELECT COUNT(id) FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND notif_type=3 AND is_read=false;", {'sid':current_user.id , 'rid': user_id})
+                is_notif = cur.fetchone()[0]
+                if is_notif == 0 :
+                    notif_date = float(datetime.now().timestamp())
+                    cur.execute("INSERT INTO notifications (notif_type, sender_id, receiver_id, date_added) VALUES (3, %(sid)s, %(rid)s, %(dat)s)",{'sid':current_user.id , 'rid': user_id, 'dat': notif_date})
+                    error = "Match"
+                else :
+                    error = "Old"
+            else :
+                cur.execute("DELETE FROM notifications WHERE sender_id='{0}' AND receiver_id='{1}' AND notif_type=0".format(current_user.id , user_id))
+                conn.commit()
             cur.execute("DELETE FROM likes WHERE sender_id='{0}' AND receiver_id='{1}';".format(current_user.id , user_id))
             conn.commit()
-
             cur.close()
             conn.close()
-            return (user_id)
+            return (error)
         else:
             return ("KO")
 
@@ -364,7 +405,7 @@ def editprofile():
     conn = get_db_connection()
     cur = conn.cursor()
     # get fav image               
-    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =(select user_id from profil where user_id=%(id)s) LIMIT 1;", {'id': current_user.id})
+    cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
     print(image_profil)
     fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
@@ -372,7 +413,7 @@ def editprofile():
     fav_image.append(fav_image_path)
     print("fav img: "+str(fav_image[0])+","+fav_image[1])
 
-    cur.execute("SELECT id, path FROM images WHERE profil_id=(select user_id from profil where user_id=%(id)s) AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
+    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
     all_images = cur.fetchall()
     print("toutes les images: ")
     print(all_images)
@@ -391,7 +432,7 @@ def editprofile():
         interest_list.append([cur.fetchone()[0].rstrip(), id[0]])
     cur.execute("SELECT * FROM \"Interest\";")
     full_interest = cur.fetchall()
-    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT user_id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+    cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
     cur.close()
     conn.close()
@@ -419,13 +460,13 @@ def upldfile():
             conn = get_db_connection()
             cur = conn.cursor()
             #check if total image < 5    
-            cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s);", { 'id': current_user.id})
+            cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
             result = cur.fetchone()[0]
             if result < 5:
-                cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, (SELECT id FROM profil WHERE user_id=%(id)s), %(date_added)s)", {'title': file1.filename, 'path': file_path, 'id': current_user.id, 'date_added': date.today()})
+                cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, %(id)s, %(date_added)s)", {'title': file1.filename, 'path': file_path, 'id': current_user.id, 'date_added': date.today()})
                 conn.commit()
             if result == 0:
-                cur.execute("SELECT FROM images id WHERE profil_id=(SELECT id FROM profil WHERE user_id=%(id)s) LIMIT 1", {'id': current_user.id})
+                cur.execute("SELECT FROM images id WHERE profil_id=%(id)s LIMIT 1", {'id': current_user.id})
                 fav_id = cur.fetchone()[0]
                 cur.execute("UPDATE profil SET image_profil_id=%(fav)s WHERE user_id=%(id)s", {'fav': fav_id, 'id': current_user.id})
             cur.close()
@@ -624,9 +665,14 @@ def account():
     cur.execute("SELECT to_user_id from accountcontrol WHERE from_user_id=%(id)s and blocked=true;", {'id':current_user.id})
     blocked_users=cur.fetchall()
     for i in blocked_users:
-        cur.execute("SELECT id, username from users where users.id=%(id)s LIMIT 1;", {'id': i})
+        cur.execute("SELECT users.id, username, i.path from users INNER JOIN profil as p ON users.id=p.user_id AND users.id=%(id)s LEFT JOIN images as i on i.id=p.image_profil_id LIMIT 1;", {'id': i})
         blocked_profil = cur.fetchone()
-        blocked_list.append([blocked_profil[0], blocked_profil[1]])
+        if blocked_profil[2] is not None:
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(blocked_profil[2]))
+        else: 
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+        #calc age
+        blocked_list.append([blocked_profil[0], blocked_profil[1], user_image])
   
     #set blocked_list for views and likes + exclude current_user
     blocked_string = str(current_user.id)+','.join([str(elem[0]) for elem in blocked_users])
@@ -634,28 +680,37 @@ def account():
     cur.execute("SELECT sender_id FROM likes WHERE receiver_id='{0}' AND sender_id NOT IN ({1});".format(current_user.id, blocked_string))
     like_users=cur.fetchall()
     for i in like_users:
-        cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1;", {'id': i})
+        cur.execute("SELECT users.id, username, age, city, i.path FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LEFT JOIN images as i on i.id=profil.image_profil_id LIMIT 1;", {'id': i})
         like_profil = cur.fetchone()
+        if like_profil[4] is not None:
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(like_profil[4]))
+        else: 
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
         #calc age
         user_age = age(like_profil[2])
         #did i like this person ? 
         cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': like_profil[0]})
         is_like = cur.fetchone()[0]
-        likes_list.append([like_profil[0], like_profil[1], user_age, like_profil[3], is_like])
+        likes_list.append([like_profil[0], like_profil[1], user_age, like_profil[3], is_like, user_image])
     # Select visites user_id
 
+    user_image = ""
     #cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
     cur.execute("SELECT sender_id FROM visites WHERE receiver_id='{0}' AND sender_id NOT IN ({1});".format(current_user.id, blocked_string))
     visite_users=cur.fetchall()
     for i in visite_users:
-        cur.execute("SELECT users.id, username, age, city FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1;", {'id': i})
+        cur.execute("SELECT users.id, username, age, city, i.path FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON profil.location_id = location.id LEFT JOIN images as i on i.id=profil.image_profil_id LIMIT 1;", {'id': i})
         visite_profil = cur.fetchone()
+        if visite_profil[4] is not None:
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(visite_profil[4]))
+        else: 
+            user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
         #calc age
         user_age = age(visite_profil[2])
         #did i like this person ? 
         cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': visite_profil[0]})
         is_like = cur.fetchone()[0]
-        views_list.append([visite_profil[0], visite_profil[1], user_age, visite_profil[3], is_like])
+        views_list.append([visite_profil[0], visite_profil[1], user_age, visite_profil[3], is_like, user_image])
     
     if request.method=='GET':
         if current_user.confirmed is False:
@@ -919,11 +974,11 @@ def notification():
         cur.execute("SELECT username FROM users where id=%(id)s LIMIT 1;", {'id': notif[1]})
         username = cur.fetchone()[0]
         #like
+        if notif_type == 3:
+            message = "doesn't like you anymore"
         if notif_type == 0:
             if content == 1:
                 message = "like you"
-            else:
-                message = "doesn't like you anymore"
         #view
         if notif_type == 1:
             message = "looked at your profil"
@@ -1462,7 +1517,7 @@ def addnotif():
         if receiver_id :
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("SELECT COUNT(id) FROM notifications WHERE (receiver_id=%(id)s AND notif_type=1 AND sender_id = %(from)s) LIMIT 1", {'id': receiver_id, 'from': current_user.id})
+            cur.execute("SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=%(tid)s AND is_read=false AND sender_id = %(from)s LIMIT 1", {'id': receiver_id, 'from': current_user.id, 'tid': notif_type})
             if cur.fetchone()[0]==0:
                 cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
                 conn.commit()
@@ -1471,6 +1526,7 @@ def addnotif():
                 cur.execute("UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s", {'from': current_user.id, 'to': receiver_id, 'd': notif_date})
                 conn.commit()
                 return_str = "Old"
+
             cur.close()
             conn.close()
             return (return_str)
@@ -1482,8 +1538,7 @@ def readnotif():
     if request.method == 'POST':
         newvalue = None
         notif_type = int(request.form['notif_type'])
-
-        if notif_type :
+        if notif_type or notif_type==0 :
             conn = get_db_connection()
             cur = conn.cursor()
             if notif_type == 2:
@@ -1496,7 +1551,7 @@ def readnotif():
                 else:
                     return("KO")
             else:
-                cur.execute("UPDATE notifications SET is_read = true WHERE receiver_id=%(id)s AND notif_type=%(ntype)s;", {'id': current_user.id, 'ntype': notif_type})
+                cur.execute("UPDATE notifications SET is_read=true WHERE receiver_id=%(id)s AND notif_type=%(ntype)s;", {'id': current_user.id, 'ntype': notif_type})
                 conn.commit()
                 cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id=%(id)s AND is_read=false AND notif_type=%(t)s;", {'id': current_user.id, 't': notif_type})
                 newvalue = cur.fetchone()[0]
@@ -1517,22 +1572,18 @@ def readnotif():
 def getnavnotif():
 
     if request.method == 'POST':
-
         if not current_user.is_authenticated:
             return("KO")
         conn = get_db_connection()
         cur = conn.cursor()
-
         #Notification setup Gesture
-        cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND notif_type=0;".format(current_user.id))
+        cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND (notif_type=0 OR notif_type=3);".format(current_user.id))
         nbr_like = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND notif_type=1;".format(current_user.id))
         nbr_view = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND notif_type=2;".format(current_user.id))
         nbr_msg = cur.fetchone()[0]
-
         total_notif = nbr_like + nbr_view + nbr_msg
-
         cur.close()
         conn.close()
 
@@ -1546,36 +1597,31 @@ def getnavnotif():
     else:
         return ("KO")
 
-# we initialize our flask app using the  __init__.py function 
-app = create_app()
-#Spécification de la bibliothèque à utiliser pour le traitement asynchrone
-# `threading`, `eventlet`, `gevent`Peut être sélectionné parmi
-async_mode = None
-
-#Objet Flask, asynchrone_Créer un objet serveur SocketIO en spécifiant le mode
-socketio = SocketIO(app, async_mode=async_mode)
-thread = None
-thread_lock = Lock()
-
 #Variable globale pour stocker les threads
 
 
 # Notifications Dynamic Gesture 
+
 @socketio.on('join_request')
 def on_join_request():
+    print("ON JOIN REQUEST")
+    print("ON JOIN REQUEST")
+    print("ON JOIN REQUEST")
     if current_user.is_authenticated:
         user_id = current_user.id
         join_room(user_id)
         print("User join the chanel"+str(user_id))
         
 
-
 @socketio.on('new_notif')
 def new_notif(data):
     content = int(data['content'])
     value = content
+    type_id = int(data['notif_type'])
+    if type_id == 3 :
+        type_id = 0
     receiver = data['receiver']
-    notif_type = NOTIF_TYPE[int(data['notif_type'])]
+    notif_type = NOTIF_TYPE[type_id]
     # Si notif_type = message, add 1 to message
     emit("notifications",
         {"content": value, "notif_type":notif_type, "sender":current_user.username}, room=int(receiver))

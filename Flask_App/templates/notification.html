@@ -29,12 +29,10 @@
                         <div class="col {{ 'font-weight-bold' if notif[5]==false }}">
                             <small>{{ notif[2] }}</small>: 
                             <a href="{{ url_for('main.showprofile', username=notif[3]) }}">{{ notif[3] }}</a>
-                            {% if notif[1] == '0' %}
-                                <a class="text-decoration-none text-reset" href="{{ url_for('main.account', onglet='historique', section='like') }}">{{ notif[4] }}</a>
-                            {% elif notif[1] == '1' %}
-                                <a class="text-decoration-none text-reset" href="{{ url_for('main.account', onglet='historique', section='visit') }}">{{ notif[4] }}</a> 
-                            {% else %}
+                            {% if notif[1] == 2 %}
                                 <a class="text-decoration-none text-reset" href="{{ url_for('main.chat') }}">{{ notif[4] }}</a> 
+                            {% else %}
+                                {{ notif[4] }}
                             {% endif %}
                         </div>
                         <div class="col-2">
