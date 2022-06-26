@@ -8,8 +8,6 @@ create table "Interest"
 
 alter table "Interest"
     owner to agu;
-alter sequence "Interest_id_seq"
-    restart with 1360;
 
 grant select, usage on sequence "Interest_id_seq" to sammy;
 
@@ -1375,3 +1373,4 @@ INSERT INTO public."Interest" (id, hashtag) VALUES (1354, 'Ziplining            
 INSERT INTO public."Interest" (id, hashtag) VALUES (1355, 'Zourkhaneh                                                                                                                                                                                                                                                     ');
 INSERT INTO public."Interest" (id, hashtag) VALUES (1356, 'Zui quan                                                                                                                                                                                                                                                       ');
 INSERT INTO public."Interest" (id, hashtag) VALUES (1357, 'Zumba                                                                                                                                                                                                                                                          ');
+INSERT INTO public."Interest" (id, hashtag) VALUES (1358, 'sudoku                                                                                                                                                                                                                                                         ');
