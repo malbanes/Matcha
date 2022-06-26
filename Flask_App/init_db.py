@@ -1,47 +1,105 @@
 import os
 import psycopg2
 
-conn = psycopg2.connect(
-        host="localhost",
-        database="flask_db",
-        user=os.environ['DB_USERNAME'],
-        password=os.environ['DB_PASSWORD'])
+DB_USERNAME = "sammy"
+DB_PASSWORD = "test"  
 
-# Open a cursor to perform database operations
-cur = conn.cursor()
+DBFILES = [
+        "flask_db_public_users.sql",
+        "flask_db_public_accountcontrol.sql",
+        "flask_db_public_images.sql",
+        "flask_db_public_Interest.sql",
+        "flask_db_public_likes.sql",
+        "flask_db_public_messages.sql",
+        "flask_db_public_notifications.sql",
+        "flask_db_public_ProfilInterest.sql",
+        "flask_db_public_search.sql",
+        "flask_db_public_location.sql",
+        "flask_db_public_visites.sql",
+        "flask_db_public_match.sql",
+        "flask_db_public_profil.sql"
+]
 
-# Execute a command: this creates a new table
-cur.execute('DROP TABLE IF EXISTS users;')
-cur.execute('CREATE TABLE users (id serial PRIMARY KEY,'
-                                 'username varchar (255) NOT NULL,'
-                                 'password varchar (255) NOT NULL,'
-                                 'date_added date DEFAULT CURRENT_TIMESTAMP),'
-                                 'first_name varchar (255),'
-                                 'last_name varchar (255),'
-                                 'email varchar (255) NOT NULL;'
-                                 'confirmed boolean DEFAULT false NOT NULL;'
-                                 )
-cur.execute('DROP TABLE IF EXISTS books;')
-cur.execute('CREATE TABLE images (id serial PRIMARY KEY,'
-                                 'title varchar (255) NOT NULL,'
-                                 'path varchar (255) NOT NULL,'
-                                 'profil_id integer NOT NULL,'
-                                 'date_added date DEFAULT CURRENT_TIMESTAMP);'
-                                 )
+def executeScriptsFromFile(c):
+        # Open and read the file as a single buffer
+        # for file in DBFILES:
+        fd = open("../gen_db/" + file, 'r')
+        sqlFile = fd.read()
+        fd.close()
 
-# Insert data into the table
+        # all SQL commands (split on ';')
+        sqlCommands = sqlFile.split(';')
 
-cur.execute('INSERT INTO images (title, path, profil_id)'
-            'VALUES (%s, %s, %s)',
-            ('Sammy Image',
-             'https://www.arthurguerin.com/assets/www.png',
-             1)
-            )
+        # Execute every command from the input file
+        for command in sqlCommands:
+            # This will skip and report errors
+            # For example, if the tables do not yet exist, this will skip over
+            # the DROP TABLE commands
+                try:
+                        c.execute(command
+                except:
+                        print("Command skipped: ", msg)
 
-cur.execute('CREATE EXTENSION pgcrypto;')
-cur.execute("INSERT INTO users (username, password, first_name, last_name, email) VALUES ('test@test.com',crypt('test', gen_salt('bf')),'sammy','test','test@test.com');")
+                conn.commit()
 
-conn.commit()
+def main():
+        conn = psycopg2.connect(
+                host="localhost",
+                database="flask_db",
+                user=DB_USERNAME,
+                password=DB_PASSWORD)
 
-cur.close()
-conn.close()
+        # Open a cursor to perform database operations
+        cur = conn.cursor()
+
+        # Execute a command: this creates a new table
+        cur.execute('DROP TABLE IF EXISTS users;')
+        cur.execute('DROP TABLE IF EXISTS accountcontrol;')
+        cur.execute('DROP TABLE IF EXISTS images;')
+        cur.execute('DROP TABLE IF EXISTS \"Interest\";')
+        cur.execute('DROP TABLE IF EXISTS likes;')
+        cur.execute('DROP TABLE IF EXISTS location;')
+        cur.execute('DROP TABLE IF EXISTS match;')
+        cur.execute('DROP TABLE IF EXISTS messages;')
+        cur.execute('DROP TABLE IF EXISTS notifications;')
+        cur.execute('DROP TABLE IF EXISTS \"ProfilInterest\";')
+        cur.execute('DROP TABLE IF EXISTS search;')
+        cur.execute('DROP TABLE IF EXISTS visites;')
+        cur.execute('DROP TABLE IF EXISTS profil;')
+        conn.commit()
+        #cur.execute('CREATE EXTENSION pgcrypto;')
+        executeScriptsFromFile(cur)
+        cur.execute('GRANT all privileges ON TABLE users to sammy;')
+        cur.execute('GRANT all privileges ON TABLE accountcontrol to sammy;')
+        cur.execute('GRANT all privileges ON TABLE images to sammy;')
+        cur.execute('GRANT all privileges ON TABLE \"Interest\" to sammy;')
+        cur.execute('GRANT all privileges ON TABLE likes to sammy;')
+        cur.execute('GRANT all privileges ON TABLE location to sammy;')
+        cur.execute('GRANT all privileges ON TABLE match to sammy;')
+        cur.execute('GRANT all privileges ON TABLE messages to sammy;')
+        cur.execute('GRANT all privileges ON TABLE notifications to sammy;')
+        cur.execute('GRANT all privileges ON TABLE \"ProfilInterest\" to sammy;')
+        cur.execute('GRANT all privileges ON TABLE search to sammy;')
+        cur.execute('GRANT all privileges ON TABLE visites to sammy;')
+        cur.execute('GRANT all privileges ON TABLE profil to sammy;')
+        
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE accountcontrol_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE images_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE \"Interest_id_seq\" TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE likes_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE location_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE match_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE messages_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE notifications_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE profil_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE \"ProfilInterest_id_seq\" TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE search_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO sammy;')
+        cur.execute('GRANT USAGE, SELECT ON SEQUENCE visites_id_seq TO sammy;')
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+
+if __name__ == "__main__":
+    main()

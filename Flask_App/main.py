@@ -384,6 +384,7 @@ def report():
 def editprofile():
     image_path = dict()
     fav_image = []
+    full_interest = []
     conn = get_db_connection()
     cur = conn.cursor()
     # get fav image               
@@ -412,8 +413,11 @@ def editprofile():
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append([cur.fetchone()[0].rstrip(), id[0]])
-    cur.execute("SELECT * FROM \"Interest\" OFFSET floor(random() * (SELECT COUNT(*) FROM \"Interest\")) LIMIT 50;")
-    full_interest = cur.fetchall()
+    cur.execute("SELECT interest_id, COUNT(interest_id) FROM \"ProfilInterest\" GROUP BY interest_id LIMIT 50;")
+    popular_interests = cur.fetchall()
+    for popular_interest  in popular_interests:
+        cur.execute("SELECT * FROM \"Interest\" WHERE id =%(id)s LIMIT 1", {'id': popular_interest[0]})
+        full_interest.append(cur.fetchone())
     cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
     cur.close()
