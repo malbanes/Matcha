@@ -10,7 +10,6 @@ Install Dependency:
 
 - pip install Flask
 - pip install flask_login
-- pip install flask_sqlalchemy
 - pip install flask-jsonpify
 - pip install bcrypt
 

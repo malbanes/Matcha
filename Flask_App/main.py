@@ -412,7 +412,7 @@ def editprofile():
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append([cur.fetchone()[0].rstrip(), id[0]])
-    cur.execute("SELECT * FROM \"Interest\";")
+    cur.execute("SELECT * FROM \"Interest\" OFFSET floor(random() * (SELECT COUNT(*) FROM \"Interest\")) LIMIT 50;")
     full_interest = cur.fetchall()
     cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
