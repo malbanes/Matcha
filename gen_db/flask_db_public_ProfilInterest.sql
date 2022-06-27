@@ -14,9 +14,6 @@ create table "ProfilInterest"
 alter table "ProfilInterest"
     owner to agu;
 
-alter sequence "ProfilInterest_id_seq"
-    restart with 5320;
-
 grant select, usage on sequence "ProfilInterest_id_seq" to sammy;
 
 create unique index profilinterest_id_uindex
@@ -5319,5 +5316,5 @@ INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (5309, 135
 INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (10, 1348, 1);
 INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (5316, 34, 18);
 INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (5317, 34, 19);
-INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (5318, 34, 21);
 INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (5319, 34, 23);
+INSERT INTO public."ProfilInterest" (id, user_id, interest_id) VALUES (5320, 34, 1358);

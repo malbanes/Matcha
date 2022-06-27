@@ -20,6 +20,8 @@ create unique index users_username_uindex
 create unique index users_email_uindex
     on users (email);
 
+create EXTENSION pgcrypto;
+
 grant delete, insert, references, select, trigger, truncate, update on users to agu;
 
 INSERT INTO public.users (id, username, password, date_added, first_name, last_name, email, confirmed) VALUES (30, 'IceonBauble', '$2a$06$/Ly18UzWcZP0Aq0x3xQc1e3ilIZ.898gKsYf6/.rKBNrnrRjML87y', '2022-02-17', 'Aarika', 'Taylor', 'arguerin+2@student.42.fr', true);

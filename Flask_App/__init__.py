@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
 import psycopg2
@@ -28,7 +27,7 @@ def create_app():
     app.config['MAIL_USE_SSL'] = True
 
     # gmail authentication
-    app.config['MAIL_USERNAME'] = "noreply42project@yahoo.com"
+    app.config['MAIL_USERNAME'] = ""
     app.config['MAIL_PASSWORD'] = ""
 
     # S3 upload
@@ -36,16 +35,6 @@ def create_app():
     app.config['S3_KEY'] = ""
     app.config['S3_SECRET'] = ""
     app.config['S3_LOCATION'] = 'http://{}.s3.amazonaws.com/'.format(app.config['S3_BUCKET'])
-
-    # it is used #by Flask and extensions to keep data safe
-    ###app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite' 
-    #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:&hBDpRr5ztxas9Xx@localhost/users' 
-    # it is the path where the SQLite database file will be saved
-    #app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
-    # deactivate Flask-SQLAlchemy track modifications
-    ##db.init_app(app) 
-    # Initialiaze sqlite database
-    #mysql = MySQL(app)
 
     # The login manager contains the code that lets your application and Flask-Login work together
     login_manager = LoginManager() 

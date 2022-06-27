@@ -1,4 +1,8 @@
 from datetime import datetime, timedelta
+from __init__ import get_db_connection
+from flask_login import current_user
+from localization import distance
+from age_calc import age
 
 def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, report_num, lact_co_date, match_num):
     #max 9999
@@ -50,3 +54,56 @@ def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, 
         final_score =  0
     return(final_score)
 
+def matching_calculation(orientation, long, lat, city, interest_num, birthdate, popularity_score):
+    # orientation, long, lat, city  popularity_score return ceux de la db
+    # Interest num = nombre d'intérets
+    # age = age du user pas date de naissance
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM profil")
+    users = cur.fetchall()
+    user_score = 0
+
+    for user in users:
+        if orientation == user[3]:
+            user_score += 60
+        cur.execute("SELECT latitude, longitude, city FROM location WHERE id=%(location_id)s LIMIT 1", {'location_id': user[4]})
+        location_user = cur.fetchone()
+        if city == location_user[2]:
+            user_score += 50
+        distance_from_user = distance(lat, long, location_user[0], location_user[1])
+        if distance_from_user <= 7500:
+            user_score += 50 
+        elif distance_from_user <= 15000 and distance_from_user > 7500:
+            user_score += 40
+        
+        cur.execute("Select COUNT(pi.id) FROM profil LEFT JOIN \"ProfilInterest\" as pi ON profil.user_id = pi.user_id AND pi.user_id = %(targeted_user)s AND pi.interest_id IN (SELECT interest_id FROM \"ProfilInterest\" WHERE user_id=%(current_user_id)s ) GROUP BY profil.user_id ORDER BY COUNT(pi.id) desc LIMIT 1", {'targeted_user': user[1], 'current_user_id': current_user.id})
+        hastag_interest_num = cur.fetchone()[0]
+        if interest_num == hastag_interest_num:
+            user_score += 40
+        elif hastag_interest_num > 0:
+            user_score += 30
+        
+        if age(user[5]) != 'N/A':
+            minus_targeted_user_age = int(age(user[5])) - 5
+            max_targeted_user_age = int(age(user[5])) + 5
+
+            if birthdate == age(user[5]):
+                user_score += 30
+            elif birthdate >= minus_targeted_user_age and birthdate <= max_targeted_user_age:
+                user_score += 20
+
+        if popularity_score <= (user[8] + 500) and popularity_score >= (user[8] - 500):
+            user_score += 20
+        elif popularity_score <= (user[8] + 500) and popularity_score >= (user[8] - 500):
+            user_score += 15
+        elif popularity_score <= (user[8] + 1000) and popularity_score >= (user[8] - 1000):
+            user_score += 10
+
+        user_score = user_score / 2
+        if user_score > 0:
+            cur.execute("INSERT INTO match (user_id, match_id, score) VALUES (%(user_id)s, %(match_id)s, %(score)s)", {'user_id': current_user.id, 'match_id': user[1], 'score': int(user_score)})
+        user_score = 0
+    cur.close()
+    conn.close()
