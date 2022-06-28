@@ -1043,14 +1043,19 @@ def notification():
         content = notif[4]
         date = datetime.fromtimestamp(notif[6]).strftime('%d/%m-%H:%M:%S')
         is_read = notif[5]
-        cur.execute("SELECT username FROM users where id=%(id)s LIMIT 1;", {'id': notif[1]})
-        username = cur.fetchone()[0]
+        cur.execute("SELECT username, id FROM users where id=%(id)s LIMIT 1;", {'id': notif[1]})
+        result = cur.fetchone()
+        username = result[0]
         #like
         if notif_type == 3:
             message = "doesn't like you anymore"
         if notif_type == 0:
             if content == 1:
+                cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': result[1], 'rid': current_user.id})
+                is_like = cur.fetchone()[0]
                 message = "like you"
+                if is_like == 1 :
+                    message = message + " This is a match !"
         #view
         if notif_type == 1:
             message = "looked at your profil"
@@ -1623,6 +1628,9 @@ def readnotif():
                 else:
                     return("KO")
             else:
+                if notif_type == 0:
+                    cur.execute("UPDATE notifications SET is_read=true WHERE receiver_id=%(id)s AND notif_type=%(ntype)s;", {'id': current_user.id, 'ntype': 3})
+                    conn.commit()
                 cur.execute("UPDATE notifications SET is_read=true WHERE receiver_id=%(id)s AND notif_type=%(ntype)s;", {'id': current_user.id, 'ntype': notif_type})
                 conn.commit()
                 cur.execute("SELECT COUNT(*) FROM notifications WHERE receiver_id=%(id)s AND is_read=false AND notif_type=%(t)s;", {'id': current_user.id, 't': notif_type})
