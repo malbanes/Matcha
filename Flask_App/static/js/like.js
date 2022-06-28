@@ -19,7 +19,7 @@ $.ajax({
         data: {"data":user_id},
         success: function(data) {
             if (data == "KO") {
-              //console.log('Une erreur est survenue');
+              console.log('Une erreur est survenue');
             }
             else {
                 var like_id = "like_img"+user_id;
@@ -30,7 +30,7 @@ $.ajax({
                 if (like_message) {
                     like_message.style.display = "none";
                 }
-                add_notification(user_id , 0, "1");
+                add_notification(user_id , 0, 1);
             }
         },
     });
@@ -54,8 +54,16 @@ $.ajax({
                 if (like_message) {
                     like_message.style.display = "block";
                 }
-                var socket = io();
-                socket.emit('new_notif', {'content': "-1", 'receiver' : user_id, 'notif_type': 0});
+                if (data != "Old") {
+                    var socket = io();
+                    if (data == "Match") {
+                        console.log("This is a match !");
+                        socket.emit('new_notif', {'content': "1", 'receiver' : user_id, 'notif_type': 3});
+                    }
+                    else {
+                        socket.emit('new_notif', {'content': "-1", 'receiver' : user_id, 'notif_type': 0});
+                    }
+                }
             }
         },
     });

@@ -196,6 +196,94 @@ $( function() {
 // Match Form ajax Gesture     //
 //-----------------------------//
 
+//Card action Gesture
+function toggle_display_like(i, outter_loop){
+  var moveOutWidth = document.body.clientWidth;
+  add_match_like(i);
+  console.log(i);
+  pass_match(i);
+  el = document.getElementById(i);
+  if (outter_loop == 3) {
+    location = '/match';
+  }
+  else {
+    el.className += ' remove-card';
+    el.parentNode.removeChild(el);
+  }
+}
+
+function toggle_display_pass(i, outter_loop){
+  var moveOutWidth = document.body.clientWidth;
+  pass_match(i);
+  el = document.getElementById(i);
+  if (outter_loop == 3) {
+    location = '/match';
+  }
+  else {
+    el.className += ' remove-card';
+    el.parentNode.removeChild(el);
+  }
+}
+
+//Pass a match
+/*function next_match(user_id) {
+  $.ajax({
+          type: 'POST',
+          url: '/matchnext',
+          data: {"data":user_id},
+          success: function(data) {
+              if (data == "KO") {
+                //console.log('Une erreur est survenue');
+              }
+              else {
+                  console.log("Next match");
+                  var size = data.final_users.length;
+                  for (let index = 0; index < size; ++index) {
+                    var element = data.final_users[index];
+                    var uid = element[0];
+                    // ...use `element`...
+                    // create the next card
+                    }
+              }
+          },
+      });
+  }*/
+
+//Pass a match
+function pass_match(user_id) {
+  $.ajax({
+          type: 'POST',
+          url: '/matchpass',
+          data: {"data":user_id},
+          success: function(data) {
+              if (data == "KO") {
+                //console.log('Une erreur est survenue');
+              }
+              else {
+                  console.log("Match is passed");
+              }
+          },
+      });
+  }
+
+
+//Add like from match
+function add_match_like(user_id) {
+  $.ajax({
+          type: 'POST',
+          url: '/addlike',
+          data: {"data":user_id},
+          success: function(data) {
+              if (data == "KO") {
+                //console.log('Une erreur est survenue');
+              }
+              else {
+                  add_notification(user_id , 0, 1);
+              }
+          },
+      });
+  }
+
 //Tri Ajax Gesture
 $(function() {
   $('#tri-match-btn').click(function(e) {

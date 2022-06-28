@@ -3,6 +3,8 @@ from __init__ import get_db_connection
 from flask_login import current_user
 from localization import distance
 from age_calc import age
+from gender_id import set_gender_orientation
+
 
 def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, report_num, lact_co_date, match_num):
     #max 9999
@@ -35,7 +37,6 @@ def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, 
     # if  active +7 days -50
     try:
         date_buffer = datetime.now() - timedelta(days=7)
-        print(date_buffer)
         if (date_buffer.date() < lact_co_date) == True:
             updated_score = updated_score + 50
             print("recent")
@@ -61,7 +62,9 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
     
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil")
+    #Select right Gender
+    select_gender= set_gender_orientation()
+    cur.execute("SELECT * FROM profil WHERE user_id != {0} {1}".format(current_user.id, select_gender))
     users = cur.fetchall()
     user_score = 0
 
@@ -70,13 +73,13 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
             user_score += 60
         cur.execute("SELECT latitude, longitude, city FROM location WHERE id=%(location_id)s LIMIT 1", {'location_id': user[4]})
         location_user = cur.fetchone()
+        distance_from_user = distance(lat, long, location_user[0], location_user[1])
         if city == location_user[2]:
             user_score += 50
-        distance_from_user = distance(lat, long, location_user[0], location_user[1])
-        if distance_from_user <= 7500:
-            user_score += 50 
+        elif distance_from_user <= 7500:
+            user_score += 40 
         elif distance_from_user <= 15000 and distance_from_user > 7500:
-            user_score += 40
+            user_score += 30
         
         cur.execute("Select COUNT(pi.id) FROM profil LEFT JOIN \"ProfilInterest\" as pi ON profil.user_id = pi.user_id AND pi.user_id = %(targeted_user)s AND pi.interest_id IN (SELECT interest_id FROM \"ProfilInterest\" WHERE user_id=%(current_user_id)s ) GROUP BY profil.user_id ORDER BY COUNT(pi.id) desc LIMIT 1", {'targeted_user': user[1], 'current_user_id': current_user.id})
         hastag_interest_num = cur.fetchone()[0]
@@ -102,8 +105,10 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
             user_score += 10
 
         user_score = user_score / 2
-        if user_score > 0:
+        if user_score > 25:
+            print("LETS GO INERT USER INTO MATCHING LIST")
             cur.execute("INSERT INTO match (user_id, match_id, score) VALUES (%(user_id)s, %(match_id)s, %(score)s)", {'user_id': current_user.id, 'match_id': user[1], 'score': int(user_score)})
+            conn.commit()
         user_score = 0
     cur.close()
     conn.close()

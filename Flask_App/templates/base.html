@@ -43,7 +43,6 @@
                 {% elif current_user.is_authenticated %}
                 <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='auth.unconfirmed'}}" href="{{ url_for('auth.unconfirmed') }}">Confirm</a></li>
                 {% endif %}
-                <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.editprofile'}}" href="">About</a></li>
             </ul>
         </div>
     </nav>
@@ -210,6 +209,7 @@ function add_notification(receiver, notif_type, content) {
                             likecounter.classList.remove('d-none');
                             }
                             else {
+                                likecounter.innerHTML = 0
                                 likecounter.classList.add('d-none');
                             }
                             if (Number.isInteger(data.views)) {
@@ -299,9 +299,7 @@ function add_notification(receiver, notif_type, content) {
 
             var socket = io();
 
-
             socket.on('connect', function() {
-                console.log("join request send");
                 socket.emit('join_request');
             });
 
@@ -333,6 +331,7 @@ function add_notification(receiver, notif_type, content) {
                 notif_counter.innerHTML = newValue;
                 }
                 else {
+                    notif_counter.innerHTML = 0;
                     notif_counter.classList.add('d-none');
                 }
                 if (newTotal > 0) {
@@ -340,6 +339,7 @@ function add_notification(receiver, notif_type, content) {
                     global_counter.classList.remove('d-none');
                 }
                 else {
+                    global_counter.innerHTML = 0;
                     global_counter.classList.add('d-none');
                 }
             }
@@ -348,7 +348,6 @@ function add_notification(receiver, notif_type, content) {
 
             // SETUP NOTIFICATION ON READY
             get_notification();
-
 
     });
 
