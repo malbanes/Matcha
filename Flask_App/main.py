@@ -173,12 +173,38 @@ def showprofile(username):
     return render_template('show_profile.html', profil=profil,user_id=user_id, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send, like_message=like_message)
 
 
+@main.route('/matchpass', methods = ['POST'])
+@login_required
+@check_confirmed
+def matchpass():
+    if request.method == 'POST':
+        error = ""
+        user_id = request.form['data']
+        if user_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE (from_user_id=%(id)s AND to_user_id=%(tid)s AND blocked = true) LIMIT 1", {'id': user_id, 'tid': current_user.id})
+            is_block = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(id) FROM match WHERE user_id=%(sid)s AND match_id=%(rid)s;",{'sid': current_user.id , 'rid': user_id})
+            is_exist = cur.fetchone()[0]
+            if is_block == 0 and is_exist != 0:
+                cur.execute("UPDATE match SET is_pass=true WHERE user_id=%(sid)s AND match_id=%(rid)s;",{'sid': current_user.id , 'rid': user_id})
+                conn.commit()
+            else:
+                error = "KO"
+            cur.close()
+            conn.close()
+            return (error)
+        else:
+            return ("KO")
+
+
 @main.route('/addlike', methods = ['POST'])
 @login_required
 @check_confirmed
 def addlike():
     if request.method == 'POST':
-        error = ""
+        error = "KO"
         user_id = request.form['data']
         if user_id :
             conn = get_db_connection()
@@ -190,13 +216,12 @@ def addlike():
             if is_block == 0 and is_exist == 0:
                 cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
                 conn.commit()
-            else:
-                error = "KO"
+                error = "sucess"
             cur.close()
             conn.close()
             return (error)
         else:
-            return ("KO")
+            return (error)
 
 @main.route('/addvisite', methods = ['POST'])
 @login_required
@@ -432,10 +457,10 @@ def editprofile():
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append([cur.fetchone()[0].rstrip(), id[0]])
     cur.execute("SELECT interest_id, COUNT(interest_id) FROM \"ProfilInterest\" GROUP BY interest_id LIMIT 50;")
-     popular_interests = cur.fetchall()
-     for popular_interest  in popular_interests:
-         cur.execute("SELECT * FROM \"Interest\" WHERE id =%(id)s LIMIT 1", {'id': popular_interest[0]})
-         full_interest.append(cur.fetchone())
+    popular_interests = cur.fetchall()
+    for popular_interest  in popular_interests:
+        cur.execute("SELECT * FROM \"Interest\" WHERE id =%(id)s LIMIT 1", {'id': popular_interest[0]})
+        full_interest.append(cur.fetchone())
     cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
     cur.close()
@@ -548,6 +573,8 @@ def updprim():
         cur.execute("UPDATE profil SET genre_id=%(genre)s, orientation_id=%(orientation)s WHERE user_id=%(id)s", {'genre': gender, 'orientation': orient, 'id': current_user.id})
         conn.commit()
         cur.execute("DELETE FROM search WHERE user_id = %(id)s", {'id': current_user.id})
+        conn.commit()
+        cur.execute("DELETE FROM match WHERE user_id = %(id)s", {'id': current_user.id})
         conn.commit()
         cur.close()
         conn.close()
@@ -849,8 +876,7 @@ def match(page=1):
     conn = get_db_connection()
     cur = conn.cursor()
     #Page doit être > 0 car offset ne prend pas de négatif
-    if int(page) < 1:
-        page = 1
+    page = 1
     offset = (page - 1) * OFFSET_MATCH
     # Select blocked user_id
     cur.execute("SELECT to_user_id from accountcontrol WHERE from_user_id=%(id)s and blocked=true;", {'id':current_user.id})
@@ -862,16 +888,13 @@ def match(page=1):
         blocked_list = str(current_user.id)
     # Select list of all interests
     cur.execute("SELECT * FROM \"Interest\";")
-    full_interest = cur.fetchall()
-    #Select right Gender
-    select_gender= set_gender_orientation()
-    
+    full_interest = cur.fetchall()    
     if request.method=='GET':
         user_age = 18
         # Get number of pages
-        cur.execute("SELECT COUNT(id) FROM match WHERE user_id='{0}' AND is_filter=false AND match_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
+        cur.execute("SELECT COUNT(id) FROM match WHERE user_id='{0}' AND is_pass=false AND is_filter=false AND match_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
         total_users = cur.fetchone()[0]
-        if total_users == 0:       
+        if total_users == 0:   
             cur.execute("SELECT orientation_id, location_id, age, score FROM profil WHERE user_id = %(id)s LIMIT 1", {'id':current_user.id})
             user_details = cur.fetchone()
             cur.execute("SELECT latitude, longitude, city FROM location WHERE id = %(id)s LIMIT 1", {'id':user_details[1]})
@@ -880,7 +903,7 @@ def match(page=1):
             interest_num = cur.fetchone()[0]
             matching_calculation(user_details[0], user_loc[1], user_loc[0], user_loc[2], interest_num, age(user_details[2]), user_details[3])
         
-        cur.execute("SELECT match_id FROM match INNER JOIN profil p on match.match_id=p.user_id AND match.user_id='{0}' AND is_filter=false AND match_id NOT IN ({1}) ORDER BY position, match.score desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET_MATCH, offset))
+        cur.execute("SELECT match_id, match.score FROM match INNER JOIN profil p on match.match_id=p.user_id AND match.user_id='{0}' AND is_filter=false AND is_pass=false AND match_id NOT IN ({1}) ORDER BY position, match.score desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET_MATCH, offset))
         profil_list = cur.fetchall()
 
         max_page = int((total_users/OFFSET_MATCH)+1)
@@ -888,18 +911,23 @@ def match(page=1):
             max_page+1
 
         for user in profil_list:
-            cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
+            cur.execute("SELECT users.id, username, age, city, image_profil_id, bio FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user[0]})
             user_details = cur.fetchone()
             #calc age
             if user_details:
                 user_age = age(user_details[2])
                 if user_details[4] is not None:
+                    images_path = []
                     cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
                     user_image = cur.fetchone()
                     user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
+                    cur.execute("SELECT path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': user_details[0], 'fav':user_details[4]})
+                    all_images = cur.fetchall()
+                    for imgpth in all_images:
+                        images_path.append([create_presigned_url(current_app.config["S3_BUCKET"], imgpth[0])])
                 else: 
                     user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
-                final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_image])
+                final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_details[5], user_image, images_path, int(user[1])])
         cur.close()
         conn.close()
         return render_template('match.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
@@ -1517,7 +1545,7 @@ def addnotif():
         if receiver_id :
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=%(tid)s AND is_read=false AND sender_id = %(from)s LIMIT 1", {'id': receiver_id, 'from': current_user.id, 'tid': notif_type})
+            cur.execute("SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=%(tid)s AND is_read=false AND sender_id = %(from)s LIMIT 1", {'id': receiver_id, 'tid': notif_type, 'from': current_user.id})
             if cur.fetchone()[0]==0:
                 cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
                 conn.commit()

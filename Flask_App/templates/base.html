@@ -171,7 +171,6 @@ function add_notification(receiver, notif_type, content) {
                   console.log('Une erreur est survenue');
                 }
                 else if (data=="Old"){
-                    console.log("Old");
                     //Do something If notification is update
                 }
                 else {
@@ -211,6 +210,7 @@ function add_notification(receiver, notif_type, content) {
                             likecounter.classList.remove('d-none');
                             }
                             else {
+                                likecounter.innerHTML = 0
                                 likecounter.classList.add('d-none');
                             }
                             if (Number.isInteger(data.views)) {
@@ -301,7 +301,6 @@ function add_notification(receiver, notif_type, content) {
             var socket = io();
 
             socket.on('connect', function() {
-                console.log("join request send");
                 socket.emit('join_request');
             });
 
@@ -333,6 +332,7 @@ function add_notification(receiver, notif_type, content) {
                 notif_counter.innerHTML = newValue;
                 }
                 else {
+                    notif_counter.innerHTML = 0;
                     notif_counter.classList.add('d-none');
                 }
                 if (newTotal > 0) {
@@ -340,6 +340,7 @@ function add_notification(receiver, notif_type, content) {
                     global_counter.classList.remove('d-none');
                 }
                 else {
+                    global_counter.innerHTML = 0;
                     global_counter.classList.add('d-none');
                 }
             }

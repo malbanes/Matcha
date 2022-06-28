@@ -7,6 +7,7 @@ create table match
     match_id  integer not null,
     position  integer          default 0,
     is_filter boolean          default false,
+    is_pass boolean            default false,
     score     double precision default 0
 );
 

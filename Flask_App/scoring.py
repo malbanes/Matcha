@@ -3,6 +3,8 @@ from __init__ import get_db_connection
 from flask_login import current_user
 from localization import distance
 from age_calc import age
+from gender_id import set_gender_orientation
+
 
 def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, report_num, lact_co_date, match_num):
     #max 9999
@@ -35,7 +37,6 @@ def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, 
     # if  active +7 days -50
     try:
         date_buffer = datetime.now() - timedelta(days=7)
-        print(date_buffer)
         if (date_buffer.date() < lact_co_date) == True:
             updated_score = updated_score + 50
             print("recent")
@@ -61,7 +62,9 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
     
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil")
+    #Select right Gender
+    select_gender= set_gender_orientation()
+    cur.execute("SELECT * FROM profil WHERE user_id != {0} {1}".format(current_user.id, select_gender))
     users = cur.fetchall()
     user_score = 0
 
@@ -103,7 +106,9 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
 
         user_score = user_score / 2
         if user_score > 0:
+            print("LETS GO INERT USER INTO MATCHING LIST")
             cur.execute("INSERT INTO match (user_id, match_id, score) VALUES (%(user_id)s, %(match_id)s, %(score)s)", {'user_id': current_user.id, 'match_id': user[1], 'score': int(user_score)})
+            conn.commit()
         user_score = 0
     cur.close()
     conn.close()

@@ -5,11 +5,9 @@ function like_gesture(user_id) {
     var like_img = document.getElementById(like_id);
     var is_liked = like_img.classList.contains("red-color");
     if (is_liked == true) {
-        console.log("Delete a like");
         delete_like(user_id);
     }
     else {
-        console.log("Add a like");
         add_like(user_id);
     }
 }
@@ -21,7 +19,7 @@ $.ajax({
         data: {"data":user_id},
         success: function(data) {
             if (data == "KO") {
-              //console.log('Une erreur est survenue');
+              console.log('Une erreur est survenue');
             }
             else {
                 var like_id = "like_img"+user_id;
@@ -32,7 +30,6 @@ $.ajax({
                 if (like_message) {
                     like_message.style.display = "none";
                 }
-                console.log("Add notification like");
                 add_notification(user_id , 0, 1);
             }
         },
