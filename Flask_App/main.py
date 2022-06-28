@@ -281,13 +281,11 @@ def sendmessage():
             cur.execute("SELECT id FROM users WHERE username='{0}';".format(receiver))
             receiver_id = cur.fetchone()[0]
             print(receiver_id)
-            
             msg_time = float(datetime.now().timestamp())
-
             # create a new message
-            cur.execute("INSERT INTO messages (sender_id, receiver_id, msg, date_added) VALUES ('{0}', '{1}', '{2}', '{3}');".format(current_user.id , receiver_id, msg, msg_time))
+            cur.execute("INSERT INTO messages (sender_id, receiver_id, msg, date_added) VALUES (%(sid)s, %(rid)s, %(msg)s, %(tim)s);", {'sid':current_user.id , 'rid': receiver_id, 'msg': msg, 'tim': msg_time})
             conn.commit()
-            cur.execute("SELECT id, date_added FROM messages WHERE sender_id='{0}' AND receiver_id='{1}' AND msg='{2}' AND date_added='{3}' LIMIT 1;".format(current_user.id , receiver_id, msg, msg_time))
+            cur.execute("SELECT id, date_added FROM messages WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND msg=%(msg)s AND date_added=%(tim)s LIMIT 1;", {'sid':current_user.id , 'rid': receiver_id, 'msg': msg, 'tim': msg_time})
             msg_row = cur.fetchone()
             msg_id = msg_row[0]
             msg_date = msg_row[1]
