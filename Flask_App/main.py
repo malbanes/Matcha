@@ -198,6 +198,52 @@ def matchpass():
         else:
             return ("KO")
 
+@main.route('/matchnext', methods = ['POST'])
+@login_required
+@check_confirmed
+def matchnext():
+    final_users = []
+    if request.method == 'POST':
+        error = ""
+        user_id = request.form['data']
+        if user_id :
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT to_user_id from accountcontrol WHERE from_user_id=%(id)s and blocked=true;", {'id':current_user.id})
+            blocked_users=cur.fetchall()
+            blocked_list = ','.join([str(elem[0]) for elem in blocked_users])
+            if blocked_list != '':
+                blocked_list = str(current_user.id) + ','+ blocked_list
+            else:
+                blocked_list = str(current_user.id)
+            cur.execute("SELECT match_id, match.score FROM match INNER JOIN profil p on match.match_id=p.user_id AND match.user_id='{0}' AND is_filter=false AND is_pass=false AND match_id NOT IN ({1}) ORDER BY position, match.score desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, 1, 2))
+            profil_list = cur.fetchall()
+            for user in profil_list:
+                cur.execute("SELECT users.id, username, age, city, image_profil_id, bio FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user[0]})
+                user_details = cur.fetchone()
+                #calc age
+                if user_details:
+                    user_age = age(user_details[2])
+                    if user_details[4] is not None:
+                        images_path = []
+                        cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
+                        user_image = cur.fetchone()
+                        user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
+                        cur.execute("SELECT path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': user_details[0], 'fav':user_details[4]})
+                        all_images = cur.fetchall()
+                        for imgpth in all_images:
+                            images_path.append([create_presigned_url(current_app.config["S3_BUCKET"], imgpth[0])])
+                    else: 
+                        user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
+                    final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_details[5], user_image, images_path, int(user[1])])
+            cur.close()
+            conn.close()
+            return {
+                'final_users': final_users
+            }
+        else:
+            return ("KO")
+
 
 @main.route('/addlike', methods = ['POST'])
 @login_required

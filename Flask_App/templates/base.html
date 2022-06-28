@@ -43,7 +43,6 @@
                 {% elif current_user.is_authenticated %}
                 <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='auth.unconfirmed'}}" href="{{ url_for('auth.unconfirmed') }}">Confirm</a></li>
                 {% endif %}
-                <li><a class="nav-link {{ 'active' if request.url_rule.endpoint=='main.editprofile'}}" href="">About</a></li>
             </ul>
         </div>
     </nav>

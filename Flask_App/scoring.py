@@ -73,13 +73,13 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
             user_score += 60
         cur.execute("SELECT latitude, longitude, city FROM location WHERE id=%(location_id)s LIMIT 1", {'location_id': user[4]})
         location_user = cur.fetchone()
+        distance_from_user = distance(lat, long, location_user[0], location_user[1])
         if city == location_user[2]:
             user_score += 50
-        distance_from_user = distance(lat, long, location_user[0], location_user[1])
-        if distance_from_user <= 7500:
-            user_score += 50 
+        elif distance_from_user <= 7500:
+            user_score += 40 
         elif distance_from_user <= 15000 and distance_from_user > 7500:
-            user_score += 40
+            user_score += 30
         
         cur.execute("Select COUNT(pi.id) FROM profil LEFT JOIN \"ProfilInterest\" as pi ON profil.user_id = pi.user_id AND pi.user_id = %(targeted_user)s AND pi.interest_id IN (SELECT interest_id FROM \"ProfilInterest\" WHERE user_id=%(current_user_id)s ) GROUP BY profil.user_id ORDER BY COUNT(pi.id) desc LIMIT 1", {'targeted_user': user[1], 'current_user_id': current_user.id})
         hastag_interest_num = cur.fetchone()[0]
@@ -105,7 +105,7 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
             user_score += 10
 
         user_score = user_score / 2
-        if user_score > 0:
+        if user_score > 25:
             print("LETS GO INERT USER INTO MATCHING LIST")
             cur.execute("INSERT INTO match (user_id, match_id, score) VALUES (%(user_id)s, %(match_id)s, %(score)s)", {'user_id': current_user.id, 'match_id': user[1], 'score': int(user_score)})
             conn.commit()
