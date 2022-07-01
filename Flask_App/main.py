@@ -508,11 +508,13 @@ def editprofile():
         full_interest.append(cur.fetchone())
     cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
+    if total_img == 0:
+        total_img = 1
     cur.close()
     conn.close()
     for key, imgpth in all_images:
         image_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
-    if total_img < 5:
+    if total_img < 4:
         image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/no-photo.png")
     return render_template('edit-profile.html', image_profil=fav_image, images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
 
@@ -540,9 +542,10 @@ def upldfile():
                 cur.execute("INSERT INTO images (title, path, profil_id, date_added) VALUES (%(title)s, %(path)s, %(id)s, %(date_added)s)", {'title': file1.filename, 'path': file_path, 'id': current_user.id, 'date_added': date.today()})
                 conn.commit()
             if result == 0:
-                cur.execute("SELECT FROM images id WHERE profil_id=%(id)s LIMIT 1", {'id': current_user.id})
+                cur.execute("SELECT id FROM images WHERE profil_id=%(id)s LIMIT 1", {'id': current_user.id})
                 fav_id = cur.fetchone()[0]
                 cur.execute("UPDATE profil SET image_profil_id=%(fav)s WHERE user_id=%(id)s", {'fav': fav_id, 'id': current_user.id})
+                conn.commit()
             cur.close()
             conn.close()
             return ("OK")

@@ -24,7 +24,7 @@
         <!--left side-->
         <div class="col" style="max-width:270px;">
             <div class="rounded-square-picture mymedium">
-                {% if image_profil[1] != "" %}
+                {% if image_profil[1] %}
                     <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil[1]}})"></div>
                 {% else %}
                     <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
@@ -432,6 +432,7 @@
                 if (data == 'OK') {
                     document.getElementById("upload-error").style.display = "none";
                     $('#photoModal').modal('hide');
+                    location.reload();
                 }
                 else {
                     document.getElementById("upload-error").style.display = "block";
