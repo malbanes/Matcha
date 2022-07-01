@@ -42,7 +42,7 @@
     <div class="">
 
       {% for user in all_users %}
-      <div class="card myabsolute" style="width: 18rem; z-index: {{ 4-loop.index }};" id={{ user[0] }}>
+      <div class="card myabsolute custom-size-18" style="z-index: {{ 4-loop.index }};" id={{ user[0] }}>
       <!--Card Component-->
       <!--Caroussel Component-->
         <div id="carouselExampleIndicators{{ loop.index }}" class="carousel slide" data-interval="false" data-ride="carousel">
@@ -55,11 +55,11 @@
           </ol>
           <div class="carousel-inner">
             <div class="carousel-item active">
-              <div class="rounded-square-picture_match nophoto lazy" style="min-height:12rem; width:auto; background-image: url({{user[5]}})"></div>
+              <div class="rounded-square-picture_match nophoto lazy img-petit-format" style="background-image: url({{user[5]}})"></div>
             </div>
             {% for i in user[6] %}
             <div class="carousel-item">
-              <div class="rounded-square-picture_match nophoto lazy" style="min-height:12rem; width:auto; background-image: url({{i[0]}})"></div>
+              <div class="rounded-square-picture_match nophoto lazy img-petit-format" style="background-image: url({{i[0]}})"></div>
             </div>
             {% endfor %}
           </div>
@@ -106,7 +106,7 @@
 </div>
 
 <!-- Modal Filtre -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+<div class="modal fade" id="filterModal" style="width:80%;" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
 
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -190,7 +190,7 @@
 </div>
 
 <!-- Modal Tri -->
-<div class="modal fade" id="triModal" tabindex="-1" aria-labelledby="triModalLabel" aria-hidden="true">
+<div class="modal fade" id="triModal" style="width:80%;" tabindex="-1" aria-labelledby="triModalLabel" aria-hidden="true">
 
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">

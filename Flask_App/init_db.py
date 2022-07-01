@@ -36,10 +36,9 @@ def executeScriptsFromFile(c):
             # For example, if the tables do not yet exist, this will skip over
             # the DROP TABLE commands
                 try:
-                        c.execute(command
+                        c.execute(command)
                 except:
                         print("Command skipped: ", msg)
-
                 conn.commit()
 
 def main():

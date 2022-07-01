@@ -79,6 +79,16 @@ ul {
     width: 12rem!important;
 }
 
+.img-petit-format {
+    min-height:12rem;
+    width:auto;
+}
+
+.custom-size-18 {
+    width: 18rem!important;
+    height: 450px;
+}
+
 .text-pink {
     color: #ed147d;
   }
@@ -169,5 +179,14 @@ ul {
     }
     .litte-device-title {
         font-size: 0.7rem!important;
+    }
+    .custom-size-18 {
+        width: 12rem!important;
+    }
+    .img-petit-format {
+        min-height: 8rem;
+        height: 8rem;
+        max-height:8rem!important;
+        width:auto;
     }
   }
