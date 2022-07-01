@@ -334,6 +334,56 @@ $(function() {
   });
 });
 
+//Filtre Reset Ajax gesture
+$(function() {
+  $('#filtre-match-reset').click(function(e) {
+      //e.preventDefault();
+      $.ajax({
+          type: 'POST',
+          url: '/filtreresetmatch',
+          data: 0,
+          contentType: false,
+          cache: false,
+          processData: false,
+          success: function(data) {
+              if (data == "KO") {
+                console.log("RESET filtre SEARCH KO");
+              }
+              else {
+                console.log("RESET filtre search OK")
+                /* Reset UI */
+                location = '/match';
+              }
+          },
+      });
+  });
+});
+
+//Tri Reset Ajax gesture
+$(function() {
+  $('#tri-match-reset').click(function(e) {
+      //e.preventDefault();
+      $.ajax({
+          type: 'POST',
+          url: '/triresetsearch',
+          data: 0,
+          contentType: false,
+          cache: false,
+          processData: false,
+          success: function(data) {
+              if (data == "KO") {
+                console.log("RESET Tri SEARCH KO");
+              }
+              else {
+                console.log("RESET Tri search OK")
+                /* Reset UI */
+                location = '/match';
+              }
+          },
+      });
+  });
+});
+
 
 
 //------------------------------//

@@ -1420,6 +1420,42 @@ def filtreresetsearch():
         return("OK")
     return("KO")
 
+@main.route('/filtreresetmatch', methods = ['POST'])
+@login_required
+@check_confirmed
+def filtreresetmatch():
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT id FROM match WHERE user_id=%(id)s AND is_filter=true", {'id':current_user.id})
+        filtered_user = cur.fetchall()
+        for user in filtered_user:
+            cur.execute("UPDATE match SET is_filter=false WHERE id=%(id)s", {'id':user})
+            conn.commit()
+        cur.close()
+        conn.close()
+        return("OK")
+    return("KO")
+
+@main.route('/triresetmatch', methods = ['POST'])
+@login_required
+@check_confirmed
+def triresetmatch():
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT id FROM match WHERE user_id=%(id)s", {'id':current_user.id})
+        search_user = cur.fetchall()
+        for user in search_user:
+            cur.execute("UPDATE match SET position=0 WHERE id=%(id)s", {'id':user})
+            conn.commit()
+        cur.close()
+        conn.close()
+        return("OK")
+    return("KO")
+
 @main.route('/triresetsearch', methods = ['POST'])
 @login_required
 @check_confirmed
