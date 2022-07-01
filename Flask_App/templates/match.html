@@ -118,7 +118,8 @@
       </div>
       <div class="modal-body">
         <!-- Filtre Form-->
-        <form method="POST" id="filtre-match-form">
+        <form method="POST" id="filtre-search-form">
+          <input type="hidden" id="targetform" name="targetform" value="match" />
           <!-- Age -->
           <div class="form-check d-inline">
             <input class="form-check-input" type="checkbox" name="ageFiltreCheck" id="ageFiltreCheck">
@@ -181,7 +182,7 @@
           <p class="no-padding" id="filtre-search-reset">Reset</p>
         </div>
         <div class="col-auto">
-          <button type="buton" id="filtre-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
+          <button type="buton" id="filtre-match-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
         </div>
       </div>
     </div>
@@ -201,7 +202,8 @@
       </div>
       <div class="modal-body">
         <!-- Tri Form-->
-        <form method="POST" id="tri-match-form">
+        <form method="POST" id="tri-search-form">
+          <input type="hidden" id="targetform" name="targetform" value="match" />
           <!-- Age -->
           <div class="h5 text-deepblue">Sort by: </div>
             <div class="form-check d-inline">
@@ -255,7 +257,7 @@
           <p class="no-padding" id="tri-search-reset">Reset</p>
         </div>
         <div class="col-auto">
-          <button type="buton" id="tri-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
+          <button type="buton" id="tri-match-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
         </div>
       </div>
     </div>

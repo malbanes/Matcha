@@ -77,13 +77,14 @@ def profile():
     # get fav image               
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
-    fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
-    fav_image.append(image_profil[0])
-    fav_image.append(fav_image_path)
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
-    all_images = cur.fetchall()
-    for key, imgpth in all_images:
-        images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
+    if image_profil :
+        fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
+        fav_image.append(image_profil[0])
+        fav_image.append(fav_image_path)
+        cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
+        all_images = cur.fetchall()
+        for key, imgpth in all_images:
+            images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
     cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=%(id)s;", { 'id': current_user.id})
     total_img = cur.fetchone()[0]
     #if total_img > 5:
@@ -148,13 +149,14 @@ def showprofile(username):
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': user_id})
     image_profil = cur.fetchone()
     print(image_profil)
-    fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
-    fav_image.append(image_profil[0])
-    fav_image.append(fav_image_path)
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': user_id, 'fav':image_profil[0]})
-    all_images = cur.fetchall()
-    for key, imgpth in all_images:
-        images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
+    if image_profil:
+        fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
+        fav_image.append(image_profil[0])
+        fav_image.append(fav_image_path)
+        cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': user_id, 'fav':image_profil[0]})
+        all_images = cur.fetchall()
+        for key, imgpth in all_images:
+            images_path.append([key,create_presigned_url(current_app.config["S3_BUCKET"], imgpth)])
     cur.execute("SELECT COUNT(*) FROM images WHERE profil_id=(SELECT user_id FROM profil WHERE user_id=%(id)s);", { 'id': user_id})
     total_img = cur.fetchone()[0]
     #if total_img > 5:
@@ -471,22 +473,21 @@ def report():
 def editprofile():
     image_path = dict()
     fav_image = []
+    all_images = []
     full_interest = []
     conn = get_db_connection()
     cur = conn.cursor()
     # get fav image               
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
-    print(image_profil)
-    fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
-    fav_image.append(image_profil[0])
-    fav_image.append(fav_image_path)
-    print("fav img: "+str(fav_image[0])+","+fav_image[1])
-
-    cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
-    all_images = cur.fetchall()
-    print("toutes les images: ")
-    print(all_images)
+    if image_profil:
+        print(image_profil)
+        fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
+        fav_image.append(image_profil[0])
+        fav_image.append(fav_image_path)
+        print("fav img: "+str(fav_image[0])+","+fav_image[1])
+        cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
+        all_images = cur.fetchall()
 
     cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     i_am = cur.fetchone()
@@ -730,9 +731,9 @@ def account():
     cur.execute("SELECT image_profil_id FROM profil WHERE user_id=%(id)s", {'id': current_user.id})
     image_profil = cur.fetchone()[0]
     cur.execute("SELECT path FROM images WHERE id=%(id)s", {'id': image_profil})
-    fav_image = cur.fetchone()[0]
+    fav_image = cur.fetchone()
     if fav_image :
-        image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image)
+        image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], fav_image[0])
     else :
         image_profil_path = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
     
@@ -964,11 +965,14 @@ def match(page=1):
                     images_path = []
                     cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
                     user_image = cur.fetchone()
-                    user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
-                    cur.execute("SELECT path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': user_details[0], 'fav':user_details[4]})
-                    all_images = cur.fetchall()
-                    for imgpth in all_images:
-                        images_path.append([create_presigned_url(current_app.config["S3_BUCKET"], imgpth[0])])
+                    if user_image:
+                        user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
+                        cur.execute("SELECT path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added", {'id': user_details[0], 'fav':user_details[4]})
+                        all_images = cur.fetchall()
+                        for imgpth in all_images:
+                            images_path.append([create_presigned_url(current_app.config["S3_BUCKET"], imgpth[0])])
+                    else: 
+                        user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
                 else: 
                     user_image = create_presigned_url(current_app.config["S3_BUCKET"], "test/no-photo.png")
                 final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_details[5], user_image, images_path, int(user[1])])
@@ -1079,6 +1083,7 @@ def trisearch():
     final_users = []
 
     if request.method == 'POST':
+        print(request.form.get('targetform'))
         print(request.form.get('ageCheck'))
         print(request.form.get('ageCheckOrder'))
         print(request.form.get('distCheck'))
@@ -1117,10 +1122,23 @@ def trisearch():
     data['lat'] = current_user_loc[0]
     data['long'] = current_user_loc[1]
 
+    #Switch between search and match target
     search_list_str = ""
-    cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
-    search_list = cur.fetchall()
-    search_list_str = ','.join([str(elem[0]) for elem in search_list])
+    if request.form.get('targetform') == "match":
+        cur.execute("SELECT match_id FROM match WHERE user_id=%(id)s", {'id': current_user.id})
+        search_list = cur.fetchall()
+        search_list_str = ','.join([str(elem[0]) for elem in search_list])
+    elif request.form.get('targetform') == "search":
+        cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
+        search_list = cur.fetchall()
+        search_list_str = ','.join([str(elem[0]) for elem in search_list])
+    else :
+        cur.close()
+        conn.close()
+        return {
+            'all_users': [],
+            'error' : 1
+        }
 
     # Prepare select tri with previous search Result
     select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id "
@@ -1167,9 +1185,14 @@ def trisearch():
     all_profil_list = cur.fetchall()
     position = 1
     for user in all_profil_list:
-        cur.execute("UPDATE search set position=%(pos)s WHERE user_id=%(id)s AND list_id=%(lid)s", {'pos': position, 'id': current_user.id, 'lid':user})
-        conn.commit()
-        position = position +1
+        if request.form.get('targetform') == "search":
+            cur.execute("UPDATE search set position=%(pos)s WHERE user_id=%(id)s AND list_id=%(lid)s", {'pos': position, 'id': current_user.id, 'lid':user})
+            conn.commit()
+            position = position +1
+        else:
+            cur.execute("UPDATE match set position=%(pos)s WHERE user_id=%(id)s AND match_id=%(lid)s", {'pos': position, 'id': current_user.id, 'lid':user})
+            conn.commit()
+            position = position +1
     cur.close()
     conn.close()
     return {
@@ -1287,10 +1310,23 @@ def filtresearch():
                 hashtag_match_str = ','.join([str(user_id) for user_id in hashtag_match])
                 hash_qwery = "AND p.user_id IN ("+ hashtag_match_str +") "
     
+    #Switch between search and match target
     search_list_str = ""
-    cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
-    search_list = cur.fetchall()
-    search_list_str = ','.join([str(elem[0]) for elem in search_list])
+    if request.form.get('targetform') == "match":
+        cur.execute("SELECT match_id FROM match WHERE user_id=%(id)s", {'id': current_user.id})
+        search_list = cur.fetchall()
+        search_list_str = ','.join([str(elem[0]) for elem in search_list])
+    elif request.form.get('targetform') == "search":
+        cur.execute("SELECT list_id FROM search WHERE user_id=%(id)s", {'id': current_user.id})
+        search_list = cur.fetchall()
+        search_list_str = ','.join([str(elem[0]) for elem in search_list])
+    else :
+        cur.close()
+        conn.close()
+        return {
+            'all_users': [],
+            'error' : 1
+        }
 
     # Prepare select filtre with previous search Result
     select_stmt = "SELECT users.id FROM users INNER JOIN profil as p ON users.id= p.user_id "
@@ -1316,16 +1352,32 @@ def filtresearch():
     filtre_list_str = ','.join([str(elem[0]) for elem in filtre_profil_list])
     total_user = len(filtre_profil_list)
 
-    upd_search_qwery = "UPDATE search SET is_filter=True WHERE user_id=%(id)s AND list_id NOT IN ("+ filtre_list_str +") " 
-    upd_data = {'id': current_user.id}
-    cur.execute(upd_search_qwery, upd_data)
-    conn.commit()
-    upd_search_qwery = "UPDATE search SET is_filter=False WHERE user_id=%(id)s AND list_id IN ("+ filtre_list_str +") " 
-    cur.execute(upd_search_qwery, upd_data)
-    conn.commit()
 
-    select_stmt = select_stmt + " LIMIT 20;"
-
+    if request.form.get('targetform') == "search":
+        upd_search_qwery = "UPDATE search SET is_filter=True WHERE user_id=%(id)s AND list_id NOT IN ("+ filtre_list_str +") " 
+        upd_data = {'id': current_user.id}
+        cur.execute(upd_search_qwery, upd_data)
+        conn.commit()
+        upd_search_qwery = "UPDATE search SET is_filter=False WHERE user_id=%(id)s AND list_id IN ("+ filtre_list_str +") " 
+        cur.execute(upd_search_qwery, upd_data)
+        conn.commit()
+        select_stmt = select_stmt + " LIMIT 20;"
+    elif request.form.get('targetform') == "match":
+        upd_search_qwery = "UPDATE match SET is_filter=True WHERE user_id=%(id)s AND match_id NOT IN ("+ filtre_list_str +") " 
+        upd_data = {'id': current_user.id}
+        cur.execute(upd_search_qwery, upd_data)
+        conn.commit()
+        upd_search_qwery = "UPDATE search SET is_filter=False WHERE user_id=%(id)s AND list_id IN ("+ filtre_list_str +") " 
+        cur.execute(upd_search_qwery, upd_data)
+        conn.commit()
+        select_stmt = select_stmt + " LIMIT 3;"
+    else:
+        cur.close()
+        conn.close()
+        return {
+        'all_users': [],
+        'error' : 1
+    }
     cur.execute(select_stmt, data)
     all_profil_list = cur.fetchall()
     for user in all_profil_list:

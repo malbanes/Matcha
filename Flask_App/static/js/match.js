@@ -287,21 +287,22 @@ function add_match_like(user_id) {
 //Tri Ajax Gesture
 $(function() {
   $('#tri-match-btn').click(function(e) {
-      e.preventDefault();
-      var form_data = new FormData($('#tri-match-form')[0]);
+      //e.preventDefault();
+      var form_data = new FormData($('#tri-search-form')[0]);
       $.ajax({
           type: 'POST',
-          url: '/trimatch',
+          url: '/trisearch',
           data: form_data,
           contentType: false,
           cache: false,
           processData: false,
           success: function(data) {
-              if (data == 'KO') {
+              if (data.error == 1) {
                 console.log("Tri KO");
               }
               else {
                 console.log("c'est trié Match");
+                location = '/match';
               } //End else
           },
       });
@@ -311,11 +312,11 @@ $(function() {
 //Tri Ajax Gesture
 $(function() {
   $('#filtre-match-btn').click(function(e) {
-      e.preventDefault();
-      var form_data = new FormData($('#filtre-match-form')[0]);
+      //e.preventDefault();
+      var form_data = new FormData($('#filtre-search-form')[0]);
       $.ajax({
           type: 'POST',
-          url: '/filtrematch',
+          url: '/filtresearch',
           data: form_data,
           contentType: false,
           cache: false,
@@ -326,7 +327,7 @@ $(function() {
               }
               else {
                 console.log("c'est trié Match");
-
+                location = '/match';
               } //End else
           },
       });
