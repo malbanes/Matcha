@@ -87,11 +87,11 @@
           <div class="col col-moreaction">
         <!-- POSITION More action (bloquer, signaler) -->
         <button id="moreActionDropdownMenuLink" class="more-action-btn btn btn-secondary"data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
-
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActionDropdownMenuLink">
-            <p class="dropdown-item no-margin clickable" onclick="block('{{ user }}')" >Block</p>
-            <p class="dropdown-item no-margin clickable" onclick="report('{{ user }}')">Report</p>
-            <p class="dropdown-item no-margin clickable" onclick="report('{{ user }}')">Delete conversation</p>
+            <p class="dropdown-item no-margin clickable {{ 'd-none' if is_blockList[loop.index0] == true}}" id="block{{ idList[loop.index0] }}" onclick="block('{{ idList[loop.index0] }}')" >Block</p>
+            <p class="dropdown-item no-margin clickable {{ 'd-none' if is_blockList[loop.index0] == false}}" id="unblock{{ idList[loop.index0] }}" onclick="unblock('{{ idList[loop.index0] }}')" >Unblock</p>
+            <p class="dropdown-item no-margin clickable {{ 'd-none' if is_reportList[loop.index0] == true}}" id="report{{ idList[loop.index0] }}" onclick="report('{{ idList[loop.index0] }}')">Report</p>
+            <p class="dropdown-item no-margin clickable" onclick="delconv('{{ idList[loop.index0] }}')">Delete conversation</p>
         </div>
           </div>
         </div>
@@ -268,7 +268,7 @@ function block(u) {
   $.ajax({
             type: 'POST',
             url: '/block',
-            data: {"user":u},
+            data: {"data":u},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
@@ -276,6 +276,44 @@ function block(u) {
                 }
                 else {
                   console.log("OK");
+                  document.getElementById("block"+u).classList.add("d-none");
+                  document.getElementById("unblock"+u).classList.remove("d-none");
+                }
+            },
+        });
+};
+function unblock(u) {
+  $.ajax({
+            type: 'POST',
+            url: '/unblock',
+            data: {"data":u},
+            success: function(data) {
+                if (data == 'KO') {
+                    //document.getElementById("block-error").style.display = "block";
+                    console.log("ko");
+                }
+                else {
+                  console.log("OK");
+                  document.getElementById("block"+u).classList.remove("d-none");
+                  document.getElementById("unblock"+u).classList.add("d-none");
+                }
+            },
+        });
+};
+
+function delconv(u) {
+  $.ajax({
+            type: 'POST',
+            url: '/delmessages',
+            data: {"data":u},
+            success: function(data) {
+                if (data == 'KO') {
+                    //document.getElementById("block-error").style.display = "block";
+                    console.log("ko");
+                }
+                else {
+                  console.log("OK");
+                  location.reload();
                     //document.getElementById("bio-error").style.display = "none";
                     //document.getElementById("bio").innerHTML = data;
                 }
@@ -288,7 +326,7 @@ function report(u) {
   $.ajax({
             type: 'POST',
             url: '/report',
-            data: {"user":u},
+            data: {"data":u},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";

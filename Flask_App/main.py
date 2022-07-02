@@ -351,6 +351,27 @@ def sendmessage():
         else:
             return ("KO")
 
+@main.route('/delmessages', methods = ['POST'])
+def delmessages():
+    if request.method == 'POST':
+        receiver_id = request.form['data']
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # delete conversation
+        cur.execute("DELETE FROM messages WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;", {'sid':current_user.id , 'rid': receiver_id})
+        conn.commit()
+        cur.execute("DELETE FROM messages WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;", {'sid':receiver_id , 'rid': current_user.id})
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+        return {
+            'msg': "OK"
+        }
+
+
             
 
 @main.route('/dellike', methods = ['POST'])
@@ -997,6 +1018,9 @@ def chat():
     messagesList = []
     notifList = []
     onlineList = []
+    idList = []
+    is_blockList = []
+    is_reportList = []
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -1008,8 +1032,18 @@ def chat():
         if cur.fetchone()[0] > 0:
             matchList.append(i[0])
     for i in matchList:
-        cur.execute("SELECT username FROM users WHERE id='{0}';".format(i))
-        usersList.append(cur.fetchone()[0])
+        cur.execute("SELECT id, username FROM users WHERE id='{0}';".format(i))
+        user = cur.fetchone()
+        usersList.append(user[1])
+        idList.append(user[0])
+        cur.execute("SELECT blocked, fake FROM accountcontrol WHERE from_user_id='{0}' AND to_user_id='{1}';".format(current_user.id, i))
+        accountcontrol = cur.fetchone()
+        if accountcontrol:
+            is_blockList.append(accountcontrol[0])
+            is_reportList.append(accountcontrol[1])
+        else:
+            is_blockList.append(False)
+            is_reportList.append(False)
         cur.execute("SELECT is_online FROM profil WHERE user_id='{0}';".format(i))
         onlineList.append(cur.fetchone()[0])
         cur.execute("SELECT * FROM messages WHERE (sender_id='{0}' AND receiver_id='{1}') OR (sender_id='{1}' AND receiver_id='{0}') ORDER BY date_added ASC;".format(current_user.id, i))
@@ -1026,7 +1060,7 @@ def chat():
         else :
             roomsList.append(u+current_user.username)
 
-    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user, onlineList=onlineList, notifList=notifList)
+    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user, onlineList=onlineList, notifList=notifList, idList=idList, is_blockList=is_blockList, is_reportList=is_reportList )
 
 # notification page that return 'notification'
 @main.route('/notification') 
