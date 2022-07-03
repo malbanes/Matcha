@@ -402,10 +402,10 @@ def dellike():
                 cur.execute("SELECT COUNT(id) FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND notif_type=3 AND is_read=false;", {'sid':current_user.id , 'rid': user_id})
                 is_notif = cur.fetchone()[0]
                 #Si je l'ai bloqué
-                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';"{'tid':user_id , 'fid': current_user.id})
+                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';",{'tid':user_id , 'fid': current_user.id})
                 is_blocked = cur.fetchone()[0]
                 #Si il m'a bloqué
-                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';"{'tid':current_user.id , 'fid': user_id})
+                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';",{'tid':current_user.id , 'fid': user_id})
                 ami_blocked = cur.fetchone()[0]
                 if is_notif == 0 and is_blocked == 0 and ami_blocked == 0:
                     notif_date = float(datetime.now().timestamp())
