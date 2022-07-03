@@ -320,11 +320,23 @@ def sendmessage():
         receiver = request.form['receiver']
         msg = request.form['msg']
         #A FIX Check message format
-        
+
         if msg and msg != '':
 
             conn = get_db_connection()
             cur = conn.cursor()
+            cur.execute("SELECT id FROM users WHERE username='{0}';".format(receiver))
+            receiver_id = cur.fetchone()[0]
+            #Si je l'ai bloqué
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(receiver_id, current_user.id))
+            is_blocked = cur.fetchone()[0]
+            #Si il m'a bloqué
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(current_user.id, receiver_id))
+            ami_blocked = cur.fetchone()[0]
+            if ami_blocked > 0 or is_blocked > 0:
+                cur.close()
+                conn.close()
+                return ("KO")
             #get receiver_id from username
             cur.execute("SELECT id FROM users WHERE username='{0}';".format(receiver))
             receiver_id = cur.fetchone()[0]
@@ -391,7 +403,13 @@ def dellike():
                 # Was a match
                 cur.execute("SELECT COUNT(id) FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND notif_type=3 AND is_read=false;", {'sid':current_user.id , 'rid': user_id})
                 is_notif = cur.fetchone()[0]
-                if is_notif == 0 :
+                #Si je l'ai bloqué
+                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(user_id, current_user.id))
+                is_blocked = cur.fetchone()[0]
+                #Si il m'a bloqué
+                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(current_user.id, user_id))
+                ami_blocked = cur.fetchone()[0]
+                if is_notif == 0 and is_blocked == 0 and ami_blocked == 0:
                     notif_date = float(datetime.now().timestamp())
                     cur.execute("INSERT INTO notifications (notif_type, sender_id, receiver_id, date_added) VALUES (3, %(sid)s, %(rid)s, %(dat)s)",{'sid':current_user.id , 'rid': user_id, 'dat': notif_date})
                     error = "Match"
@@ -775,7 +793,12 @@ def account():
         blocked_list.append([blocked_profil[0], blocked_profil[1], user_image])
   
     #set blocked_list for views and likes + exclude current_user
-    blocked_string = str(current_user.id)+','.join([str(elem[0]) for elem in blocked_users])
+    if blocked_users:
+        blocked_string = str(current_user.id)+","+','.join([str(elem[0]) for elem in blocked_users])
+    else:
+        blocked_string = str(current_user.id)
+    print("----blocked string----")
+    print(blocked_string)
     # Select Like user_id
     cur.execute("SELECT sender_id FROM likes WHERE receiver_id='{0}' AND sender_id NOT IN ({1});".format(current_user.id, blocked_string))
     like_users=cur.fetchall()
@@ -1719,6 +1742,19 @@ def addnotif():
         if receiver_id :
             conn = get_db_connection()
             cur = conn.cursor()
+            #Si je l'ai bloqué
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(receiver_id, current_user.id))
+            is_blocked = cur.fetchone()[0]
+            #Si il m'a bloqué
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(current_user.id, receiver_id))
+            ami_blocked = cur.fetchone()[0]
+            print("---BLOCK -----")
+            print(ami_blocked)
+            print(is_blocked)
+            if ami_blocked > 0 or is_blocked > 0:
+                cur.close()
+                conn.close()
+                return ("KO")
             cur.execute("SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=%(tid)s AND is_read=false AND sender_id = %(from)s LIMIT 1", {'id': receiver_id, 'tid': notif_type, 'from': current_user.id})
             if cur.fetchone()[0]==0:
                 cur.execute("INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(current_user.id, receiver_id, notif_type, content, notif_date))
@@ -1728,7 +1764,6 @@ def addnotif():
                 cur.execute("UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s", {'from': current_user.id, 'to': receiver_id, 'd': notif_date})
                 conn.commit()
                 return_str = "Old"
-
             cur.close()
             conn.close()
             return (return_str)
