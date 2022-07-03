@@ -262,7 +262,7 @@ def addlike():
             cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;",{'sid': current_user.id , 'rid': user_id})
             is_exist = cur.fetchone()[0]
             if is_block == 0 and is_exist == 0:
-                cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
+                cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES (%(sid)s, %(rid)s);",{'sid': current_user.id , 'rid': user_id})
                 conn.commit()
                 error = "sucess"
             cur.close()
@@ -285,7 +285,7 @@ def addvisite():
             cur.execute("SELECT COUNT(id) FROM visites WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': user_id})
             visit_send = cur.fetchone()[0]
             if visit_send == 0:
-                cur.execute("INSERT INTO visites (sender_id, receiver_id) VALUES ('{0}', '{1}');".format(current_user.id , user_id))
+                cur.execute("INSERT INTO visites (sender_id, receiver_id) VALUES (%(sid)s, %(rid)s);", {'sid': current_user.id, 'rid': user_id})
                 conn.commit()
             cur.close()
             conn.close()
@@ -302,10 +302,8 @@ def delnotif():
         if notif_id :
             conn = get_db_connection()
             cur = conn.cursor()
-
-            cur.execute("DELETE FROM notifications WHERE receiver_id='{0}' AND id='{1}';".format(current_user.id , notif_id))
+            cur.execute("DELETE FROM notifications WHERE receiver_id=%(rid)s AND id=%(nid)s;",{'rid': current_user.id , 'nid': notif_id})
             conn.commit()
-
             cur.close()
             conn.close()
             return (str(notif_id))
@@ -325,20 +323,20 @@ def sendmessage():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("SELECT id FROM users WHERE username='{0}';".format(receiver))
+            cur.execute("SELECT id FROM users WHERE username=%(usr)s;", {'usr': receiver})
             receiver_id = cur.fetchone()[0]
             #Si je l'ai bloqué
-            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(receiver_id, current_user.id))
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';",{'tid': receiver_id, 'fid': current_user.id})
             is_blocked = cur.fetchone()[0]
             #Si il m'a bloqué
-            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(current_user.id, receiver_id))
+            cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';",{'tid': current_user.id, 'fid': receiver_id})
             ami_blocked = cur.fetchone()[0]
             if ami_blocked > 0 or is_blocked > 0:
                 cur.close()
                 conn.close()
                 return ("KO")
             #get receiver_id from username
-            cur.execute("SELECT id FROM users WHERE username='{0}';".format(receiver))
+            cur.execute("SELECT id FROM users WHERE username=%(usr)s;", {'usr': receiver})
             receiver_id = cur.fetchone()[0]
             print(receiver_id)
             msg_time = float(datetime.now().timestamp())
@@ -398,16 +396,16 @@ def dellike():
             conn = get_db_connection()
             cur = conn.cursor()
             # If Like was a Match: generate notification type like-1 ?
-            cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id='{0}' AND receiver_id='{1}';".format(user_id, current_user.id))
+            cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;",{'sid': user_id, 'rid': current_user.id})
             if cur.fetchone()[0] > 0:
                 # Was a match
                 cur.execute("SELECT COUNT(id) FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND notif_type=3 AND is_read=false;", {'sid':current_user.id , 'rid': user_id})
                 is_notif = cur.fetchone()[0]
                 #Si je l'ai bloqué
-                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(user_id, current_user.id))
+                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';"{'tid':user_id , 'fid': current_user.id})
                 is_blocked = cur.fetchone()[0]
                 #Si il m'a bloqué
-                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(current_user.id, user_id))
+                cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';"{'tid':current_user.id , 'fid': user_id})
                 ami_blocked = cur.fetchone()[0]
                 if is_notif == 0 and is_blocked == 0 and ami_blocked == 0:
                     notif_date = float(datetime.now().timestamp())
@@ -416,9 +414,9 @@ def dellike():
                 else :
                     error = "Old"
             else :
-                cur.execute("DELETE FROM notifications WHERE sender_id='{0}' AND receiver_id='{1}' AND notif_type=0".format(current_user.id , user_id))
+                cur.execute("DELETE FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND notif_type=0",{'sid': current_user.id, 'rid': user_id})
                 conn.commit()
-            cur.execute("DELETE FROM likes WHERE sender_id='{0}' AND receiver_id='{1}';".format(current_user.id , user_id))
+            cur.execute("DELETE FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;",{'sid': current_user.id, 'rid': user_id})
             conn.commit()
             cur.close()
             conn.close()
@@ -1048,19 +1046,18 @@ def chat():
 
     conn = get_db_connection()
     cur = conn.cursor()
-
-    cur.execute("SELECT receiver_id FROM likes WHERE sender_id={0};".format(current_user.id))
+    cur.execute("SELECT receiver_id FROM likes WHERE sender_id=%(sid)s;",{'sid': current_user.id })
     like_list = cur.fetchall()
     for i in like_list:
-        cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id='{0}' AND receiver_id='{1}';".format(i[0], current_user.id))
+        cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;",{'sid': i[0], 'rid': current_user.id})
         if cur.fetchone()[0] > 0:
             matchList.append(i[0])
     for i in matchList:
-        cur.execute("SELECT id, username FROM users WHERE id='{0}';".format(i))
+        cur.execute("SELECT id, username FROM users WHERE id=%(sid)s;",{'sid': i })
         user = cur.fetchone()
         usersList.append(user[1])
         idList.append(user[0])
-        cur.execute("SELECT blocked, fake FROM accountcontrol WHERE from_user_id='{0}' AND to_user_id='{1}';".format(current_user.id, i))
+        cur.execute("SELECT blocked, fake FROM accountcontrol WHERE from_user_id=%(fid)s AND to_user_id=%(tid)s;",{'fid': current_user.id, 'tid': i})
         accountcontrol = cur.fetchone()
         if accountcontrol:
             is_blockList.append(accountcontrol[0])
@@ -1069,15 +1066,15 @@ def chat():
             is_blockList.append(False)
             is_reportList.append(False)
         #Am I block ?
-        cur.execute("SELECT blocked FROM accountcontrol WHERE from_user_id='{0}' AND to_user_id='{1}';".format(i, current_user.id))
+        cur.execute("SELECT blocked FROM accountcontrol WHERE from_user_id=%(fid)s AND to_user_id=%(tid)s;",{'fid': i, 'tid':current_user.id})
         myaccountcontrol = cur.fetchone()
         if myaccountcontrol:
             ami_blockList.append(myaccountcontrol[0])
         else:
             ami_blockList.append(False)
-        cur.execute("SELECT is_online FROM profil WHERE user_id='{0}';".format(i))
+        cur.execute("SELECT is_online FROM profil WHERE user_id=%(sid)s;",{'sid': i })
         onlineList.append(cur.fetchone()[0])
-        cur.execute("SELECT * FROM messages WHERE (sender_id='{0}' AND receiver_id='{1}') OR (sender_id='{1}' AND receiver_id='{0}') ORDER BY date_added ASC;".format(current_user.id, i))
+        cur.execute("SELECT * FROM messages WHERE (sender_id=%(sid)s AND receiver_id=%(rid)s) OR (sender_id=%(rid)s AND receiver_id=%(sid)s) ORDER BY date_added ASC;",{'sid': current_user.id , 'rid': i})
         messages = cur.fetchall()
         messagesList.append(messages)
         cur.execute("SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=2 AND is_read=false AND sender_id=%(sid)s;", {'id': current_user.id, 'sid': i})
