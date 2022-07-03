@@ -1044,6 +1044,7 @@ def chat():
     idList = []
     is_blockList = []
     is_reportList = []
+    ami_blockList = []
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -1067,6 +1068,13 @@ def chat():
         else:
             is_blockList.append(False)
             is_reportList.append(False)
+        #Am I block ?
+        cur.execute("SELECT blocked FROM accountcontrol WHERE from_user_id='{0}' AND to_user_id='{1}';".format(i, current_user.id))
+        myaccountcontrol = cur.fetchone()
+        if myaccountcontrol:
+            ami_blockList.append(myaccountcontrol[0])
+        else:
+            ami_blockList.append(False)
         cur.execute("SELECT is_online FROM profil WHERE user_id='{0}';".format(i))
         onlineList.append(cur.fetchone()[0])
         cur.execute("SELECT * FROM messages WHERE (sender_id='{0}' AND receiver_id='{1}') OR (sender_id='{1}' AND receiver_id='{0}') ORDER BY date_added ASC;".format(current_user.id, i))
@@ -1083,7 +1091,7 @@ def chat():
         else :
             roomsList.append(u+current_user.username)
 
-    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user, onlineList=onlineList, notifList=notifList, idList=idList, is_blockList=is_blockList, is_reportList=is_reportList )
+    return render_template('chat.html', sync_mode=socketio.async_mode, usersList=usersList, usersListSize=len(usersList), roomsList=roomsList, messagesList=messagesList, current_user=current_user, onlineList=onlineList, notifList=notifList, idList=idList, is_blockList=is_blockList, is_reportList=is_reportList, ami_blockList=ami_blockList)
 
 # notification page that return 'notification'
 @main.route('/notification') 

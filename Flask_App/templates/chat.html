@@ -28,6 +28,7 @@
       <ul class="no-padding">
 
         {% for user in usersList %}
+          {% if is_blockList[loop.index0] == false %}
           <li id="{{ roomsList[loop.index0] }}" title="{{ user }}" class="list-group-item">
             <div class="row">
               <div class="col-8 text-break">
@@ -40,6 +41,7 @@
               </div>
             </div>
           </li>
+          {% endif %}
         {% endfor %}
       </ul>
       
@@ -114,6 +116,9 @@
             </div>
             {% endfor %}
 
+           {% if ami_blockList[loop.index0]==true %}
+              <p>This user have blocked you.</p>
+           {% endif %}
 
           </div>
 
