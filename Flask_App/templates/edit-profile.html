@@ -8,7 +8,13 @@
 
 {% block content %}
 <div class="container">
-
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="notification is-danger">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
     <!--Section Photo-->
     <div class="h2 text-deepblue">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-camera section-icon" viewBox="0 0 16 16">

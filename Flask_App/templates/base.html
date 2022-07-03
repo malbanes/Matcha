@@ -351,6 +351,9 @@ function add_notification(receiver, notif_type, content) {
 
     });
 
+    function cacheInput(e) {
+    localStorage.setItem(e.attributes["name"].value, e.value)
+    }
     </script>
 
     {% block script %} {% endblock %}

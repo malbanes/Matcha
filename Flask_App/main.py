@@ -9,7 +9,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 from threading import Lock                             
 
 from __init__ import create_app, get_db_connection
-from login_decorator import check_confirmed
+from login_decorator import check_confirmed, check_full_profile
 from age_calc import age, age_period
 from gender_id import set_gender_orientation
 
@@ -552,7 +552,7 @@ def editprofile():
     for key, imgpth in all_images:
         image_path[str(key)] = create_presigned_url(current_app.config["S3_BUCKET"], imgpth)
     if total_img < 4:
-        image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/no-photo.png")
+        image_path['default'] = create_presigned_url(current_app.config["S3_BUCKET"],"test/add-photo.png")
     return render_template('edit-profile.html', image_profil=fav_image, images_urls=image_path, total_img=total_img, interest=interest_list, bio=i_am_bio, genre=i_am_genre, orientation=i_am_orientation, full_interest=full_interest)
 
 @main.route('/uploadajax', methods = ['POST'])
@@ -612,17 +612,17 @@ def setimgprofil():
 def delimg():
     if request.method == 'POST':
         img_id = request.form['data']
+        print(img_id)
         if img_id :
-            # IF img_id == image_profil_id :
-            # remplacer par une autre image disponnible.
-            # Id pas d'image dispo' mettre image_profil_id à null
-            # delete l'image
-            return (img_id)
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("DELETE from images WHERE id=%(img_id)s AND profil_id=%(id)s", {'img_id': img_id, 'id': current_user.id})
+            conn.commit()
+            cur.close()
+            return ("success")
         else:
             return ("KO")
-
         
-
 @main.route('/updatebio', methods = ['POST'])
 @login_required
 @check_confirmed
@@ -871,8 +871,8 @@ def account():
             localisation1 = request.form.get('location')
             cur.execute("SELECT * FROM users WHERE username=%(username)s", {'username': username1})
             username_check = cur.fetchall()
-            if username1 != "" and username_check != []:
-                flash('User Name address already exists')
+            if username1 != "" and username_check != [] and username1 != current_user.username:
+                flash('User Name or Address already exists')
             elif username1 != "":
                 cur.execute("UPDATE users SET username = %(username)s WHERE id=%(id)s", {'username': username1, 'id': current_user.id})
                 conn.commit()
@@ -886,8 +886,13 @@ def account():
                 conn.commit()
                 lastname = lastname1  
             if birthdate1 != "":
-                cur.execute("UPDATE profil SET age = %(birthdate)s WHERE user_id=%(id)s", {'birthdate': birthdate1, 'id': current_user.id})
-                birthdate = birthdate1    
+                birthdate_date = datetime.strptime(birthdate1, '%Y-%m-%d').date()
+                print(birthdate_date)
+                if age(birthdate_date) < 18:
+                    flash('You should have more than 17 years old')
+                else:
+                    cur.execute("UPDATE profil SET age = %(birthdate)s WHERE user_id=%(id)s", {'birthdate': birthdate1, 'id': current_user.id})
+                    birthdate = birthdate1    
             if localisation1 != "":
                 lat, lont, display_loc = localize_text(str(localisation1))
                 today = date.today()
@@ -959,6 +964,7 @@ def account():
 @main.route('/match', methods=['GET'])
 @main.route('/match/page/<int:page>', methods=['GET'])
 @login_required
+@check_full_profile
 @check_confirmed
 def match(page=1):
     final_users = []
@@ -1004,10 +1010,10 @@ def match(page=1):
             cur.execute("SELECT users.id, username, age, city, image_profil_id, bio FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user[0]})
             user_details = cur.fetchone()
             #calc age
+            images_path = []
             if user_details:
                 user_age = age(user_details[2])
                 if user_details[4] is not None:
-                    images_path = []
                     cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
                     user_image = cur.fetchone()
                     if user_image:
@@ -1414,7 +1420,10 @@ def filtresearch():
 
     cur.execute(select_stmt, data)
     filtre_profil_list = cur.fetchall()
-    filtre_list_str = ','.join([str(elem[0]) for elem in filtre_profil_list])
+    if filtre_profil_list:
+        filtre_list_str = ','.join([str(elem[0]) for elem in filtre_profil_list])
+    else:
+        filtre_list_str = str(current_user.id)
     total_user = len(filtre_profil_list)
 
 
@@ -1661,7 +1670,6 @@ def search(page=1):
                             final_profil_list_id.append(i)
                         else:
                             print("remove user")
-                        print(float(locRange))
                         print(off_distance)
                 #Ensuite, tu la formate pour rentrer dans une requete sql :
                 final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])

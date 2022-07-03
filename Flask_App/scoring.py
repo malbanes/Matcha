@@ -88,7 +88,7 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
         elif hastag_interest_num > 0:
             user_score += 30
         
-        if age(user[5]) != 'N/A':
+        if age(user[5]) != 'N/A' and birthdate != 'N/A':
             minus_targeted_user_age = int(age(user[5])) - 5
             max_targeted_user_age = int(age(user[5])) + 5
 
