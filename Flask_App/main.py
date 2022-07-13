@@ -109,6 +109,7 @@ def profile():
 def showprofile(username):
     images_path = []
     fav_image = []
+    have_favimage = False
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE username=%(username)s LIMIT 1", {'username': username})
@@ -145,7 +146,10 @@ def showprofile(username):
         like_message = "This person like you. Like back ?"
     else:
         like_message = ""
-
+    cur.execute("SELECT image_profil_id FROM profil WHERE user_id =%(id)s LIMIT 1;", {'id': current_user.id})
+    is_have_favimage = cur.fetchone()
+    if is_have_favimage and is_have_favimage[0] > 0 : 
+        have_favimage = True
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': user_id})
     image_profil = cur.fetchone()
     print(image_profil)
@@ -172,7 +176,7 @@ def showprofile(username):
     localisation = cur.fetchone()[0]
     cur.close()
     conn.close()
-    return render_template('show_profile.html', profil=profil,user_id=user_id, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send, like_message=like_message)
+    return render_template('show_profile.html', profil=profil,user_id=user_id, have_favimage=have_favimage, username=user_username ,name=user_name, age=age_num, score=score, desc=description, genre=genre, orientation=orientation,  interest_list=interest_list, localisation=localisation, image_profil=fav_image, images_path=images_path, total_img=total_img, is_online=is_online, last_log=last_log, is_block=is_block, like_send=like_send, like_message=like_message)
 
 
 @main.route('/matchpass', methods = ['POST'])
@@ -257,11 +261,14 @@ def addlike():
         if user_id :
             conn = get_db_connection()
             cur = conn.cursor()
+            #Check if current_user has image fav
+            cur.execute("SELECT image_profil_id FROM profil WHERE user_id =%(id)s LIMIT 1;", {'id': current_user.id})
+            is_have_favimage = cur.fetchone()
             cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE (from_user_id=%(id)s AND to_user_id=%(tid)s AND blocked = true) LIMIT 1", {'id': user_id, 'tid': current_user.id})
             is_block = cur.fetchone()[0]
             cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;",{'sid': current_user.id , 'rid': user_id})
             is_exist = cur.fetchone()[0]
-            if is_block == 0 and is_exist == 0:
+            if is_block == 0 and is_exist == 0 and is_have_favimage and is_have_favimage[0] > 0 :
                 cur.execute("INSERT INTO likes (sender_id, receiver_id) VALUES (%(sid)s, %(rid)s);",{'sid': current_user.id , 'rid': user_id})
                 conn.commit()
                 error = "sucess"
@@ -320,6 +327,8 @@ def sendmessage():
         #A FIX Check message format
 
         if msg and msg != '':
+            if len(msg) > 1000:
+                return ("KO")
 
             conn = get_db_connection()
             cur = conn.cursor()
@@ -568,6 +577,9 @@ def upldfile():
             return "Please select a file"
         if file1 :
             file1.filename = secure_filename(file1.filename)
+            extensiontab = ToLowercase(file.filename.split('.')
+            if extension[1] != "png" or extension[1] != "jpeg" or extension[1] != "jpg" or len(extensiontab) > 2) :
+                return "File invalid"
             path = str(current_user.email) + str(current_user.id)
             output, file_path = upload_file_to_s3(file1, app.config["S3_BUCKET"], path)
             conn = get_db_connection()
@@ -676,6 +688,39 @@ def updprim():
         else :
             return ("KO")
 
+@main.route('/addhashtag', methods = ['POST'])
+@login_required
+@check_confirmed
+def addhashtag():
+    if request.method == 'POST':
+        newhash = request.form['newhash']
+        existing_list = []
+        #TO DO: secure variable
+        #TO DO: Si exist ou caractère interdi, return "KO"
+        if (newhash):
+            conn = get_db_connection()
+            cur = conn.cursor()
+            #check if newtag existe insensible a la casse ToLowercase(newhash) existe en bdd (TolowerCase(hashtag))
+            cur.execute("SELECT COUNT(id) FROM \"Interest\" WHERE hashtag=%(hash)s", {'hash': TolowerCase(newhash)})
+            is_exist = cur.fetchone()[0]
+            if is_exist == 0:
+                cur.execute("INSERT INTO \"Interest\" (hashtag) VALUES (%(hash)s) ", {'hash': TolowerCase(newhash)})
+                conn.commit()
+            cur.execute("SELECT id, hashtag FROM \"Interest\" WHERE hashtag=%(hash)s LIMIT 1", {'hash': TolowerCase(newhash)})
+            existing_elem = cur.fetchone()
+            cur.execute("SELECT COUNT(id) FROM \"ProfilInterest\" WHERE user_id=%(uid)s AND interest_id=%(int)s", {'uid': current_user.id, 'int': existing_elem[0] })
+            is_exist = cur.fetchone()[0]
+            if is_exist == 0:
+                existing_list.append([existing_elem[0], existing_elem[1].rstrip()])
+                cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(uid)s, %(int)s)", {'uid': current_user.id, 'int': existing_elem[0]})
+                conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify(existing_list)
+        else:
+            return ("KO")
+
+
     
 @main.route('/updatehashtag', methods = ['POST'])
 @login_required
@@ -685,24 +730,7 @@ def updhash():
         hash_id = request.form.getlist("check")
         newhash = request.form['newhash']
         existing_list = []
-        
-        #TO DO: Chech if newhash exist and secure variable
-        #TO DO: check if newtag existe insensible a la casse ToLowercase(newhash) existe en bdd (TolowerCase(hashtag))
-        #TO DO: Si exist ou caractère interdi, return "KO"
-        if (newhash):
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute("INSERT INTO \"Interest\" (hashtag) VALUES (%(hash)s) ", {'hash': newhash})
-            conn.commit()
-            cur.execute("SELECT id, hashtag FROM \"Interest\" WHERE hashtag=%(hash)s LIMIT 1", {'hash': newhash})
-            existing_elem = cur.fetchone()
-            existing_list.append([existing_elem[0], existing_elem[1].rstrip()])
-            cur.execute("INSERT INTO \"ProfilInterest\" (user_id, interest_id) VALUES (%(uid)s, %(int)s)", {'uid': current_user.id, 'int': existing_elem[0]})
-            conn.commit()
-            cur.close()
-            conn.close()
-            return jsonify(existing_list)
-        elif (hash_id):
+        if (hash_id):
             conn = get_db_connection()
             cur = conn.cursor()
             for i in hash_id:
@@ -888,8 +916,8 @@ def account():
             if birthdate1 != "":
                 birthdate_date = datetime.strptime(birthdate1, '%Y-%m-%d').date()
                 print(birthdate_date)
-                if age(birthdate_date) < 18:
-                    flash('You should have more than 17 years old')
+                if age(birthdate_date) < 18 or age(birthdate_date) > 99:
+                    flash('You should have more than 17 years old and less than 99')
                 else:
                     cur.execute("UPDATE profil SET age = %(birthdate)s WHERE user_id=%(id)s", {'birthdate': birthdate1, 'id': current_user.id})
                     birthdate = birthdate1    
@@ -968,6 +996,7 @@ def account():
 @check_confirmed
 def match(page=1):
     final_users = []
+    have_favimage = False
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -984,7 +1013,13 @@ def match(page=1):
         blocked_list = str(current_user.id)
     # Select list of all interests
     cur.execute("SELECT * FROM \"Interest\";")
-    full_interest = cur.fetchall()    
+    full_interest = cur.fetchall()
+
+    cur.execute("SELECT image_profil_id FROM profil WHERE user_id =%(id)s LIMIT 1;", {'id': current_user.id})
+    is_have_favimage = cur.fetchone()
+    if is_have_favimage and is_have_favimage[0] > 0 : 
+        have_favimage = True
+      
     if request.method=='GET':
         user_age = 18
         # Get number of pages
@@ -1029,7 +1064,7 @@ def match(page=1):
                 final_users.append([user_details[0], user_details[1], user_age, user_details[3], user_details[5], user_image, images_path, int(user[1])])
         cur.close()
         conn.close()
-        return render_template('match.html', max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
+        return render_template('match.html', max_page=max_page, current_page=page, have_favimage=have_favimage, all_users = final_users, user_num=total_users, full_interest=full_interest)
 
 # chat page that return 'match'
 @main.route('/chat') 

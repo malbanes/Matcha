@@ -49,7 +49,7 @@
             {% endfor %}
             {% for nombre in range(total_img, 5) %}
             <div class="rounded-square-picture mysmall">
-                <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#photoModal" style="background-image: url({{images_urls['default']}})"></div>
+                <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#photoModal"></div>
             </div>
             {% endfor %}
             </div>
@@ -173,7 +173,7 @@
                     An error occur.
                 </div>
                 <div class="modal-body d-flex justify-content-center">
-                    {% if total_img > 0 %}
+                    {% if total_img > 0  and image_profil != []%}
                     <!-- Caroussel Modal -->
                     <div id="carouselExampleIndicators" class="carousel slide" data-interval="false" data-ride="carousel">
                         <ol class="carousel-indicators">
@@ -290,7 +290,7 @@
         <div class="modal-body">
           <form id="bio-form" method="POST">
             <div class="form-group">
-                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100">{{ bio }}</textarea>
+                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100">{{ bio if bio != 'None' }}</textarea>
                 <div class="row">
                     <div class="col">
                         <div class="counter" id="counter">{{ bio|length }}/100</div>
@@ -335,12 +335,15 @@
                     {% endfor %}
                     </ul>    
               </div>
+              <div class="center">
+                <button type="submit" class="btn btn-primary center" id="interest-btn" data-dismiss="modal">Save change</button>
+              </div>
               <div class="form-group">
                 Can't find what you're searching ? </br><small class="form-text text-muted"> Add a new hashtag here : </small>
                 <input class="form-control" type="text" name="newhash" placeholder="Your Hashtag" autofocus="">
               </div>
               <div class="center">
-                <button type="submit" class="btn btn-primary center" id="interest-btn" data-dismiss="modal">Save change</button>
+                <button type="submit" class="btn btn-primary center" id="newhash-btn" data-dismiss="modal"> Add new</button>
               </div>
             </form>
     
@@ -542,6 +545,49 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
             charCounter(document.getElementById("exampleFormControlTextarea1"));
         });
     });
+
+    
+    // Hashtags Gesture
+    $(function() {
+    $('#newhash-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#interest-form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/addhashtag',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'KO') {
+                    document.getElementById("interest-error").style.display = "block";
+                }
+                else {
+                    document.getElementById("interest-error").style.display = "none";
+                    for (var item in data)
+                    {
+                        var li = document.createElement("li");
+                        li.innerHTML = "#" + data[item][1];
+                        li.classList.add("list-inline-item");
+                        li.classList.add("dealbreaker");
+                        li.id=data[item][0]+"int";
+                        var sup = document.createElement("sup");
+                        sup.classList.add("del-button");
+                        sup.classList.add("ml-2");
+                        sup.innerHTML = "X";
+                        sup.id = data[item][0]+"del";
+                        sup.onclick = function() { 
+                            delhashtag(this.id);
+                         };
+                        li.appendChild(sup);
+                        document.getElementById("hashtagList").appendChild(li);
+                    }
+                }
+            },
+        });
+    });
+});
 
     // Hashtags Gesture
     $(function() {

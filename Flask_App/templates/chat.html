@@ -105,7 +105,7 @@
               {{ messages[4]|strftime }} 
             </small></div>
             <div class="message_container {{ 'right' if current_user.id == messages[1] }}">
-              <div class="{{ 'message_content_user' if current_user.id == messages[1] else 'message_content_other' }}">
+              <div class="{{ 'message_content_user' if current_user.id == messages[1] else 'message_content_other' }}" style="word-break: break-all;">
                 <div class="">
                   {% if current_user.id != messages[1] %}
                   {{ user }} : 
@@ -124,7 +124,7 @@
 
         <div class="container mb-4">
           <form id="emit" class="myform" method="POST" action='#'>
-            <input type="text" name="{{ user }}" placeholder="Message">
+            <input type="text" name="{{ user }}" maxlength=1000 placeholder="Message">
             <input type="submit" value="Send">
           </form>
         </div>

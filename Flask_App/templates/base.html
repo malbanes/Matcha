@@ -297,10 +297,16 @@ function add_notification(receiver, notif_type, content) {
 
         $(document).ready(function() {
 
-            var socket = io();
+            //var socket = io();
+            const socket = io();
 
             socket.on('connect', function() {
                 socket.emit('join_request');
+            });
+
+            socket.on("connect_error", () => {
+            // revert to classic upgrade
+                socket.io.opts.transports = ["polling", "websocket"];
             });
 
             socket.on('my_response', function(msg, cb) {

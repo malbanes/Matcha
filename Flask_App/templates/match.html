@@ -87,11 +87,23 @@
               </button>
             </div>
             <div class="col-auto">
+              {% if have_favimage == True %}
               <button class="btn btn-light text-pink" onclick="toggle_display_like({{ user[0] }}, {{outer_loop }})">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
                   <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                 </svg>
               </button>
+              {% else %}
+              <div class="col-auto mb-2 dropright">
+                <svg xmlns="http://www.w3.org/2000/svg" class="text-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false" width="25" height="25" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                </svg>
+                <div class="dropdown-menu text-danger bg-red">
+                  <p class="px-3"><small>Complete you're profil to like other profile.</small></p>
+                </div>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -140,7 +152,7 @@
           </div>
           <label for="city">City</label>
           <input id="city" type="text" name="city"></br>
-            <label for="locRange">Distance: </label> <p id="locRangeLabel" class="no-margin d-inline">50 Km</p>
+            <label for="locRange">Distance: </label> <p id="locRangeLabel" class="no-margin d-inline">5 Km</p>
             <input onchange="changeLocRange(this.value)" type="range" name="locRange" class="custom-range small-bar d-inline align-middle" min="5" max="100" step="1" id="locRange">
           <!-- Score interval -->
         </br>
