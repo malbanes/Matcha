@@ -25,9 +25,7 @@ def check_full_profile(func):
         cur = conn.cursor()
         cur.execute("SELECT age, bio, image_profil_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
         user_details = cur.fetchone()
-        print("HELLLOO")
-        print(user_details)
-        if  user_details[0] == None or user_details[1] == None or user_details[1] == 'None' or user_details[2] == 0:
+        if  user_details[0] == None or user_details[1] == None or user_details[2] == 0:
             flash('Please fill your age, bio and add a profil image!', 'warning')
             cur.close()
             conn.close()

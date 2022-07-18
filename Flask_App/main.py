@@ -41,6 +41,7 @@ OFFSET_MATCH = 3
 main = Blueprint('main', __name__)
 @main.route('/') 
 def index():
+    session['SameSite'] = "Lax"
     return render_template('index.html')
 
 # we initialize our flask app using the  __init__.py function 
@@ -95,7 +96,6 @@ def profile():
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append(cur.fetchone()[0].rstrip())
-        print(interest_list)
     cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
     localisation = cur.fetchone()[0]
     cur.close()
@@ -115,7 +115,6 @@ def showprofile(username):
     cur.execute("SELECT * FROM users WHERE username=%(username)s LIMIT 1", {'username': username})
     showuser_details = cur.fetchone()
     user_id = showuser_details[0]
-    print(showuser_details[4])
     user_name = str(showuser_details[4]) + " " + str(showuser_details[5])
     user_username = str(showuser_details[1])
     cur.execute("SELECT * FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': user_id})
@@ -170,7 +169,6 @@ def showprofile(username):
     for id in interest:
         cur.execute("SELECT hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': id[0]})
         interest_list.append(cur.fetchone()[0].rstrip())
-        print(interest_list)
     cur.execute("SELECT city FROM location WHERE id=%(id)s", {'id': profil[4]})
     localisation = cur.fetchone()[0]
     cur.close()
@@ -346,7 +344,6 @@ def sendmessage():
             #get receiver_id from username
             cur.execute("SELECT id FROM users WHERE username=%(usr)s;", {'usr': receiver})
             receiver_id = cur.fetchone()[0]
-            print(receiver_id)
             msg_time = float(datetime.now().timestamp())
             # create a new message
             cur.execute("INSERT INTO messages (sender_id, receiver_id, msg, date_added) VALUES (%(sid)s, %(rid)s, %(msg)s, %(tim)s);", {'sid':current_user.id , 'rid': receiver_id, 'msg': msg, 'tim': msg_time})
@@ -526,11 +523,9 @@ def editprofile():
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': current_user.id})
     image_profil = cur.fetchone()
     if image_profil:
-        print(image_profil)
         fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
         fav_image.append(image_profil[0])
         fav_image.append(fav_image_path)
-        print("fav img: "+str(fav_image[0])+","+fav_image[1])
         cur.execute("SELECT id, path FROM images WHERE profil_id=%(id)s AND id NOT IN (%(fav)s) ORDER BY date_added LIMIT 4", {'id': current_user.id, 'fav':image_profil[0]})
         all_images = cur.fetchall()
 
@@ -542,7 +537,6 @@ def editprofile():
         i_am_bio = ""
     i_am_genre = GENRE[i_am[1]]
     i_am_orientation = ORIENTATION[i_am[2]]
-    print(i_am)
     cur.execute("SELECT interest_id::INTEGER FROM \"ProfilInterest\" WHERE user_id=%(id)s", {'id': current_user.id})
     interest = cur.fetchall()
     interest_list = []
@@ -581,10 +575,7 @@ def upldfile():
             file1.filename = secure_filename(file1.filename)
             extensiontab = file1.filename.split('.')
             extension = extensiontab[1].lower()
-            print(extension)
-            print(len(extensiontab))
             if extension != "png" and extension != "jpeg" and extension != "jpg" or len(extensiontab) > 2:
-                print("file invalid")
                 return "File invalid"
             path = str(current_user.email) + str(current_user.id)
             output, file_path = upload_file_to_s3(file1, app.config["S3_BUCKET"], path)
@@ -613,7 +604,6 @@ def upldfile():
 def setimgprofil():
     if request.method == 'POST':
         img_id = request.form['data']
-        print(img_id)
         if img_id :
             conn = get_db_connection()
             cur = conn.cursor()
@@ -630,7 +620,6 @@ def setimgprofil():
 def delimg():
     if request.method == 'POST':
         img_id = request.form['data']
-        print(img_id)
         if img_id :
             conn = get_db_connection()
             cur = conn.cursor()
@@ -748,7 +737,6 @@ def updhash():
                     cur.execute("SELECT id, hashtag FROM \"Interest\" WHERE id=%(id)s LIMIT 1", {'id': i})
                     existing_elem = cur.fetchone()
                     existing_list.append([existing_elem[0], existing_elem[1].rstrip()])
-                    print(existing_list)
             cur.close()
             conn.close()
             return jsonify(existing_list)
@@ -829,8 +817,6 @@ def account():
         blocked_string = str(current_user.id)+","+','.join([str(elem[0]) for elem in blocked_users])
     else:
         blocked_string = str(current_user.id)
-    print("----blocked string----")
-    print(blocked_string)
     # Select Like user_id
     cur.execute("SELECT sender_id FROM likes WHERE receiver_id='{0}' AND sender_id NOT IN ({1});".format(current_user.id, blocked_string))
     like_users=cur.fetchall()
@@ -884,9 +870,16 @@ def account():
         if 'deletemyaccount' in request.form:
             officialdelete = request.form.get('deletemyaccount')
             if str(officialdelete) == "Delete my account now":
-                cur.execute("DELETE FROM \"ProfilInterest\" USING users WHERE user_id =%(id)s", {'id': current_user.id})
-                cur.execute("DELETE FROM images USING users WHERE profil_id =%(id)s", {'id': current_user.id})
-                cur.execute("DELETE FROM profil USING users WHERE user_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM \"ProfilInterest\" WHERE user_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM images WHERE profil_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM accountcontrol WHERE from_user_id =%(id)s or to_user_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM likes WHERE sender_id =%(id)s or receiver_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM match WHERE user_id =%(id)s or match_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM messages WHERE sender_id =%(id)s or receiver_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM notifications WHERE sender_id =%(id)s or receiver_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM search WHERE user_id =%(id)s or list_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM visites WHERE sender_id =%(id)s or receiver_id =%(id)s", {'id': current_user.id})
+                cur.execute("DELETE FROM profil WHERE user_id =%(id)s", {'id': current_user.id})
                 cur.execute("DELETE FROM users WHERE id =%(id)s", {'id': current_user.id})
                 logout_user()
                 conn.commit()
@@ -925,7 +918,6 @@ def account():
                 lastname = lastname1  
             if birthdate1 != "":
                 birthdate_date = datetime.strptime(birthdate1, '%Y-%m-%d').date()
-                print(birthdate_date)
                 if age(birthdate_date) < 18 or age(birthdate_date) > 99:
                     flash('You should have more than 17 years old and less than 99')
                 else:
@@ -990,8 +982,6 @@ def account():
                 email = email1
             else:
                 flash('Email structure not valid or email address already exists')
-        else: 
-            print("No modal implemented")
         cur.close()
         conn.close()
         return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list,likes_list=likes_list, views_list=views_list, is_bio=is_bio, birthdate=birthdate, now=nowstr)
@@ -1080,9 +1070,6 @@ def match(page=1):
 @login_required
 @check_confirmed
 def chat():
-    print(current_user)
-    print(current_user.id)
-    print(current_user.is_authenticated)
     usersList = [] 
     matchList = []
     roomsList = []
@@ -1198,15 +1185,6 @@ def trisearch():
     final_users = []
 
     if request.method == 'POST':
-        print(request.form.get('targetform'))
-        print(request.form.get('ageCheck'))
-        print(request.form.get('ageCheckOrder'))
-        print(request.form.get('distCheck'))
-        print(request.form.get('distCheckOrder'))
-        print(request.form.get('scoreCheck'))
-        print(request.form.get('scoreCheckOrder'))
-        print(request.form.get('hashtagCheck'))
-        print(request.form.get('hashtagCheckOrder'))
         if request.form.get('hashtagCheck') == "on":
             if request.form.get('hashtagCheckOrder') == "on":
                 sort.append(["hashtag", "+"])
@@ -1274,7 +1252,6 @@ def trisearch():
             'error' : 1
         }
 
-    print("My array lenght is: ", str(elem_lengh))
     for elem in sort:
         if elem[0] == "age" and elem[1] == "+":
             select_stmt = select_stmt + "p.age DESC"
@@ -1371,7 +1348,6 @@ def filtresearch():
         # Prepare location qwery
         elif elem[0] == "city":
              locRange = request.form.get('locRange')
-             print(locRange)
              get_long, get_lat, city_name = localize_text(elem[1])
              cur.execute("SELECT user_id, location_id FROM profil")
              profil_list_id = cur.fetchall()
@@ -1382,15 +1358,11 @@ def filtresearch():
                      off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
                      if off_distance <= float(locRange):
                          final_profil_list_id.append(i)
-                     else:
-                         print("remove user")
              #Ensuite, tu la formate pour rentrer dans une requete sql :
-             print(final_profil_list_id)
              final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
              if final_profil_list_id_str:
                  #On rajoute l'élément à la requete en préparation:
                  loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
-                 print(loc_qwery)
         # Prepare score qwery
         elif elem[0] == "score":
             scoreMinSearch = int(elem[1])
@@ -1671,7 +1643,6 @@ def search(page=1):
             final_profil_list_id = []
             #to meter#
             #locRangeSearch = int(locRangeSearch)
-            print("locRange:"+locRangeSearch)
             # Prepare Select Qwery
             select_stmt = " FROM profil WHERE user_id NOT IN ("+blocked_list+") " + select_gender
             data = {}
@@ -1708,19 +1679,13 @@ def search(page=1):
                         cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
                         coordinates_others = cur.fetchone()
                         off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
-                        print(off_distance)
                         if off_distance <= float(locRangeSearch):
-                            print("keep user")
                             final_profil_list_id.append(i)
-                        else:
-                            print("remove user")
-                        print(off_distance)
                 #Ensuite, tu la formate pour rentrer dans une requete sql :
                 final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
                 if final_profil_list_id_str:
                     #On rajoute l'élément à la requete en préparation:
                     select_stmt = select_stmt+" AND user_id IN ("+final_profil_list_id_str+")"
-                print(final_profil_list_id_str)
             #Hashtags qwery
             if hashtags_id and hashtags_id[0] != '':
                 cur.execute("SELECT user_id FROM \"ProfilInterest\" WHERE interest_id=%(int1)s", {'int1': hashtags_id[0]})
@@ -1735,16 +1700,15 @@ def search(page=1):
                     if exclude == 0:
                         hashtag_user_list.append(user)
                 hashtag_user_list_str = ','.join([str(elem[0]) for elem in hashtag_user_list])
+
                 if hashtag_user_list_str:
                     select_stmt = select_stmt+" AND user_id IN ("+hashtag_user_list_str+")"
                 else:
-                    print("No user found")
                     return render_template('search.html', max_page=1, is_search=is_search, current_page=1, all_users = [], user_num=0, full_interest=full_interest)
             
             # Get number of pages
             get_page_qwery = "SELECT COUNT(id)" + select_stmt
             cur.execute(get_page_qwery, data)
-            print(get_page_qwery)
             user_num = cur.fetchone()[0]
             max_page = int((user_num/OFFSET)+1)
             if ((user_num % OFFSET) > 0) :
@@ -1778,7 +1742,7 @@ def search(page=1):
                 #calc age
                 user_age = age(user_details[2])
                 if user_details[4] is not None:
-                    cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4]})
+                    cur.execute("SELECT path from images where id =%(image_id)s LIMIT 1", {'image_id': user_details[4] })
                     user_image = cur.fetchone()
                     user_image = create_presigned_url(current_app.config["S3_BUCKET"], str(user_image[0]))
                 else: 
@@ -1805,9 +1769,6 @@ def addnotif():
             #Si il m'a bloqué
             cur.execute("SELECT COUNT(id) FROM accountcontrol WHERE to_user_id='{0}' AND from_user_id='{1}' AND blocked='true';".format(current_user.id, receiver_id))
             ami_blocked = cur.fetchone()[0]
-            print("---BLOCK -----")
-            print(ami_blocked)
-            print(is_blocked)
             if ami_blocked > 0 or is_blocked > 0:
                 cur.close()
                 conn.close()
@@ -1901,13 +1862,9 @@ def getnavnotif():
 
 @socketio.on('join_request')
 def on_join_request():
-    print("ON JOIN REQUEST")
-    print("ON JOIN REQUEST")
-    print("ON JOIN REQUEST")
     if current_user.is_authenticated:
         user_id = current_user.id
         join_room(user_id)
-        print("User join the chanel"+str(user_id))
         
 
 @socketio.on('new_notif')
@@ -1944,7 +1901,6 @@ def message(data):
         room = current_user.username+username
     else :
         room = username+current_user.username
-    print(room)
     emit("broadcast_message", {"message": data['message'],"date":data['date'], "username":current_user.username, "room":room}, room=room)
 
 @socketio.on('join')
@@ -1955,7 +1911,6 @@ def on_join(data):
     else :
         channel = username+current_user.username
     join_room(channel)
-    print("User join the chanel"+channel)
 
 
 @socketio.on('leave')

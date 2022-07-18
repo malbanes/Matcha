@@ -7,7 +7,7 @@ def generate_confirmation_token(email):
     return serializer.dumps(email, salt='my_precious_two')
 
 
-def confirm_token(token, expiration=3600):
+def confirm_token(token, expiration=18000):
     serializer = URLSafeTimedSerializer('secret-key-goes-here')
     try:
         email = serializer.loads(
@@ -23,7 +23,7 @@ def generate_email_token(email):
     serializer = URLSafeTimedSerializer('secret-key-goes-here')
     return serializer.dumps(email, salt='my_precious_three')
 
-def confirm_email_token(token, expiration=3600):
+def confirm_email_token(token, expiration=18000):
     serializer = URLSafeTimedSerializer('secret-key-goes-here')
     try:
         email = serializer.loads(
