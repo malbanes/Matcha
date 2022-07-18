@@ -250,6 +250,41 @@ d)une gestion de base de données
 - Faire une messagerie intégrée accessible à tout moment en footer de l'app (cf: Facebook)
 - Faire une carte interactive des utilisateurs (géolocalisation plus précise)
 
+QA Matcha
 
+OTHER
+	. socket error 500
+
+PAGE LOGIN
+	. Remove ‘remember me’ en front  - OK
+	. [BUG] Account précédent crBug (mettre form en cache?)
+
+PAGE EDIT PROFILE
+	. Delete image
+	. upload file, gérer pois et extensions
+	. Input age/ Vérifier date ni passé ni futur - front à tester
+	. Change image ‘add photo’ in background CSS - OK
+	. [BUG] Si no photo, print no photo carousel - OK
+	. [BUG] upload .svg give error 500 - extension back a tester
+	. [BUG] hashtags doublons quand insert - a tester
+	. [BUG] l’input de la bio doit être vide la 1er fois - OK
+
+
+Page MATCH
+	. Interdire Match si no photo en back - a tester
+	. retirer like si no photo en front - a tester
+	. range location remplacer 50 km par 5 km front - OK
+	. [BUG] Si filtre -> Aucuns résultats au lieu de tous
+	. [BUG] Spam like ralenti voir crash
+
+PAGE SHOWPROFIL
+	. [MIG] retirer like si current user have no photo - a tester
+
+PAGE CHAT
+	. limiter les message à 1000 char back et front - OK
+	. [BUG] Layout long message - OK
+
+PAGE ACCOUNT
+	. Responsive/ espacé les sections (like/view/block) - OK
 
 

@@ -14,7 +14,7 @@
         <div class="col-3">
             <div class="row justify-content-between align-items-center">
                 <div class="col d-flex col-auto mr-auto">
-                    <p class="mt-2">{{username}}</p>
+                    <p class="mt-2 litte-device-title" style="word-break:break-all;">{{username}}</p>
                     <svg class="green-color" xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-dot" viewBox="0 0 16 16">
                         <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
                     </svg>
@@ -30,11 +30,11 @@
                 </div>
             </div>
           <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-            <a class="nav-link {{ 'active' if onglet==None}}" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
-            <a class="nav-link {{ 'active' if onglet=='historique'}}" id="v-pills-histo-tab" data-toggle="pill" href="#v-pills-histo" role="tab" aria-controls="v-pills-histo" aria-selected="false">Historic</a>
+            <a class="nav-link mb-2 {{ 'active' if onglet==None}}" id="v-pills-account-tab" data-toggle="pill" href="#v-pills-account" role="tab" aria-controls="v-pills-account" aria-selected="true">Account</a>
+            <a class="nav-link mb-2 {{ 'active' if onglet=='historique'}}" id="v-pills-histo-tab" data-toggle="pill" href="#v-pills-histo" role="tab" aria-controls="v-pills-histo" aria-selected="false">Historic</a>
 
-            <a class="nav-link" id="v-pills-del-tab" data-toggle="pill" href="#v-pills-del" role="tab" aria-controls="v-pills-del" aria-selected="false">Delete account</a>
-            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            <a class="nav-link mb-2" id="v-pills-del-tab" data-toggle="pill" href="#v-pills-del" role="tab" aria-controls="v-pills-del" aria-selected="false">Delete account</a>
+            <a class="nav-link mb-2" href="{{ url_for('auth.logout') }}">Logout</a>
           </div>
         </div>
         <div class="col-9 bg-light">
@@ -85,7 +85,7 @@
                         <div class="row justify-content-between mb-3">
                           <div class="col">
                             <div class="reflist-field">Birthdate : </div>
-                            <div class="reflist-value">{{birthdate}}</div>
+                            <div class="reflist-value">{{birthdate}} </div>
                           </div>
                           <div class="col align-self-center" style="display:flex;">
                               <div class="edit-icon" data-toggle="modal" data-target="#editInfoModal">
@@ -113,7 +113,7 @@
                         <div class="row justify-content-between mb-3">
                           <div class="col">
                             <div class="reflist-field">Email : </div>
-                            <div class="reflist-value">{{email}}</div>
+                            <div class="reflist-value litte-device-title">{{email}}</div>
                           </div>
                           <div class="col align-self-center" style="display:flex;">
                             <div class="edit-icon" data-toggle="modal" data-target="#editEmailModal">
@@ -170,7 +170,7 @@
                     </row>
                     <!--Button Section-->
                     <div class="row justify-content-start mx-3">
-                      <div class="col">
+                      <div class="col mb-2">
                         <a href="{{ url_for('main.editprofile') }}"><button type="button" class="btn btn-secondary">Edit profil</button></a>
                       </div>
                       <div class="col">
@@ -186,10 +186,10 @@
                 <!-- Reflist Title -->
                 <ul class="nav nav-tabs" style="flex-wrap: nowrap;" id="refTab" role="tablist">
                   <li class="nav-item">
-                    <a class="nav-link link dark {{ 'active' if section=='like'}}" id="like-tab" onclick="read_notification(0, 0)" data-toggle="tab" href="#like" role="tab" aria-controls="like" aria-selected="true">Like</a>
+                    <a class="nav-link link dark mr-2 {{ 'active' if section=='like'}}" id="like-tab" onclick="read_notification(0, 0)" data-toggle="tab" href="#like" role="tab" aria-controls="like" aria-selected="true">Like</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link link dark {{ 'active' if section=='visit'}}" id="visit-tab" onclick="read_notification(1, 0)" data-toggle="tab" href="#visit" role="tab" aria-controls="visit" aria-selected="false">Visite</a>
+                    <a class="nav-link link dark mr-2 {{ 'active' if section=='visit'}}" id="visit-tab" onclick="read_notification(1, 0)" data-toggle="tab" href="#visit" role="tab" aria-controls="visit" aria-selected="false">Visite</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link link dark" id="blocked-tab" data-toggle="tab" href="#blocked" role="tab" aria-controls="blocked" aria-selected="false">Blocked</a>
@@ -317,7 +317,7 @@
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your Birthdate :</small>
-            <input class="form-control" type="date" name="birthdate" value="{{birthdate}}" placeholder="Your Birthdate" autofocus="">
+            <input class="form-control" type="date" min='1899-01-01' max="{{ now }}" name="birthdate" value="{{birthdate}}" placeholder="Your Birthdate" autofocus="">
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your location :</small>

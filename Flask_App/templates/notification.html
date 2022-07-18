@@ -55,6 +55,12 @@
 
 <script type="text/javascript" charset="utf-8">
 
+$(document).ready(function() {
+    read_notification(0, 0);
+    read_notification(1, 0);
+});
+
+
 function delnotif(u) {
   $.ajax({
             type: 'POST',

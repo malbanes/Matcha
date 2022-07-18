@@ -36,10 +36,9 @@ def executeScriptsFromFile(c):
             # For example, if the tables do not yet exist, this will skip over
             # the DROP TABLE commands
                 try:
-                        c.execute(command
+                        c.execute(command)
                 except:
                         print("Command skipped: ", msg)
-
                 conn.commit()
 
 def main():
@@ -67,7 +66,10 @@ def main():
         cur.execute('DROP TABLE IF EXISTS visites;')
         cur.execute('DROP TABLE IF EXISTS profil;')
         conn.commit()
-        #cur.execute('CREATE EXTENSION pgcrypto;')
+        try:
+                cur.execute('CREATE EXTENSION pgcrypto;')
+        except:
+                print("pgcrypto already exists") 
         executeScriptsFromFile(cur)
         cur.execute('GRANT all privileges ON TABLE users to sammy;')
         cur.execute('GRANT all privileges ON TABLE accountcontrol to sammy;')

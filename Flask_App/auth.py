@@ -134,6 +134,8 @@ def signup():
             loc_id = cur.fetchone()
             cur.execute("INSERT INTO profil (user_id, location_id, score) VALUES (%(user_id)s, %(location_id)s, 0)", {'user_id': new_user[0], 'location_id': loc_id[0]})
             conn.commit()
+            cur.execute("UPDATE profil SET is_online = true WHERE user_id=%(id)s", {'id': new_user[0]})
+            conn.commit()
             cur.close()
             conn.close()
             token = generate_confirmation_token(email)

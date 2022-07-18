@@ -42,7 +42,7 @@
     <div class="">
 
       {% for user in all_users %}
-      <div class="card myabsolute" style="width: 18rem; z-index: {{ 4-loop.index }};" id={{ user[0] }}>
+      <div class="card myabsolute custom-size-18" style="z-index: {{ 4-loop.index }};" id={{ user[0] }}>
       <!--Card Component-->
       <!--Caroussel Component-->
         <div id="carouselExampleIndicators{{ loop.index }}" class="carousel slide" data-interval="false" data-ride="carousel">
@@ -55,11 +55,11 @@
           </ol>
           <div class="carousel-inner">
             <div class="carousel-item active">
-              <div class="rounded-square-picture_match nophoto lazy" style="min-height:12rem; width:auto; background-image: url({{user[5]}})"></div>
+              <div class="rounded-square-picture_match nophoto lazy img-petit-format" style="background-image: url({{user[5]}})"></div>
             </div>
             {% for i in user[6] %}
             <div class="carousel-item">
-              <div class="rounded-square-picture_match nophoto lazy" style="min-height:12rem; width:auto; background-image: url({{i[0]}})"></div>
+              <div class="rounded-square-picture_match nophoto lazy img-petit-format" style="background-image: url({{i[0]}})"></div>
             </div>
             {% endfor %}
           </div>
@@ -87,11 +87,23 @@
               </button>
             </div>
             <div class="col-auto">
+              {% if have_favimage == True %}
               <button class="btn btn-light text-pink" onclick="toggle_display_like({{ user[0] }}, {{outer_loop }})">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
                   <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                 </svg>
               </button>
+              {% else %}
+              <div class="col-auto mb-2 dropright">
+                <svg xmlns="http://www.w3.org/2000/svg" class="text-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false" width="25" height="25" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                </svg>
+                <div class="dropdown-menu text-danger bg-red">
+                  <p class="px-3"><small>Complete you're profil to like other profile.</small></p>
+                </div>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -106,7 +118,7 @@
 </div>
 
 <!-- Modal Filtre -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+<div class="modal fade" id="filterModal" style="width:80%;" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
 
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -118,7 +130,8 @@
       </div>
       <div class="modal-body">
         <!-- Filtre Form-->
-        <form method="POST" id="filtre-match-form">
+        <form method="POST" id="filtre-search-form">
+          <input type="hidden" id="targetform" name="targetform" value="match" />
           <!-- Age -->
           <div class="form-check d-inline">
             <input class="form-check-input" type="checkbox" name="ageFiltreCheck" id="ageFiltreCheck">
@@ -178,10 +191,10 @@
       </div>
       <div class="modal-footer">
         <div class="col-auto mr-auto">
-          <p class="no-padding" id="filtre-search-reset">Reset</p>
+          <p class="no-padding clickable" id="filtre-match-reset">Reset</p>
         </div>
         <div class="col-auto">
-          <button type="buton" id="filtre-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
+          <button type="buton" id="filtre-match-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
         </div>
       </div>
     </div>
@@ -189,7 +202,7 @@
 </div>
 
 <!-- Modal Tri -->
-<div class="modal fade" id="triModal" tabindex="-1" aria-labelledby="triModalLabel" aria-hidden="true">
+<div class="modal fade" id="triModal" style="width:80%;" tabindex="-1" aria-labelledby="triModalLabel" aria-hidden="true">
 
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -201,7 +214,8 @@
       </div>
       <div class="modal-body">
         <!-- Tri Form-->
-        <form method="POST" id="tri-match-form">
+        <form method="POST" id="tri-search-form">
+          <input type="hidden" id="targetform" name="targetform" value="match" />
           <!-- Age -->
           <div class="h5 text-deepblue">Sort by: </div>
             <div class="form-check d-inline">
@@ -252,10 +266,10 @@
       </div>
       <div class="modal-footer">
         <div class="col-auto mr-auto">
-          <p class="no-padding" id="tri-search-reset">Reset</p>
+          <p class="no-padding clickable" id="tri-match-reset">Reset</p>
         </div>
         <div class="col-auto">
-          <button type="buton" id="tri-search-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
+          <button type="buton" id="tri-match-btn" class="btn btn-primary" data-dismiss="modal">Validate</button>
         </div>
       </div>
     </div>
@@ -264,6 +278,8 @@
 
 
 <script src="{{url_for('static', filename='js/match.js')}}"></script>  
+<script src="{{url_for('static', filename='js/like.js')}}"></script>  
+
 
 
 {% endblock %}

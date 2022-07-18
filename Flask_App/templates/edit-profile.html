@@ -8,7 +8,13 @@
 
 {% block content %}
 <div class="container">
-
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="notification is-danger">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
     <!--Section Photo-->
     <div class="h2 text-deepblue">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-camera section-icon" viewBox="0 0 16 16">
@@ -24,7 +30,7 @@
         <!--left side-->
         <div class="col" style="max-width:270px;">
             <div class="rounded-square-picture mymedium">
-                {% if image_profil[1] != "" %}
+                {% if image_profil[1] %}
                     <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl" style="background-image: url({{image_profil[1]}})"></div>
                 {% else %}
                     <div class="rounded-square-picture__content nophoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#modal-fullscreen-xl"></div>
@@ -43,14 +49,14 @@
             {% endfor %}
             {% for nombre in range(total_img, 5) %}
             <div class="rounded-square-picture mysmall">
-                <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#photoModal" style="background-image: url({{images_urls['default']}})"></div>
+                <div class="rounded-square-picture__content addphoto" data-test="profile-rounded-square-picture" data-toggle="modal" data-target="#photoModal"></div>
             </div>
             {% endfor %}
             </div>
         </div>
     </row>
     <row class="row justify-content-end" style="max-width: 756px;">
-        <button type="submit" class="btn btn-secondary mb-2 mr-2" data-toggle="modal" data-target="#modal-fullscreen-xl" {{ 'disabled' if total_img==0}}>Edit</button>
+        <button type="submit" class="btn btn-secondary mb-2 mr-2" data-toggle="modal" data-target="#modal-fullscreen-xl" {{ 'disabled' if total_img==0 or image_profil ==[] }}>Edit</button>
         <button type="button" class="btn btn-primary mb-2 {{ 'd-none' if total_img >= 5 }}" {{ 'disabled' if total_img >= 5 }} data-toggle="modal" data-target="#photoModal">
             Add
         </button>
@@ -72,7 +78,7 @@
     <div class="row justify-content-between">
         <div class="col">
                 <div class="reflist-content">
-                    <div class="reflist-field" id="bio">{{ bio }}</div>
+                    <div class="reflist-field" id="bio">{{ bio if bio else "No bio yet"}}</div>
                 </div>
         </div>
         <div class="col align-self-center" style="display:flex;">
@@ -167,7 +173,7 @@
                     An error occur.
                 </div>
                 <div class="modal-body d-flex justify-content-center">
-                    {% if total_img > 0 %}
+                    {% if total_img > 0  and image_profil != []%}
                     <!-- Caroussel Modal -->
                     <div id="carouselExampleIndicators" class="carousel slide" data-interval="false" data-ride="carousel">
                         <ol class="carousel-indicators">
@@ -284,10 +290,10 @@
         <div class="modal-body">
           <form id="bio-form" method="POST">
             <div class="form-group">
-                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100">{{ bio }}</textarea>
+                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100">{{ bio if bio }}</textarea>
                 <div class="row">
                     <div class="col">
-                        <div class="counter" id="counter">{{ bio|length }}/100</div>
+                        <div class="counter" id="counter">{{ bio|length if bio else "0"}}/100</div>
                     </div>
                     <div class="col">
                         <button type="button" class="btn btn-secondary mb-2 mt-2" data-dismiss="modal">Cancel</button>
@@ -316,7 +322,7 @@
             <form method="POST" id="interest-form">
               <div class="form-group">
                 <div class="input-group mb-3">
-                    <input type="text" class="live-search-box form-control" placeholder="search here" />
+                    <input type="text" class="live-search-box form-control" placeholder="search here"/>
                 </div>
                     <ul class="live-search-list list-inline" type="None">
                     {% for i in full_interest %}
@@ -329,12 +335,15 @@
                     {% endfor %}
                     </ul>    
               </div>
+              <div class="center">
+                <button type="submit" class="btn btn-primary center" id="interest-btn" data-dismiss="modal">Save change</button>
+              </div>
               <div class="form-group">
                 Can't find what you're searching ? </br><small class="form-text text-muted"> Add a new hashtag here : </small>
                 <input class="form-control" type="text" name="newhash" placeholder="Your Hashtag" autofocus="">
               </div>
               <div class="center">
-                <button type="submit" class="btn btn-primary center" id="interest-btn" data-dismiss="modal">Save change</button>
+                <button type="submit" class="btn btn-primary center" id="newhash-btn" data-dismiss="modal"> Add new</button>
               </div>
             </form>
     
@@ -432,6 +441,7 @@
                 if (data == 'OK') {
                     document.getElementById("upload-error").style.display = "none";
                     $('#photoModal').modal('hide');
+                    location.reload();
                 }
                 else {
                     document.getElementById("upload-error").style.display = "block";
@@ -535,6 +545,49 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
             charCounter(document.getElementById("exampleFormControlTextarea1"));
         });
     });
+
+    
+    // Hashtags Gesture
+    $(function() {
+    $('#newhash-btn').click(function(e) {
+        e.preventDefault();
+        var form_data = new FormData($('#interest-form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/addhashtag',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                if (data == 'KO') {
+                    document.getElementById("interest-error").style.display = "block";
+                }
+                else {
+                    document.getElementById("interest-error").style.display = "none";
+                    for (var item in data)
+                    {
+                        var li = document.createElement("li");
+                        li.innerHTML = "#" + data[item][1];
+                        li.classList.add("list-inline-item");
+                        li.classList.add("dealbreaker");
+                        li.id=data[item][0]+"int";
+                        var sup = document.createElement("sup");
+                        sup.classList.add("del-button");
+                        sup.classList.add("ml-2");
+                        sup.innerHTML = "X";
+                        sup.id = data[item][0]+"del";
+                        sup.onclick = function() { 
+                            delhashtag(this.id);
+                         };
+                        li.appendChild(sup);
+                        document.getElementById("hashtagList").appendChild(li);
+                    }
+                }
+            },
+        });
+    });
+});
 
     // Hashtags Gesture
     $(function() {

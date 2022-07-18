@@ -287,21 +287,22 @@ function add_match_like(user_id) {
 //Tri Ajax Gesture
 $(function() {
   $('#tri-match-btn').click(function(e) {
-      e.preventDefault();
-      var form_data = new FormData($('#tri-match-form')[0]);
+      //e.preventDefault();
+      var form_data = new FormData($('#tri-search-form')[0]);
       $.ajax({
           type: 'POST',
-          url: '/trimatch',
+          url: '/trisearch',
           data: form_data,
           contentType: false,
           cache: false,
           processData: false,
           success: function(data) {
-              if (data == 'KO') {
+              if (data.error == 1) {
                 console.log("Tri KO");
               }
               else {
                 console.log("c'est trié Match");
+                location = '/match';
               } //End else
           },
       });
@@ -311,11 +312,11 @@ $(function() {
 //Tri Ajax Gesture
 $(function() {
   $('#filtre-match-btn').click(function(e) {
-      e.preventDefault();
-      var form_data = new FormData($('#filtre-match-form')[0]);
+      //e.preventDefault();
+      var form_data = new FormData($('#filtre-search-form')[0]);
       $.ajax({
           type: 'POST',
-          url: '/filtrematch',
+          url: '/filtresearch',
           data: form_data,
           contentType: false,
           cache: false,
@@ -326,8 +327,58 @@ $(function() {
               }
               else {
                 console.log("c'est trié Match");
-
+                location = '/match';
               } //End else
+          },
+      });
+  });
+});
+
+//Filtre Reset Ajax gesture
+$(function() {
+  $('#filtre-match-reset').click(function(e) {
+      //e.preventDefault();
+      $.ajax({
+          type: 'POST',
+          url: '/filtreresetmatch',
+          data: 0,
+          contentType: false,
+          cache: false,
+          processData: false,
+          success: function(data) {
+              if (data == "KO") {
+                console.log("RESET filtre SEARCH KO");
+              }
+              else {
+                console.log("RESET filtre search OK")
+                /* Reset UI */
+                location = '/match';
+              }
+          },
+      });
+  });
+});
+
+//Tri Reset Ajax gesture
+$(function() {
+  $('#tri-match-reset').click(function(e) {
+      //e.preventDefault();
+      $.ajax({
+          type: 'POST',
+          url: '/triresetsearch',
+          data: 0,
+          contentType: false,
+          cache: false,
+          processData: false,
+          success: function(data) {
+              if (data == "KO") {
+                console.log("RESET Tri SEARCH KO");
+              }
+              else {
+                console.log("RESET Tri search OK")
+                /* Reset UI */
+                location = '/match';
+              }
           },
       });
   });
