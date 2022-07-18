@@ -56,7 +56,7 @@
         </div>
     </row>
     <row class="row justify-content-end" style="max-width: 756px;">
-        <button type="submit" class="btn btn-secondary mb-2 mr-2" data-toggle="modal" data-target="#modal-fullscreen-xl" {{ 'disabled' if total_img==0}}>Edit</button>
+        <button type="submit" class="btn btn-secondary mb-2 mr-2" data-toggle="modal" data-target="#modal-fullscreen-xl" {{ 'disabled' if total_img==0 or image_profil ==[] }}>Edit</button>
         <button type="button" class="btn btn-primary mb-2 {{ 'd-none' if total_img >= 5 }}" {{ 'disabled' if total_img >= 5 }} data-toggle="modal" data-target="#photoModal">
             Add
         </button>
@@ -78,7 +78,7 @@
     <div class="row justify-content-between">
         <div class="col">
                 <div class="reflist-content">
-                    <div class="reflist-field" id="bio">{{ bio }}</div>
+                    <div class="reflist-field" id="bio">{{ bio if bio else "No bio yet"}}</div>
                 </div>
         </div>
         <div class="col align-self-center" style="display:flex;">
@@ -290,10 +290,10 @@
         <div class="modal-body">
           <form id="bio-form" method="POST">
             <div class="form-group">
-                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100">{{ bio if bio != 'None' }}</textarea>
+                <textarea class="form-control" name="newBio" id="exampleFormControlTextarea1" rows="3" maxlength="100">{{ bio if bio }}</textarea>
                 <div class="row">
                     <div class="col">
-                        <div class="counter" id="counter">{{ bio|length }}/100</div>
+                        <div class="counter" id="counter">{{ bio|length if bio else "0"}}/100</div>
                     </div>
                     <div class="col">
                         <button type="button" class="btn btn-secondary mb-2 mt-2" data-dismiss="modal">Cancel</button>

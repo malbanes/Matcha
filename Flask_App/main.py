@@ -148,11 +148,10 @@ def showprofile(username):
         like_message = ""
     cur.execute("SELECT image_profil_id FROM profil WHERE user_id =%(id)s LIMIT 1;", {'id': current_user.id})
     is_have_favimage = cur.fetchone()
-    if is_have_favimage and is_have_favimage[0] > 0 : 
+    if is_have_favimage and is_have_favimage[0] : 
         have_favimage = True
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': user_id})
     image_profil = cur.fetchone()
-    print(image_profil)
     if image_profil:
         fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
         fav_image.append(image_profil[0])
@@ -537,7 +536,10 @@ def editprofile():
 
     cur.execute("SELECT bio, genre_id, orientation_id FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     i_am = cur.fetchone()
-    i_am_bio = str(i_am[0])
+    if i_am[0] :
+        i_am_bio = str(i_am[0])
+    else :
+        i_am_bio = ""
     i_am_genre = GENRE[i_am[1]]
     i_am_orientation = ORIENTATION[i_am[2]]
     print(i_am)
@@ -577,8 +579,12 @@ def upldfile():
             return "Please select a file"
         if file1 :
             file1.filename = secure_filename(file1.filename)
-            extensiontab = ToLowercase(file.filename.split('.')
-            if extension[1] != "png" or extension[1] != "jpeg" or extension[1] != "jpg" or len(extensiontab) > 2) :
+            extensiontab = file1.filename.split('.')
+            extension = extensiontab[1].lower()
+            print(extension)
+            print(len(extensiontab))
+            if extension != "png" and extension != "jpeg" and extension != "jpg" or len(extensiontab) > 2:
+                print("file invalid")
                 return "File invalid"
             path = str(current_user.email) + str(current_user.id)
             output, file_path = upload_file_to_s3(file1, app.config["S3_BUCKET"], path)
@@ -701,12 +707,12 @@ def addhashtag():
             conn = get_db_connection()
             cur = conn.cursor()
             #check if newtag existe insensible a la casse ToLowercase(newhash) existe en bdd (TolowerCase(hashtag))
-            cur.execute("SELECT COUNT(id) FROM \"Interest\" WHERE hashtag=%(hash)s", {'hash': TolowerCase(newhash)})
+            cur.execute("SELECT COUNT(id) FROM \"Interest\" WHERE hashtag=%(hash)s", {'hash': newhash.lower()})
             is_exist = cur.fetchone()[0]
             if is_exist == 0:
-                cur.execute("INSERT INTO \"Interest\" (hashtag) VALUES (%(hash)s) ", {'hash': TolowerCase(newhash)})
+                cur.execute("INSERT INTO \"Interest\" (hashtag) VALUES (%(hash)s) ", {'hash': newhash.lower()})
                 conn.commit()
-            cur.execute("SELECT id, hashtag FROM \"Interest\" WHERE hashtag=%(hash)s LIMIT 1", {'hash': TolowerCase(newhash)})
+            cur.execute("SELECT id, hashtag FROM \"Interest\" WHERE hashtag=%(hash)s LIMIT 1", {'hash': newhash.lower()})
             existing_elem = cur.fetchone()
             cur.execute("SELECT COUNT(id) FROM \"ProfilInterest\" WHERE user_id=%(uid)s AND interest_id=%(int)s", {'uid': current_user.id, 'int': existing_elem[0] })
             is_exist = cur.fetchone()[0]
@@ -861,6 +867,10 @@ def account():
         is_like = cur.fetchone()[0]
         views_list.append([visite_profil[0], visite_profil[1], user_age, visite_profil[3], is_like, user_image])
     
+    #get now date
+    now = datetime.now()
+    nowstr = str(now.strftime("%Y-%m-%d"))
+
     if request.method=='GET':
         if current_user.confirmed is False:
             flash('Please confirm your account!', 'warning')
@@ -869,7 +879,7 @@ def account():
             onglet = request.args.get('onglet')
         if request.args.get('section') != None :
             section = request.args.get('section')
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list,likes_list=likes_list, views_list=views_list, is_bio=is_bio, birthdate=birthdate)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, onglet=onglet, section=section, blocked_list=blocked_list,likes_list=likes_list, views_list=views_list, is_bio=is_bio, birthdate=birthdate, now=nowstr)
     else:
         if 'deletemyaccount' in request.form:
             officialdelete = request.form.get('deletemyaccount')
@@ -984,8 +994,7 @@ def account():
             print("No modal implemented")
         cur.close()
         conn.close()
-
-        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list,likes_list=likes_list, views_list=views_list, is_bio=is_bio, birthdate=birthdate)
+        return render_template('account.html', username=username, email=email, firstname=firstname, lastname=lastname, localisation=localisation, image_profil=image_profil_path, section=section, onglet=onglet, blocked_list=blocked_list,likes_list=likes_list, views_list=views_list, is_bio=is_bio, birthdate=birthdate, now=nowstr)
 
 
 # match page that return 'match'
