@@ -1024,7 +1024,9 @@ def match(page=1):
         # Get number of pages
         cur.execute("SELECT COUNT(id) FROM match WHERE user_id='{0}' AND is_pass=false AND is_filter=false AND match_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
         total_users = cur.fetchone()[0]
-        if total_users == 0:   
+        cur.execute("SELECT COUNT(id) FROM match WHERE user_id='{0}' AND match_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
+        is_match_exist = cur.fetchone()[0]
+        if is_match_exist == 0:   
             cur.execute("SELECT orientation_id, location_id, age, score FROM profil WHERE user_id = %(id)s LIMIT 1", {'id':current_user.id})
             user_details = cur.fetchone()
             cur.execute("SELECT latitude, longitude, city FROM location WHERE id = %(id)s LIMIT 1", {'id':user_details[1]})
@@ -1032,7 +1034,6 @@ def match(page=1):
             cur.execute("SELECT count(id) FROM \"ProfilInterest\" WHERE user_id = %(id)s LIMIT 1", {'id':current_user.id})
             interest_num = cur.fetchone()[0]
             matching_calculation(user_details[0], user_loc[1], user_loc[0], user_loc[2], interest_num, age(user_details[2]), user_details[3])
-        
         cur.execute("SELECT match_id, match.score FROM match INNER JOIN profil p on match.match_id=p.user_id AND match.user_id='{0}' AND is_filter=false AND is_pass=false AND match_id NOT IN ({1}) ORDER BY position, match.score desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET_MATCH, offset))
         profil_list = cur.fetchall()
 
@@ -1329,12 +1330,7 @@ def filtresearch():
             existing_list.append(cur.fetchone()[0])
         filtre.append(["hashtag", existing_list])
     nbr_hashtag = len(existing_list)
-    # Check if at least 1 filter is selected
-    if (len(filtre) == 0):
-        return {
-            'all_users': [],
-            'error' : 1
-        }
+
     # Construct request by checked filtre
     data = {'id': current_user.id}
     for elem in filtre:
@@ -1388,7 +1384,20 @@ def filtresearch():
                     break
             if len(hashtag_match) == 0:
                 # Return render - Aucuns match retourne 0 users
-                print("ERROR: No user to match interest")
+                if request.form.get('targetform') == "search":
+                    upd_search_qwery = "UPDATE search SET is_filter=True WHERE user_id=%(id)s" 
+                    upd_data = {'id': current_user.id}
+                    cur.execute(upd_search_qwery, upd_data)
+                    conn.commit()
+                elif request.form.get('targetform') == "match":
+                    upd_search_qwery = "UPDATE match SET is_filter=True WHERE user_id=%(id)s" 
+                    upd_data = {'id': current_user.id}
+                    cur.execute(upd_search_qwery, upd_data)
+                    conn.commit()
+                cur.close()
+                conn.close()
+                print("-------------------------")
+                print(elem[1])
                 return {
                     'all_users': [],
                     'error' : 0
@@ -1442,7 +1451,8 @@ def filtresearch():
         filtre_list_str = str(current_user.id)
     total_user = len(filtre_profil_list)
 
-
+    print("Filtre list STR --------")
+    print(filtre_list_str)
     if request.form.get('targetform') == "search":
         upd_search_qwery = "UPDATE search SET is_filter=True WHERE user_id=%(id)s AND list_id NOT IN ("+ filtre_list_str +") " 
         upd_data = {'id': current_user.id}
@@ -1457,7 +1467,7 @@ def filtresearch():
         upd_data = {'id': current_user.id}
         cur.execute(upd_search_qwery, upd_data)
         conn.commit()
-        upd_search_qwery = "UPDATE search SET is_filter=False WHERE user_id=%(id)s AND list_id IN ("+ filtre_list_str +") " 
+        upd_search_qwery = "UPDATE match SET is_filter=False WHERE user_id=%(id)s AND match_id IN ("+ filtre_list_str +") " 
         cur.execute(upd_search_qwery, upd_data)
         conn.commit()
         select_stmt = select_stmt + " LIMIT 3;"
@@ -1598,7 +1608,9 @@ def search(page=1):
         # Get number of pages
         cur.execute("SELECT COUNT(id) FROM search WHERE user_id='{0}' AND is_filter=false AND list_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
         total_users = cur.fetchone()[0]
-        if total_users > 0:       
+        cur.execute("SELECT COUNT(id) FROM match WHERE user_id='{0}' AND match_id NOT IN ({1}) ;".format(current_user.id, blocked_list))
+        is_match_exist = cur.fetchone()[0]
+        if is_match_exist > 0:  
             cur.execute("SELECT list_id FROM search INNER JOIN profil p on search.list_id=p.user_id AND search.user_id='{0}' AND is_filter=false AND list_id NOT IN ({1}) ORDER BY position, p.last_log desc LIMIT '{2}' OFFSET '{3}';".format(current_user.id, blocked_list, OFFSET, offset))
             profil_list = cur.fetchall()
             is_search = True
