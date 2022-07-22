@@ -20,6 +20,7 @@ def create_app():
     # creates the Flask instance, __name__ is the name of the current Python module
     app.config['SECRET_KEY'] = 'secret-key-goes-here'
 
+    app.config['SESSION_COOKIE_SAMESITE'] = "Lax"
     # mail settings
     app.config['MAIL_SERVER'] = 'smtp.mail.yahoo.com'
     app.config['MAIL_PORT'] = 465
