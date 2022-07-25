@@ -8,7 +8,7 @@ create table visites
 );
 
 alter table visites
-    owner to agu;
+    owner to sammy;
 
 grant select, usage on sequence visites_id_seq to sammy;
 

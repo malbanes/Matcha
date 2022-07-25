@@ -10,7 +10,7 @@ create table location
 );
 
 alter table location
-    owner to agu;
+    owner to sammy;
 
 grant select, usage on sequence location_id_seq to sammy;
 

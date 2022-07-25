@@ -8,7 +8,7 @@ create table likes
 );
 
 alter table likes
-    owner to agu;
+    owner to sammy;
 
 grant select, usage on sequence likes_id_seq to sammy;
 
@@ -16,4 +16,3 @@ create unique index likes_id_uindex
     on likes (id);
 
 grant delete, insert, references, select, trigger, truncate, update on likes to sammy;
-

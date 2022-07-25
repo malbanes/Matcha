@@ -9,7 +9,7 @@ create table search
 );
 
 alter table search
-    owner to agu;
+    owner to sammy;
 
 grant select, usage on sequence search_id_seq to sammy;
 

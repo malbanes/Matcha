@@ -12,10 +12,9 @@ create table match
 );
 
 alter table match
-    owner to agu;
+    owner to sammy;
 
 grant usage on sequence match_id_seq to sammy;
 
 create unique index match_id_uindex
     on match (id);
-

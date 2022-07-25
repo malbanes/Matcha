@@ -21,7 +21,7 @@ create table profil
 );
 
 alter table profil
-    owner to agu;
+    owner to sammy;
 
 grant select, usage on sequence profil_id_seq to sammy;
 

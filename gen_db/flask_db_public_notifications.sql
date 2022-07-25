@@ -11,7 +11,7 @@ create table notifications
 );
 
 alter table notifications
-    owner to agu;
+    owner to sammy;
 
 grant select, usage on sequence notifications_id_seq to sammy;
 

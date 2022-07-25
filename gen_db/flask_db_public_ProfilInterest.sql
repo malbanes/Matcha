@@ -12,7 +12,7 @@ create table "ProfilInterest"
 );
 
 alter table "ProfilInterest"
-    owner to agu;
+    owner to sammy;
 
 grant select, usage on sequence "ProfilInterest_id_seq" to sammy;
 

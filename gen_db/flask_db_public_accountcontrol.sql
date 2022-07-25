@@ -14,7 +14,7 @@ create table accountcontrol
 );
 
 alter table accountcontrol
-    owner to agu;
+    owner to sammy;
 
 grant select, update, usage on sequence accountcontrol_id_seq to sammy;
 

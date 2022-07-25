@@ -9,10 +9,9 @@ create table messages
 );
 
 alter table messages
-    owner to agu;
+    owner to sammy;
 
 create unique index messages_id_uindex
     on messages (id);
 
 grant delete, insert, references, select, trigger, truncate, update on messages to sammy;
-
