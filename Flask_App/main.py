@@ -51,7 +51,9 @@ app = create_app()
 async_mode = None
 
 #Objet Flask, asynchrone_Créer un objet serveur SocketIO en spécifiant le mode
-socketio = SocketIO(app, async_mode=async_mode)
+#socketio = SocketIO(app, async_mode=async_mode)
+socketio = SocketIO(app)
+
 thread = None
 thread_lock = Lock()
 
@@ -785,6 +787,8 @@ def account():
     firstname = current_user.firstname
     lastname = current_user.lastname
     birthdate = profil[5]
+    if birthdate == None:
+        birthdate = ""
     cur.execute("SELECT bio FROM profil WHERE user_id=%(id)s LIMIT 1", {'id': current_user.id})
     bio = cur.fetchone()[0]
     is_bio = 0
@@ -966,20 +970,23 @@ def account():
                     flash('password updated', 'success')
         elif 'email' in request.form:
             email1 = request.form.get('email')
-            cur.execute("SELECT * FROM users WHERE email=%(email)s", {'email': email1})
-            email_check = cur.fetchall()
             email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-            if email1 != "" and email_check == [] and re.fullmatch(email_regex, email):
-                #cur.execute("UPDATE users SET email = '{0}', confirmed = false WHERE id='{1}';".format(email1,current_user.id))
-                cur.execute("UPDATE users SET email = %(email)s,  confirmed = false WHERE id=%(id)s", {'email':email1, 'id': current_user.id})
-                conn.commit()
-                token = generate_confirmation_token(email1)
-                confirm_url = url_for('auth.confirm_email', token=token, _external=True)
-                html = render_template('activate.html', confirm_url=confirm_url)
-                subject = "Please confirm your email"
-                send_email(email1, subject, html)
-                flash('A confirmation email has been sent via email.', 'success')
-                email = email1
+            if email1 != "" and re.fullmatch(email_regex, email1):
+                cur.execute("SELECT * FROM users WHERE email=%(email)s", {'email': email1})
+                email_check = cur.fetchall()
+                if email_check == []:
+                    #cur.execute("UPDATE users SET email = '{0}', confirmed = false WHERE id='{1}';".format(email1,current_user.id))
+                    cur.execute("UPDATE users SET email = %(email)s,  confirmed = false WHERE id=%(id)s", {'email':email1, 'id': current_user.id})
+                    conn.commit()
+                    token = generate_confirmation_token(email1)
+                    confirm_url = url_for('auth.confirm_email', token=token, _external=True)
+                    html = render_template('activate.html', confirm_url=confirm_url)
+                    subject = "Please confirm your email"
+                    send_email(email1, subject, html)
+                    flash('A confirmation email has been sent via email.', 'success')
+                    email = email1
+                else:
+                    flash('Email structure not valid or email address already exists')
             else:
                 flash('Email structure not valid or email address already exists')
         cur.close()
@@ -1343,22 +1350,25 @@ def filtresearch():
             age_qwery = "AND p.age BETWEEN %(amax)s and %(amin)s "
         # Prepare location qwery
         elif elem[0] == "city":
-             locRange = request.form.get('locRange')
-             get_long, get_lat, city_name = localize_text(elem[1])
-             cur.execute("SELECT user_id, location_id FROM profil")
-             profil_list_id = cur.fetchall()
-             for i in profil_list_id:
-                 if i[0] != current_user.id:
-                     cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
-                     coordinates_others = cur.fetchone()
-                     off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
-                     if off_distance <= float(locRange):
-                         final_profil_list_id.append(i)
-             #Ensuite, tu la formate pour rentrer dans une requete sql :
-             final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
-             if final_profil_list_id_str:
-                 #On rajoute l'élément à la requete en préparation:
-                 loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
+            locRange = request.form.get('locRange')
+            get_long, get_lat, city_name = localize_text(elem[1])
+            cur.execute("SELECT user_id, location_id FROM profil")
+            profil_list_id = cur.fetchall()
+            for i in profil_list_id:
+                if i[0] != current_user.id:
+                    cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
+                    coordinates_others = cur.fetchone()
+                    off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
+                    print(str(i) + ", " + str(off_distance))
+                    print(float(locRange))
+                    if off_distance <= float(locRange) * 1000:
+                        print(i)
+                        final_profil_list_id.append(i)
+            #Ensuite, tu la formate pour rentrer dans une requete sql :
+            final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
+            if final_profil_list_id_str:
+                #On rajoute l'élément à la requete en préparation:
+                loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
         # Prepare score qwery
         elif elem[0] == "score":
             scoreMinSearch = int(elem[1])
@@ -1691,7 +1701,9 @@ def search(page=1):
                         cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
                         coordinates_others = cur.fetchone()
                         off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
-                        if off_distance <= float(locRangeSearch):
+                        print(str(i) + ", " + str(off_distance))
+                        print(float(locRangeSearch))
+                        if off_distance <= float(locRangeSearch) * 1000:
                             final_profil_list_id.append(i)
                 #Ensuite, tu la formate pour rentrer dans une requete sql :
                 final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
@@ -1941,4 +1953,5 @@ mail = Mail(app)
 if __name__ == '__main__':
     ##db.create_all(app=create_app())
     ##app.run(debug=True)
+
     socketio.run(app, debug=True)

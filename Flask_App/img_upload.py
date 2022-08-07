@@ -11,8 +11,8 @@ def upload_file_to_s3(file, bucket_name, path):
        aws_secret_access_key=current_app.config['S3_SECRET']
     )
     path = hashlib.sha256(str(path).encode('utf-8')).hexdigest()
-    print(path)
-    print(bucket_name)
+    #print(path)
+    #print(bucket_name)
     file.filename = str(path) + "/" + file.filename
     try:
         s3.upload_fileobj(

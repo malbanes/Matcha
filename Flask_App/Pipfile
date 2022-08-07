@@ -18,8 +18,8 @@ requests = "*"
 geopy = "*"
 passlib = "*"
 boto3 = "*"
-python-dotenv = "*"
 bcrypt = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

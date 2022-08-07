@@ -63,23 +63,11 @@ def login():
         lact_co_date = cur.fetchone()[0]
         cur.execute("SELECT COUNT(DISTINCT receiver_id) from messages WHERE sender_id=%(id)s", {'id': current_user.id})
         match_num = int(cur.fetchone()[0])
-        print(former_score)
-        print(image_num)
-        print(likes_num)
-        print(tag_num)
-        print(block_num)
-        print(report_num)
-        print(lact_co_date)
-        print(match_num)
         updated_score = scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, report_num, lact_co_date, match_num)
-        print(updated_score)
         cur.execute("UPDATE profil SET score = %(score)s WHERE user_id=%(id)s", {'score': updated_score, 'id': current_user.id})
         conn.commit()
         cur.close()
         conn.close()
-        print("hello")
-        print(current_user.name)
-        print(dir(current_user))
         return redirect(url_for('main.profile'))
 
 
@@ -161,7 +149,7 @@ def confirm_email(token):
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': email})
     user = cur.fetchone()
-    print(user)
+    #print(user)
     if user[7] == True:
         flash('Account confirmed. Please login.', 'success')
     else:
@@ -228,9 +216,7 @@ def reset_page():
 @auth.route('/reset_password/<token>', methods=['GET','POST'])
 def reset_password(token):
     email = confirm_email_token(token)
-    if email != False:
-        print(email)
-    else:
+    if email == False:
         flash('The reset link is invalid or has expired.', 'danger')
         return redirect(url_for('auth.login'))
     if current_user.is_authenticated:

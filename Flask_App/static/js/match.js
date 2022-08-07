@@ -260,7 +260,7 @@ function pass_match(user_id) {
                 //console.log('Une erreur est survenue');
               }
               else {
-                  console.log("Match is passed");
+                  //console.log("Match is passed");
               }
           },
       });

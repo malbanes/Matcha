@@ -18,5 +18,5 @@ def age(birthdate):
 def age_period(y):
 # minus number of year
     currentTimeDate = (datetime.today()-relativedelta(years=int(y))).strftime("%Y-%m-%d")
-    print(currentTimeDate)
+    #print(currentTimeDate)
     return(currentTimeDate)

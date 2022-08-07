@@ -3,6 +3,9 @@ from flask_login import LoginManager
 import os
 import psycopg2
 from models import User
+from dotenv import load_dotenv, find_dotenv
+
+
 
 #import for time filter
 from datetime import datetime
@@ -11,12 +14,13 @@ from datetime import datetime
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
                             database='flask_db',
-                            user=os.environ['DB_USERNAME'],
-                            password=os.environ['DB_PASSWORD'])
+                            user=os.getenv('DB_USERNAME'),
+                            password=os.getenv('DB_PASSWORD'))
     return conn
 
 def create_app():
-    app = Flask(__name__) 
+    app = Flask(__name__)
+    load_dotenv(find_dotenv())
     # creates the Flask instance, __name__ is the name of the current Python module
     app.config['SECRET_KEY'] = 'secret-key-goes-here'
 
@@ -28,13 +32,13 @@ def create_app():
     app.config['MAIL_USE_SSL'] = True
 
     # gmail authentication
-    app.config['MAIL_USERNAME'] = ""
-    app.config['MAIL_PASSWORD'] = ""
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
     # S3 upload
-    app.config['S3_BUCKET'] = ""
-    app.config['S3_KEY'] = ""
-    app.config['S3_SECRET'] = ""
+    app.config['S3_BUCKET'] = os.getenv('S3_BUCKET')
+    app.config['S3_KEY'] = os.getenv('S3_KEY')
+    app.config['S3_SECRET'] = os.getenv('S3_SECRET')
     app.config['S3_LOCATION'] = 'http://{}.s3.amazonaws.com/'.format(app.config['S3_BUCKET'])
 
     # The login manager contains the code that lets your application and Flask-Login work together

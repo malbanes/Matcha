@@ -39,7 +39,7 @@ def scoring_calculation(former_score, image_num, likes_num, tag_num, block_num, 
         date_buffer = datetime.now() - timedelta(days=7)
         if (date_buffer.date() < lact_co_date) == True:
             updated_score = updated_score + 50
-            print("recent")
+            #print("recent")
         else:
             updated_score = updated_score - 50
     except:
@@ -106,7 +106,7 @@ def matching_calculation(orientation, long, lat, city, interest_num, birthdate, 
 
         user_score = user_score / 2
         if user_score > 25:
-            print("LETS GO INERT USER INTO MATCHING LIST")
+            #print("LETS GO INERT USER INTO MATCHING LIST")
             cur.execute("INSERT INTO match (user_id, match_id, score) VALUES (%(user_id)s, %(match_id)s, %(score)s)", {'user_id': current_user.id, 'match_id': user[1], 'score': int(user_score)})
             conn.commit()
         user_score = 0

@@ -17,9 +17,9 @@ if [[ $? != 0 ]] ; then
     psql -s flask_db -c "GRANT ALL PRIVILEGES ON DATABASE flask_db TO sammy;"
     python3 init_db.py
     echo "END"
-    pipenv shell
     pipenv install
-    python3 main.py
+    echo "RUN pipenv shell"
+    echo "RUN python3 main.py"
 else
     echo "Updating Homebrew"
     brew update
@@ -39,8 +39,8 @@ else
     psql -s flask_db -c "GRANT ALL PRIVILEGES ON DATABASE flask_db TO sammy;"
     python3 init_db.py
     echo "END"
-    pipenv shell
     pipenv install
-    python3 main.py
+    echo "RUN pipenv shell"
+    echo "RUN python3 main.py"
 fi
 
