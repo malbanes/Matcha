@@ -41,6 +41,8 @@ def create_app():
     app.config['S3_SECRET'] = os.getenv('S3_SECRET')
     app.config['S3_LOCATION'] = 'http://{}.s3.amazonaws.com/'.format(app.config['S3_BUCKET'])
 
+    app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 # 500 Kb limit
+
     # The login manager contains the code that lets your application and Flask-Login work together
     login_manager = LoginManager() 
     # Create a Login Manager instance

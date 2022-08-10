@@ -26,7 +26,9 @@ from password_checker import password_check
 from img_upload import upload_file_to_s3, create_presigned_url
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
+from werkzeug.exceptions import RequestEntityTooLarge
 
+from PIL import Image
 import re
 
 GENRE = ["Non-binaire", "Men", "Women"]
@@ -567,13 +569,31 @@ def editprofile():
 @check_confirmed
 def upldfile():
     if request.method == 'POST':
+        #Chech upload size
+        try:
+            # start request parsing
+            file1 = request.files['file']
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "Too big"
         if 'file' not in request.files:
-            flash('There is no file')
-            return ("KO")
-        file1 = request.files['file']
+            return "Please select a file"
         if file1.filename == "":
             return "Please select a file"
         if file1 :
+            #chech if file is an image
+            try:
+                img = Image.open(file1)
+            except Image.UnidentifiedImageError:
+                return "KO"
+            # produces a PIL Image object
+            size = img.size
+            imageWidth = size[0]
+            imageHeigth = size[1]
+            img.close()
+            file1.seek(0)
+            if imageWidth < 120 or imageHeigth < 120: #taille en px éliminé les fausses images ou trop petites
+                return "File invalid"
             file1.filename = secure_filename(file1.filename)
             extensiontab = file1.filename.split('.')
             extension = extensiontab[1].lower()
