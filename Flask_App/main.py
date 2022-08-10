@@ -1371,7 +1371,7 @@ def filtresearch():
         # Prepare location qwery
         elif elem[0] == "city":
             locRange = request.form.get('locRange')
-            get_long, get_lat, city_name = localize_text(elem[1])
+            get_lat, get_long, city_name = localize_text(elem[1])
             cur.execute("SELECT user_id, location_id FROM profil")
             profil_list_id = cur.fetchall()
             for i in profil_list_id:
@@ -1379,10 +1379,7 @@ def filtresearch():
                     cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
                     coordinates_others = cur.fetchone()
                     off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
-                    print(str(i) + ", " + str(off_distance))
-                    print(float(locRange))
-                    if off_distance <= float(locRange) * 1000:
-                        print(i)
+                    if off_distance <= float(locRange):
                         final_profil_list_id.append(i)
             #Ensuite, tu la formate pour rentrer dans une requete sql :
             final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
@@ -1426,8 +1423,6 @@ def filtresearch():
                     conn.commit()
                 cur.close()
                 conn.close()
-                print("-------------------------")
-                print(elem[1])
                 return {
                     'all_users': [],
                     'error' : 0
@@ -1481,8 +1476,8 @@ def filtresearch():
         filtre_list_str = str(current_user.id)
     total_user = len(filtre_profil_list)
 
-    print("Filtre list STR --------")
-    print(filtre_list_str)
+    #print("Filtre list STR --------")
+    #print(filtre_list_str)
     if request.form.get('targetform') == "search":
         upd_search_qwery = "UPDATE search SET is_filter=True WHERE user_id=%(id)s AND list_id NOT IN ("+ filtre_list_str +") "
         upd_data = {'id': current_user.id}
@@ -1713,7 +1708,7 @@ def search(page=1):
             #if citySearch != '':
                 #cur.execute("SELECT city from ")
             if citySearch != '':
-                get_long, get_lat, city_name = localize_text(citySearch)
+                get_lat, get_long, city_name = localize_text(citySearch)
                 cur.execute("SELECT user_id, location_id FROM profil")
                 profil_list_id = cur.fetchall()
                 for i in profil_list_id:
@@ -1721,9 +1716,7 @@ def search(page=1):
                         cur.execute("SELECT latitude, longitude FROM location WHERE id =%(id)s LIMIT 1", {'id': i[1]})
                         coordinates_others = cur.fetchone()
                         off_distance = distance(get_lat, get_long, coordinates_others[0], coordinates_others[1])
-                        print(str(i) + ", " + str(off_distance))
-                        print(float(locRangeSearch))
-                        if off_distance <= float(locRangeSearch) * 1000:
+                        if off_distance <= float(locRangeSearch):
                             final_profil_list_id.append(i)
                 #Ensuite, tu la formate pour rentrer dans une requete sql :
                 final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
