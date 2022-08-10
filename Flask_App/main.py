@@ -590,7 +590,6 @@ def upldfile():
             size = img.size
             imageWidth = size[0]
             imageHeigth = size[1]
-            img.close()
             file1.seek(0)
             if imageWidth < 120 or imageHeigth < 120: #taille en px éliminé les fausses images ou trop petites
                 return "File invalid"
@@ -614,6 +613,7 @@ def upldfile():
                 fav_id = cur.fetchone()[0]
                 cur.execute("UPDATE profil SET image_profil_id=%(fav)s WHERE user_id=%(id)s", {'fav': fav_id, 'id': current_user.id})
                 conn.commit()
+            img.close()
             cur.close()
             conn.close()
             return ("OK")
