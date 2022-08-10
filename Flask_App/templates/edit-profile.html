@@ -408,6 +408,9 @@
                 $('#imageResult')
                     .attr('src', e.target.result);
             };
+            if (!input.files[0]) {
+                return;
+            }
             reader.readAsDataURL(input.files[0]);
         }
     }
@@ -424,6 +427,13 @@
     function showFileName( event ) {
       document.getElementById("upload-error").style.display = "none";
       var input = event.srcElement;
+      if (!input) {
+        return;
+      }
+      if (!input.files || !input.files[0]) {
+        return;
+      }
+
       var fileName = input.files[0].name;
       infoArea.textContent = fileName;
     }
@@ -488,7 +498,7 @@ function set_image_profil(img_id) {
             data: {"data":img_id},
             success: function(data) {
                 if (data == 'KO') {
-                    console.log("KO");
+                    data = 'KO';
                 }
                 else {
                     var elements = document.getElementsByClassName('image_fav');
@@ -515,12 +525,12 @@ function delete_image(img_id) {
             data: {"data":img_id},
             success: function(data) {
                 if (data == 'KO') {
-                    console.log("KO");
                     document.getElementById("action-image--error").style.display = "block";                    
                 }
                 else {
+                    //TODO
                     document.getElementById("action-image--error").style.display = "none";                    
-                    console.log(data);
+                    document.location.reload();
                 }
             },
         });
@@ -646,7 +656,7 @@ function delhashtag(hash_id) {
           data: {'data':hash_secure_id},
           success: function(data) {
               if (data == 'KO') {
-                console.log("Erreur delete");
+                  data = "KO";
               }
               else {
                 id = data+"int";
