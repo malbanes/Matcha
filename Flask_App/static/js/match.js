@@ -172,8 +172,6 @@ $( function() {
           var scrollTop = window.pageYOffset;
           lazyloadImages.forEach(function(img) {
               if(img.offsetTop < (window.innerHeight + scrollTop)) {
-                img.src = img.dataset.src;
-                console.log(img.src);
                 img.classList.remove('lazy');
               }
           });

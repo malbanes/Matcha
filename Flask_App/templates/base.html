@@ -254,12 +254,16 @@ function add_notification(receiver, notif_type, content) {
             url: '/readnotification',
             data: {"notif_type":notif_type, "sender_id":username},
             success: function(data) {
+                console.log(data.value);
+                console.log(data.total);
+
                 if (data == 'KO') {
                   //console.log('Une erreur est survenue');
                 }
                 else {
                     //Call notif dynamique
                     notif_counter_id = data.notif_type + "counter"; //"like", "view", "message"
+                    console.log(notif_counter_id);
                     var notif_counter = document.getElementById(notif_counter_id);
                     var global_counter = document.getElementById('globalcounter');
 
@@ -267,15 +271,20 @@ function add_notification(receiver, notif_type, content) {
                         if (data.value > 0) {
                             notif_counter.classList.remove('d-none');
                             notif_counter.innerHTML = data.value;
+                            console.log(data.value);
                             }
                         else {
                             notif_counter.classList.add('d-none');
+                            console.log(notif_counter.innerHTML);
+                            notif_counter.innerHTML = data.value;
                         }
                         if (data.total > 0) {
-                            global_counter.innerHTML = data.total;
+                            global_counter.innerHTML = "0";
+                            console.log(data.total);
                             global_counter.classList.remove('d-none');
                         }
                         else {
+                            global_counter.innerHTML = "0";
                             global_counter.classList.add('d-none');
                         }
                     }

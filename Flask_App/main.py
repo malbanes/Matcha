@@ -946,12 +946,17 @@ def account():
                     flash('You should have more than 17 years old and less than 99')
                 else:
                     cur.execute("UPDATE profil SET age = %(birthdate)s WHERE user_id=%(id)s", {'birthdate': birthdate1, 'id': current_user.id})
+                    conn.commit()
+                    cur.execute("DELETE FROM match WHERE user_id = %(id)s", {'id': current_user.id})
+                    conn.commit()
                     birthdate = birthdate1
             if localisation1 != "":
                 lat, lont, display_loc = localize_text(str(localisation1))
                 today = date.today()
                 if  display_loc != "ERROR - WRONG LOCALISATION":
                     cur.execute("UPDATE location SET latitude = %(lat)s, longitude = %(long)s, date_modif = %(date)s, city = %(city)s WHERE id=%(id)s", {'lat': lat, 'long': lont, 'date': today, 'city': display_loc.strip(),'id': profil[4]})
+                    conn.commit()
+                    cur.execute("DELETE FROM match WHERE user_id = %(id)s", {'id': current_user.id})
                     conn.commit()
                     localisation = display_loc
                 else:

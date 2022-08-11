@@ -170,7 +170,6 @@ $(document).ready(function() {
       
   socket.on('connect', () => {
 
-
     // Automatically connect to all available channel
 
     document.querySelectorAll('.list-group-item').forEach(function(channel){
@@ -179,6 +178,7 @@ $(document).ready(function() {
       channel.onclick = () =>{
         section = "chat"+channel.id;
         read_notification(2, channel.title);
+
         var lastelem = document.getElementsByClassName("current");
         if (lastelem[0]) {
           lastelem[0].classList.add("d-none");
@@ -255,6 +255,7 @@ $(document).ready(function() {
                 else {
                   console.log("OK");
                   socket.emit('send_message', {'message': data.msg, 'date':data.date , 'username': values[0].name });
+                  //TODO: Si existe déjà old ne rien faite. 
                   add_notification(data.receiver_id , 2, 1);
                 }
             },
