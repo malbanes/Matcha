@@ -159,7 +159,6 @@ $( function() {
         imageObserver.observe(image);
       });
     } else {  
-      console.log("Le else");
       var lazyloadThrottleTimeout;
       lazyloadImages = document.querySelectorAll(".lazy");
       
@@ -198,7 +197,6 @@ $( function() {
 function toggle_display_like(i, outter_loop){
   var moveOutWidth = document.body.clientWidth;
   add_match_like(i);
-  console.log(i);
   pass_match(i);
   el = document.getElementById(i);
   if (outter_loop == 3) {
@@ -224,30 +222,6 @@ function toggle_display_pass(i, outter_loop){
 }
 
 //Pass a match
-/*function next_match(user_id) {
-  $.ajax({
-          type: 'POST',
-          url: '/matchnext',
-          data: {"data":user_id},
-          success: function(data) {
-              if (data == "KO") {
-                //console.log('Une erreur est survenue');
-              }
-              else {
-                  console.log("Next match");
-                  var size = data.final_users.length;
-                  for (let index = 0; index < size; ++index) {
-                    var element = data.final_users[index];
-                    var uid = element[0];
-                    // ...use `element`...
-                    // create the next card
-                    }
-              }
-          },
-      });
-  }*/
-
-//Pass a match
 function pass_match(user_id) {
   $.ajax({
           type: 'POST',
@@ -263,7 +237,6 @@ function pass_match(user_id) {
           },
       });
   }
-
 
 //Add like from match
 function add_match_like(user_id) {
@@ -296,10 +269,9 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data.error == 1) {
-                console.log("Tri KO");
+                //console.log("Tri KO");
               }
               else {
-                console.log("c'est trié Match");
                 location = '/match';
               } //End else
           },
@@ -321,10 +293,9 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data == 'KO') {
-                console.log("Tri KO");
+                //console.log("Tri KO");
               }
               else {
-                console.log("c'est trié Match");
                 location = '/match';
               } //End else
           },
@@ -345,10 +316,9 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data == "KO") {
-                console.log("RESET filtre SEARCH KO");
+                //console.log("RESET filtre SEARCH KO");
               }
               else {
-                console.log("RESET filtre search OK")
                 /* Reset UI */
                 location = '/match';
               }
@@ -370,10 +340,9 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data == "KO") {
-                console.log("RESET Tri SEARCH KO");
+                //console.log("RESET Tri SEARCH KO");
               }
               else {
-                console.log("RESET Tri search OK")
                 /* Reset UI */
                 location = '/match';
               }
@@ -403,7 +372,6 @@ $(function() {
             processData: false,
             success: function(data) {
                 if (data.error == 1) {
-                  console.log(" TRIER SEARCH KO");
                   //location.reload();
                 }
                 else {
@@ -446,10 +414,9 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data == "KO") {
-                console.log("RESET Tri SEARCH KO");
+                //console.log("RESET Tri SEARCH KO");
               }
               else {
-                console.log("RESET Tri search OK")
                 /* Reset UI */
                 location = '/search';
               }
@@ -471,10 +438,9 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data == "KO") {
-                console.log("RESET FILTRE SEARCH KO");
+                //console.log("RESET FILTRE SEARCH KO");
               }
               else {
-                console.log("RESET Filtre search OK")
                 /* Reset UI */
                 location = '/search';
               }
@@ -498,11 +464,9 @@ $(function() {
           processData: false,
           success: function(data) {
               if (data.error == 1) {
-                console.log("Filtre SEARCH KO");
                 //location.reload();
               }
               else {
-                console.log("Filtre search OK")
                 /* Reset UI */
                 location = '/search';
                 /*$('#total_user').html(data.user_num + " singles");
@@ -556,7 +520,6 @@ function filtredynamique(page) {
       processData: false,
       success: function(data) {
           if (data == 'KO') {
-            console.log("Filtre SEARCH KO");
             //location.reload();
           }
           else {

@@ -19,7 +19,7 @@ $.ajax({
         data: {"data":user_id},
         success: function(data) {
             if (data == "KO") {
-              console.log('Une erreur est survenue');
+              data="KO";
             }
             else {
                 var like_id = "like_img"+user_id;
@@ -57,7 +57,6 @@ $.ajax({
                 if (data != "Old") {
                     var socket = io();
                     if (data == "Match") {
-                        console.log("This is a match !");
                         socket.emit('new_notif', {'content': "1", 'receiver' : user_id, 'notif_type': 3});
                     }
                     else {
@@ -89,10 +88,9 @@ $.ajax({
         data: {"data":user_id},
         success: function(data) {
             if (data == 'KO') {
-              console.log('Une erreur est survenue');
+              //console.log('Une erreur est survenue');
             }
             else {
-              console.log("user "+data+" Bloqué");
               var blockelem = document.getElementById('blockbtn');
               blockelem.classList.add('d-none');
               var unblockelem = document.getElementById('unblockbtn');
@@ -110,10 +108,9 @@ $.ajax({
         data: {"data":user_id},
         success: function(data) {
             if (data == 'KO') {
-              console.log('Une erreur est survenue');
+              //console.log('Une erreur est survenue');
             }
             else {
-              console.log("user "+data+" Débloqué");
               var unblockelem = document.getElementById('unblockbtn');
               unblockelem.classList.add('d-none');
               var blockelem = document.getElementById('blockbtn');

@@ -145,7 +145,6 @@ $( function() {
     $("#dropdownmessagearrowhide").click(function(event) {
       event.preventDefault();
     var messageViewList = document.getElementById("messagelist");
-    console.log("Clicked");
     var arrowrshow = document.getElementById("dropdownmessage");
     arrowrshow.classList.remove("d-none");
     arrowrshow.classList.add("d-inline");
@@ -155,7 +154,6 @@ $( function() {
   $("#dropdownmessagearrowshow").click(function(event) {
       event.preventDefault();
     var messageViewList = document.getElementById("messagelist");
-    console.log("Clicked");
     var arrowrshow = document.getElementById("dropdownmessage");
     arrowrshow.classList.remove("d-inline");
     arrowrshow.classList.add("d-none");
@@ -241,7 +239,6 @@ $(document).ready(function() {
 
   $('.myform').submit(function(event) {
     event.preventDefault();
-    console.log($(this).serializeArray());
     var values = $(this).serializeArray();
     $.ajax({
             type: 'POST',
@@ -250,12 +247,9 @@ $(document).ready(function() {
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
-                    console.log("ko");
                 }
                 else {
-                  console.log("OK");
                   socket.emit('send_message', {'message': data.msg, 'date':data.date , 'username': values[0].name });
-                  //TODO: Si existe déjà old ne rien faite. 
                   add_notification(data.receiver_id , 2, 1);
                 }
             },
@@ -277,10 +271,8 @@ function block(u) {
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
-                    console.log("ko");
                 }
                 else {
-                  console.log("OK");
                   document.getElementById("block"+u).classList.add("d-none");
                   document.getElementById("unblock"+u).classList.remove("d-none");
                 }
@@ -295,10 +287,8 @@ function unblock(u) {
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
-                    console.log("ko");
                 }
                 else {
-                  console.log("OK");
                   document.getElementById("block"+u).classList.remove("d-none");
                   document.getElementById("unblock"+u).classList.add("d-none");
                 }
@@ -314,10 +304,8 @@ function delconv(u) {
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
-                    console.log("ko");
                 }
                 else {
-                  console.log("OK");
                   location.reload();
                     //document.getElementById("bio-error").style.display = "none";
                     //document.getElementById("bio").innerHTML = data;
@@ -335,10 +323,8 @@ function report(u) {
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
-                    console.log("ko");
                 }
                 else {
-                  console.log("OK");
                     //document.getElementById("bio-error").style.display = "none";
                     //document.getElementById("bio").innerHTML = data;
                 }

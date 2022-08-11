@@ -433,10 +433,9 @@ function unblock_card(user_id) {
             data: {"data":user_id},
             success: function(data) {
                 if (data == 'KO') {
-                  console.log('Une erreur est survenue');
+                  //console.log('Une erreur est survenue');
                 }
                 else {
-                    console.log("user "+data+" unblocked");
                     var elem_id = user_id+"block";
                     var elem = document.getElementById(elem_id);
                     elem.classList.add("d-none");

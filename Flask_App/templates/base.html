@@ -167,7 +167,7 @@ function add_notification(receiver, notif_type, content) {
             data: {"receiver":receiver, "notif_type":notif_type, "content":content},
             success: function(data) {
                 if (data == 'KO') {
-                  console.log('Une erreur est survenue');
+                  //console.log('Une erreur est survenue');
                 }
                 else if (data=="Old"){
                     //Do something If notification is update
@@ -254,16 +254,12 @@ function add_notification(receiver, notif_type, content) {
             url: '/readnotification',
             data: {"notif_type":notif_type, "sender_id":username},
             success: function(data) {
-                console.log(data.value);
-                console.log(data.total);
-
                 if (data == 'KO') {
                   //console.log('Une erreur est survenue');
                 }
                 else {
                     //Call notif dynamique
                     notif_counter_id = data.notif_type + "counter"; //"like", "view", "message"
-                    console.log(notif_counter_id);
                     var notif_counter = document.getElementById(notif_counter_id);
                     var global_counter = document.getElementById('globalcounter');
 
@@ -271,16 +267,13 @@ function add_notification(receiver, notif_type, content) {
                         if (data.value > 0) {
                             notif_counter.classList.remove('d-none');
                             notif_counter.innerHTML = data.value;
-                            console.log(data.value);
                             }
                         else {
                             notif_counter.classList.add('d-none');
-                            console.log(notif_counter.innerHTML);
                             notif_counter.innerHTML = data.value;
                         }
                         if (data.total > 0) {
                             global_counter.innerHTML = "0";
-                            console.log(data.total);
                             global_counter.classList.remove('d-none');
                         }
                         else {
