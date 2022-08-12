@@ -155,6 +155,8 @@ def showprofile(username):
         have_favimage = True
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': user_id})
     image_profil = cur.fetchone()
+    print("hello")
+    print(image_profil)
     if image_profil:
         fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
         fav_image.append(image_profil[0])
@@ -661,7 +663,7 @@ def updbio():
             flash('There is no bio')
             return ("KO")
         bio = request.form['newBio']
-        if bio :
+        if bio and len(bio) <= 100 and len(bio) > 0:
             bio = bio.replace("'", "`")
             conn = get_db_connection()
             cur = conn.cursor()
@@ -714,7 +716,7 @@ def addhashtag():
         existing_list = []
         #TO DO: secure variable
         #TO DO: Si exist ou caractère interdi, return "KO"
-        if (newhash):
+        if (newhash) and len(str(newhash)) <= 200 and len(str(newhash)) > 0:
             conn = get_db_connection()
             cur = conn.cursor()
             #check if newtag existe insensible a la casse ToLowercase(newhash) existe en bdd (TolowerCase(hashtag))
@@ -924,22 +926,32 @@ def account():
             username1 = request.form.get('username')
             birthdate1 = request.form.get('birthdate')
             localisation1 = request.form.get('location')
-            cur.execute("SELECT * FROM users WHERE username=%(username)s", {'username': username1})
-            username_check = cur.fetchall()
-            if username1 != "" and username_check != [] and username1 != current_user.username:
-                flash('User Name or Address already exists')
-            elif username1 != "":
+
+            username1_regex = r'.*\S.*'
+            if len(username1) <= 200 and len(username1) > 0 and re.fullmatch(username1_regex, username1):
+                cur.execute("SELECT * FROM users WHERE username=%(username)s", {'username': username1})
+                username_check = cur.fetchall()
+            else:
+                username_check = []
+                flash('Wrong username structure')
+            if (username1 != "" and username_check != [] and username1 != current_user.username) or (username1 != "" and len(username1) > 200) or (username1 != "" and len(username1) <= 0):
+                flash('User Name or Address already exists or User Name is too long')
+            elif username1 != "" and len(username1) <= 200 and len(username1) > 0 and re.fullmatch(username1_regex, username1):
                 cur.execute("UPDATE users SET username = %(username)s WHERE id=%(id)s", {'username': username1, 'id': current_user.id})
                 conn.commit()
                 username = username1
-            if firstname1 != "":
+            if firstname1 != "" and len(firstname1) <= 200:
                 cur.execute("UPDATE users SET first_name = %(firstname)s WHERE id=%(id)s", {'firstname': firstname1, 'id': current_user.id})
                 conn.commit()
                 firstname = firstname1
-            if lastname1 != "":
+            else:
+                flash('First name is too long')
+            if lastname1 != "" and len(lastname1) <= 200:
                 cur.execute("UPDATE users SET last_name = %(lastname)s WHERE id=%(id)s", {'lastname': lastname1, 'id': current_user.id})
                 conn.commit()
                 lastname = lastname1
+            else:
+                flash('Last name is too long')
             if birthdate1 != "":
                 birthdate_date = datetime.strptime(birthdate1, '%Y-%m-%d').date()
                 if age(birthdate_date) < 18 or age(birthdate_date) > 99:
@@ -950,7 +962,7 @@ def account():
                     cur.execute("DELETE FROM match WHERE user_id = %(id)s", {'id': current_user.id})
                     conn.commit()
                     birthdate = birthdate1
-            if localisation1 != "":
+            if localisation1 != "" and len(localisation1) <= 200 and len(localisation1) > 0:
                 lat, lont, display_loc = localize_text(str(localisation1))
                 today = date.today()
                 if  display_loc != "ERROR - WRONG LOCALISATION":
@@ -960,7 +972,7 @@ def account():
                     conn.commit()
                     localisation = display_loc
                 else:
-                    flash('New location not found')
+                    flash('New location not found or text is too long')
         elif 'oldpassword' in request.form:
             if current_user.confirmed is False:
                 flash('Please confirm your account!', 'warning')
@@ -972,14 +984,18 @@ def account():
                 cur.execute("SELECT * FROM users WHERE id=%(id)s LIMIT 1", {'id': current_user.id})
                 user = cur.fetchone()
                 pass_complexity = password_check(password1)
-                if password1 != password2:
+                if len(oldpassword) > 200 or len(password1) > 200 or len(password2) > 200 or len(oldpassword) < 8 or len(password1) < 8 or len(password2) < 8:
+                    flash('There was an issue with your inputs, try again', 'warning')
+                elif password1 != password2:
                     flash('new passwords don\'t match, try again', 'warning')
                 elif not bcrypt.verify(oldpassword,user[2]):
                     flash('Please check your login details and try again.','warning')
                 elif pass_complexity['password_ok'] == False:
                     error_to_return = ""
-                    if pass_complexity['length_error'] == True:
+                    if pass_complexity['length_error_min'] == True:
                         error_to_return = error_to_return + "\nPassword must contain at least 8 characters. "
+                    if pass_complexity['length_error_max'] == True:
+                        error_to_return = error_to_return + "\nPassword must contain less than 201 characters. "
                     if pass_complexity['digit_error'] == True:
                         error_to_return = error_to_return + "\nPassword must contain at least 1 digit. "
                     if pass_complexity['uppercase_error'] == True:
@@ -996,7 +1012,7 @@ def account():
         elif 'email' in request.form:
             email1 = request.form.get('email')
             email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-            if email1 != "" and re.fullmatch(email_regex, email1):
+            if email1 != "" and re.fullmatch(email_regex, email1) and len(email1) <= 200 and len(email1) > 0:
                 cur.execute("SELECT * FROM users WHERE email=%(email)s", {'email': email1})
                 email_check = cur.fetchall()
                 if email_check == []:
@@ -1657,6 +1673,7 @@ def search(page=1):
         for user in profil_list:
             cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
             user_details = cur.fetchone()
+            print(user_details)
             #calc age
             if user_details:
                 user_age = age(user_details[2])
