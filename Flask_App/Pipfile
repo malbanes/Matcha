@@ -20,6 +20,8 @@ passlib = "*"
 boto3 = "*"
 bcrypt = "*"
 python-dotenv = "*"
+pillow = "*"
+eventlet = "*"
 
 [dev-packages]
 
