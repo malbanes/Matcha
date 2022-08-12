@@ -23,8 +23,6 @@ create unique index users_email_uindex
 grant delete, insert, references, select, trigger, truncate, update on users to sammy;
 
 INSERT INTO public.users (id, username, password, date_added, first_name, last_name, email, confirmed) VALUES (30, 'IceonBauble', '$2a$06$/Ly18UzWcZP0Aq0x3xQc1e3ilIZ.898gKsYf6/.rKBNrnrRjML87y', '2022-02-17', 'Aarika', 'Taylor', 'arguerin+2@student.42.fr', true);
-INSERT INTO public.users (id, username, password, date_added, first_name, last_name, email, confirmed) VALUES (1, 'test', '$2a$06$nPJNCAAV1YHn9D68XsMlNeE8jNfikyI3AuuGuqvWg2e9VPlHaWI2W', '2022-03-28', 'Sammy', 'Test', 'test@test.com', true);
-INSERT INTO public.users (id, username, password, date_added, first_name, last_name, email, confirmed) VALUES (3, 'Yop', '$2a$06$iUptzf5jgyOQK9SGkC8xhO0RGpzOnNUDR/I5DaGKYprh8eoDDSFiq', '2022-03-29', 'Hello', 'Yop', 'hello@test.com', true);
 INSERT INTO public.users (id, username, password, date_added, first_name, last_name, email, confirmed) VALUES (31, 'Immortelle', '$2a$06$/Ly18UzWcZP0Aq0x3xQc1e3ilIZ.898gKsYf6/.rKBNrnrRjML87y', '2022-04-22', 'Abagael', 'Donovan', 'arguerin+3@student.42.fr', true);
 INSERT INTO public.users (id, username, password, date_added, first_name, last_name, email, confirmed) VALUES (32, 'AnonyYowza', '$2a$06$/Ly18UzWcZP0Aq0x3xQc1e3ilIZ.898gKsYf6/.rKBNrnrRjML87y', '2022-03-30', 'Abagail', 'Peterson', 'arguerin+4@student.42.fr', true);
 INSERT INTO public.users (id, username, password, date_added, first_name, last_name, email, confirmed) VALUES (33, 'Fructuation', '$2a$06$/Ly18UzWcZP0Aq0x3xQc1e3ilIZ.898gKsYf6/.rKBNrnrRjML87y', '2021-12-20', 'Abbe', 'David', 'arguerin+5@student.42.fr', true);
