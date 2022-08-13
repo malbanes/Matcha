@@ -233,7 +233,6 @@ def reset_password(token):
         cur = conn.cursor()
         cur.execute("SELECT * FROM users WHERE email=%(email)s LIMIT 1", {'email': confirm_email_token(token)})
         user = cur.fetchone()
-        print(user)
         password = request.form.get('password')
         pass_complexity = password_check(password)
         if pass_complexity['password_ok'] == False:

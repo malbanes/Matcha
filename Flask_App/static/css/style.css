@@ -33,6 +33,12 @@
     overflow-y:scroll;
 }
 
+.notification {
+    text-align: center;
+    padding:5px;
+}
+
+
 
 
 /********************************/

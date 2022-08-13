@@ -317,7 +317,10 @@
             
           <div class="form-group">
             <small class="form-text text-muted">Your Username :</small>
-            <input class="form-control" type="text" name="username" value="{{username}}" placeholder="Your Username" autofocus="">
+            <input class="form-control" type="text" name="username" value="{{username}}" placeholder="Your Username" autofocus="" maxlength="64" required>
+            <div class="invalid-feedback">
+                Please choose a valid username.
+            </div>
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your Birthdate :</small>
@@ -329,11 +332,18 @@
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your first name :</small>
-            <input class="form-control" type="text" name="first_name" value="{{firstname}}" placeholder="Your First Name" autofocus="">
+            <input class="form-control" type="text" name="first_name" value="{{firstname}}" placeholder="Your First Name" autofocus="" maxlength="64" required>
+            <div class="invalid-feedback">
+                Enter a valid first name.
+            </div>
           </div>
           <div class="form-group">
             <small class="form-text text-muted">Your last name :</small>
-            <input class="form-control" type="text" name="last_name" value="{{lastname}}" placeholder="Your Last Name" autofocus="">
+            <input class="form-control" type="text" name="last_name" value="{{lastname}}" placeholder="Your Last Name" autofocus="" maxlength="64" required>
+            <div class="invalid-feedback">
+                Enter a valid last name.
+            </div>
+          
           </div>
           <div class="center">
             <button type="submit" class="btn btn-primary center">Save change</button>
@@ -359,7 +369,10 @@
         <form method="POST" action="/account">
           <div class="form-group">
             <small class="form-text text-muted">Your new email :</small>
-            <input class="form-control" type="text" name="email" placeholder="New email" autofocus="">
+            <input class="form-control" type="text" name="email" placeholder="New email" maxlength="320" pattern="[a-z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
+            <div class="invalid-feedback">
+                Enter a valid email.
+            </div>
           </div>
           <div class="center">
             <button type="submit" class="btn btn-primary center">Send activation link</button>
@@ -391,7 +404,10 @@
           </div>
 
           <div class="form-group">
-            <input class="form-control" type="text" name="password1" placeholder="New password" autofocus="" autocomplete="on">
+            <input class="form-control" type="text" name="password1" placeholder="New password" autofocus="" autocomplete="on" required  pattern="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!?@#$%^&*.])[a-zA-Z0-9!?@#$%^&*.]{8,30}$">
+            <div class="invalid-feedback">
+                Password must contain at least 8 characters, at least 1 digit, 1 uppercase character and 1 special character. 30 characters max.
+            </div>
           </div>
           <div class="form-group">
             <small class="form-text text-muted"><strong>
@@ -401,7 +417,10 @@
             <small class="form-text text-muted">- At least one letter in uppercase</small>
             <small class="form-text text-muted">- At least one letter in lowercase</small>
             <small class="form-text text-muted">- At least one digit</small>
-            <input class="form-control mt-3" type="text" name="password2" placeholder="Confirm password" autofocus="">
+            <input class="form-control mt-3" type="text" name="password2" placeholder="Confirm password" autofocus="" required  pattern="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!?@#$%^&*.])[a-zA-Z0-9!?@#$%^&*.]{8,30}$">
+            <div class="invalid-feedback">
+                Password must contain at least 8 characters, at least 1 digit, 1 uppercase character and 1 special character. 30 characters max.
+            </div>
           </div>
           <div class="center">
             <button type="submit" class="btn btn-primary">Save change</button>

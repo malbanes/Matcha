@@ -111,6 +111,8 @@ def profile():
 @login_required
 @check_confirmed
 def showprofile(username):
+    if username == current_user.username:
+        return redirect(url_for('main.profile'))
     images_path = []
     fav_image = []
     have_favimage = False
@@ -155,8 +157,6 @@ def showprofile(username):
         have_favimage = True
     cur.execute("SELECT image_profil_id, i.path FROM profil INNER JOIN images as i on i.id=image_profil_id AND i.profil_id =%(id)s LIMIT 1;", {'id': user_id})
     image_profil = cur.fetchone()
-    print("hello")
-    print(image_profil)
     if image_profil:
         fav_image_path = create_presigned_url(current_app.config["S3_BUCKET"], image_profil[1])
         fav_image.append(image_profil[0])
@@ -325,6 +325,12 @@ def delnotif():
 @main.route('/sendmessage', methods = ['POST'])
 def sendmessage():
     if request.method == 'POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         receiver = request.form['receiver']
         msg = request.form['msg']
         #A FIX Check message format
@@ -659,6 +665,12 @@ def delimg():
 @check_confirmed
 def updbio():
     if request.method == 'POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         if 'newBio' not in request.form:
             flash('There is no bio')
             return ("KO")
@@ -679,6 +691,12 @@ def updbio():
 @check_confirmed
 def updprim():
     if request.method == 'POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         if 'newGender' not in request.form:
             flash('There is no gender')
             return ("KO")
@@ -712,6 +730,12 @@ def updprim():
 @check_confirmed
 def addhashtag():
     if request.method == 'POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         newhash = request.form['newhash']
         existing_list = []
         #TO DO: secure variable
@@ -746,6 +770,12 @@ def addhashtag():
 @check_confirmed
 def updhash():
     if request.method == 'POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         hash_id = request.form.getlist("check")
         newhash = request.form['newhash']
         existing_list = []
@@ -1407,6 +1437,24 @@ def filtresearch():
             if final_profil_list_id_str:
                 #On rajoute l'élément à la requete en préparation:
                 loc_qwery = "AND user_id IN ("+final_profil_list_id_str+") "
+            else:
+                # Return render - Aucuns match retourne 0 users
+                if request.form.get('targetform') == "search":
+                    upd_search_qwery = "UPDATE search SET is_filter=True WHERE user_id=%(id)s"
+                    upd_data = {'id': current_user.id}
+                    cur.execute(upd_search_qwery, upd_data)
+                    conn.commit()
+                elif request.form.get('targetform') == "match":
+                    upd_search_qwery = "UPDATE match SET is_filter=True WHERE user_id=%(id)s"
+                    upd_data = {'id': current_user.id}
+                    cur.execute(upd_search_qwery, upd_data)
+                    conn.commit()
+                cur.close()
+                conn.close()
+                return {
+                    'all_users': [],
+                    'error' : 0
+                }
         # Prepare score qwery
         elif elem[0] == "score":
             scoreMinSearch = int(elem[1])
@@ -1673,7 +1721,6 @@ def search(page=1):
         for user in profil_list:
             cur.execute("SELECT users.id, username, age, city, image_profil_id FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LIMIT 1", {'id': user})
             user_details = cur.fetchone()
-            print(user_details)
             #calc age
             if user_details:
                 user_age = age(user_details[2])
@@ -1689,6 +1736,12 @@ def search(page=1):
         return render_template('search.html', is_search=is_search, max_page=max_page, current_page=page, all_users = final_users, user_num=total_users, full_interest=full_interest)
     # On POST return Users that match Search Inputs
     if request.method=='POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         is_search = True
         if 'ageMinSearch' in request.form:
             ageMinSearch = request.form.get('ageMinSearch')
@@ -1741,10 +1794,14 @@ def search(page=1):
                         if off_distance <= float(locRangeSearch):
                             final_profil_list_id.append(i)
                 #Ensuite, tu la formate pour rentrer dans une requete sql :
+
                 final_profil_list_id_str = ','.join([str(elem[0]) for elem in final_profil_list_id])
                 if final_profil_list_id_str:
                     #On rajoute l'élément à la requete en préparation:
                     select_stmt = select_stmt+" AND user_id IN ("+final_profil_list_id_str+")"
+                else:
+                    return render_template('search.html', max_page=1, is_search=is_search, current_page=1, all_users = [], user_num=0, full_interest=full_interest)
+
             #Hashtags qwery
             if hashtags_id and hashtags_id[0] != '':
                 cur.execute("SELECT user_id FROM \"ProfilInterest\" WHERE interest_id=%(int1)s", {'int1': hashtags_id[0]})
@@ -1815,6 +1872,12 @@ def search(page=1):
 @main.route('/addnotification', methods = ['POST'])
 def addnotif():
     if request.method == 'POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         receiver_id = request.form['receiver']
         notif_type = int(request.form['notif_type'])
         content = request.form['content']
@@ -1851,6 +1914,12 @@ def addnotif():
 @main.route('/readnotification', methods = ['POST'])
 def readnotif():
     if request.method == 'POST':
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            # we catch RequestEntityTooLarge exception
+            return "KO"
         newvalue = None
         notif_type = int(request.form['notif_type'])
         if notif_type or notif_type==0 :

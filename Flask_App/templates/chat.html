@@ -12,6 +12,14 @@
 
 <div class="container no-padding no-margin">
 
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+      <div class="notification is-danger">
+          {{ messages[0] }}
+      </div>
+  {% endif %}
+{% endwith %}
+
   <row class="row justify-content-start">
   <!--Select Section-->
     <div id="messagelist" class="col-xs mb-4 bg-white messagelistresponsive" style="max-width:270px;">
@@ -124,7 +132,7 @@
 
         <div class="container mb-4">
           <form id="emit" class="myform" method="POST" action='#'>
-            <input type="text" name="{{ user }}" maxlength=1000 placeholder="Message">
+            <input id="currentMessage" type="text" name="{{ user }}" maxlength=1000 placeholder="Message">
             <input type="submit" value="Send">
           </form>
         </div>
@@ -249,6 +257,7 @@ $(document).ready(function() {
                     //document.getElementById("block-error").style.display = "block";
                 }
                 else {
+                  document.getElementById("currentMessage").value="";
                   socket.emit('send_message', {'message': data.msg, 'date':data.date , 'username': values[0].name });
                   add_notification(data.receiver_id , 2, 1);
                 }
