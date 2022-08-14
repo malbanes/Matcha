@@ -16,6 +16,8 @@ import re
 from datetime import datetime
 from localization import localize_user
 from scoring import scoring_calculation
+from werkzeug.exceptions import RequestEntityTooLarge
+
 
 # create a Blueprint object that we name 'auth'
 auth = Blueprint('auth', __name__) 
@@ -28,6 +30,12 @@ def login():
         return render_template('login.html')
     # if the request is POST, then check if the user exist and with the right password
     else:
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            flash('Please check your login details')
+            return redirect(url_for('auth.login'))
         conn = get_db_connection()
         cur = conn.cursor()
         username = request.form.get('username')
@@ -79,6 +87,12 @@ def signup():
         return render_template('signup.html')
     # if request is POST, then check if the email doesn't already exist and then save data
     else: 
+        try:
+            # start request parsing
+            form1 = request.form
+        except RequestEntityTooLarge as e:
+            flash('Please check your login details')
+            return redirect(url_for('auth.signup'))
         email = request.form.get('email')
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')

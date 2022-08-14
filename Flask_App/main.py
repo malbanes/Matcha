@@ -1236,7 +1236,7 @@ def notification():
             message = "doesn't like you anymore"
         if notif_type == 0:
             if content == 1:
-                cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': result[1], 'rid': current_user.id})
+                cur.execute("SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s", {'sid': current_user.id, 'rid': result[1]})
                 is_like = cur.fetchone()[0]
                 message = "like you"
                 if is_like == 1 :
