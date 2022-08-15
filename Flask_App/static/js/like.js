@@ -52,7 +52,7 @@ $.ajax({
                 var message_id = "like_message"+user_id;
                 var like_message = document.getElementById(message_id);
                 if (like_message) {
-                    like_message.style.display = "block";
+                    like_message.style.display = "none";
                 }
                 if (data != "Old") {
                     var socket = io();

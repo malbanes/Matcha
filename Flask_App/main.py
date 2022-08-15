@@ -710,6 +710,11 @@ def block():
                     {"from": current_user.id, "to": user_id},
                 )
                 conn.commit()
+            cur.execute(
+                "DELETE FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND notif_type=0",
+                {"sid": user_id, "rid": current_user.id},
+            )
+            conn.commit()
             cur.close()
             conn.close()
             flash("The user has been blocked")
