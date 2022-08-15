@@ -5,7 +5,7 @@ def password_check(password):
     Verify the strength of 'password'
     Returns a dict indicating the wrong criteria
     A password is considered strong if:
-        8 characters length or more but less than 200
+        8 characters length or more but less than 31
         1 digit or more
         1 symbol or more
         1 uppercase letter or more
@@ -14,7 +14,7 @@ def password_check(password):
 
     # calculating the length
     length_error_min = len(password) < 8
-    length_error_max = len(password) > 200
+    length_error_max = len(password) > 30
 
     # searching for digits
     digit_error = re.search(r"\d", password) is None

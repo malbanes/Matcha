@@ -958,25 +958,25 @@ def account():
             localisation1 = request.form.get('location')
 
             username1_regex = r'.*\S.*'
-            if len(username1) <= 200 and len(username1) > 0 and re.fullmatch(username1_regex, username1):
+            if len(username1) <= 64 and len(username1) > 0 and re.fullmatch(username1_regex, username1):
                 cur.execute("SELECT * FROM users WHERE username=%(username)s", {'username': username1})
                 username_check = cur.fetchall()
             else:
                 username_check = []
                 flash('Wrong username structure')
-            if (username1 != "" and username_check != [] and username1 != current_user.username) or (username1 != "" and len(username1) > 200) or (username1 != "" and len(username1) <= 0):
+            if (username1 != "" and username_check != [] and username1 != current_user.username) or (username1 != "" and len(username1) > 64) or (username1 != "" and len(username1) <= 0):
                 flash('User Name or Address already exists or User Name is too long')
-            elif username1 != "" and len(username1) <= 200 and len(username1) > 0 and re.fullmatch(username1_regex, username1):
+            elif username1 != "" and len(username1) <= 64 and len(username1) > 0 and re.fullmatch(username1_regex, username1):
                 cur.execute("UPDATE users SET username = %(username)s WHERE id=%(id)s", {'username': username1, 'id': current_user.id})
                 conn.commit()
                 username = username1
-            if firstname1 != "" and len(firstname1) <= 200:
+            if firstname1 != "" and len(firstname1) <= 64:
                 cur.execute("UPDATE users SET first_name = %(firstname)s WHERE id=%(id)s", {'firstname': firstname1, 'id': current_user.id})
                 conn.commit()
                 firstname = firstname1
             else:
                 flash('First name is too long')
-            if lastname1 != "" and len(lastname1) <= 200:
+            if lastname1 != "" and len(lastname1) <= 64:
                 cur.execute("UPDATE users SET last_name = %(lastname)s WHERE id=%(id)s", {'lastname': lastname1, 'id': current_user.id})
                 conn.commit()
                 lastname = lastname1
@@ -1014,7 +1014,7 @@ def account():
                 cur.execute("SELECT * FROM users WHERE id=%(id)s LIMIT 1", {'id': current_user.id})
                 user = cur.fetchone()
                 pass_complexity = password_check(password1)
-                if len(oldpassword) > 200 or len(password1) > 200 or len(password2) > 200 or len(oldpassword) < 8 or len(password1) < 8 or len(password2) < 8:
+                if len(oldpassword) > 30 or len(password1) > 30 or len(password2) > 30 or len(oldpassword) < 8 or len(password1) < 8 or len(password2) < 8:
                     flash('There was an issue with your inputs, try again', 'warning')
                 elif password1 != password2:
                     flash('new passwords don\'t match, try again', 'warning')
@@ -1025,7 +1025,7 @@ def account():
                     if pass_complexity['length_error_min'] == True:
                         error_to_return = error_to_return + "\nPassword must contain at least 8 characters. "
                     if pass_complexity['length_error_max'] == True:
-                        error_to_return = error_to_return + "\nPassword must contain less than 201 characters. "
+                        error_to_return = error_to_return + "\nPassword must contain less than 31 characters. "
                     if pass_complexity['digit_error'] == True:
                         error_to_return = error_to_return + "\nPassword must contain at least 1 digit. "
                     if pass_complexity['uppercase_error'] == True:
@@ -1042,7 +1042,7 @@ def account():
         elif 'email' in request.form:
             email1 = request.form.get('email')
             email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-            if email1 != "" and re.fullmatch(email_regex, email1) and len(email1) <= 200 and len(email1) > 0:
+            if email1 != "" and re.fullmatch(email_regex, email1) and len(email1) <= 250 and len(email1) > 0:
                 cur.execute("SELECT * FROM users WHERE email=%(email)s", {'email': email1})
                 email_check = cur.fetchall()
                 if email_check == []:

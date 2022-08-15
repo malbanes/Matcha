@@ -100,7 +100,7 @@ def signup():
         password = request.form.get('password')
         username_regex = r'.*\S.*'
         match = re.fullmatch(username_regex, username)
-        if len(str(email)) > 200 or len(str(first_name)) > 200 or len(str(last_name)) > 200 or len(str(username)) > 200 or len(str(email)) < 1 or len(str(first_name)) < 1 or len(str(last_name)) < 1 or len(str(username)) < 1 or match is None:
+        if len(str(email)) > 250 or len(str(first_name)) > 64 or len(str(last_name)) > 64 or len(str(username)) > 64 or len(str(email)) < 1 or len(str(first_name)) < 1 or len(str(last_name)) < 1 or len(str(username)) < 1 or match is None:
             flash('There was an issue with your inputs, try again',)
             return redirect(url_for('auth.signup'))
         # if this returns a user, then the email already exists in database
@@ -119,7 +119,7 @@ def signup():
             if pass_complexity['length_error_min'] == True:
                 error_to_return = error_to_return + "\nPassword must contain at least 8 characters. "
             if pass_complexity['length_error_max'] == True:
-                error_to_return = error_to_return + "\nPassword must contain less than 201 characters. "
+                error_to_return = error_to_return + "\nPassword must contain less than 31 characters. "
             if pass_complexity['digit_error'] == True:
                 error_to_return = error_to_return + "\nPassword must contain at least 1 digit. "
             if pass_complexity['uppercase_error'] == True:
@@ -213,7 +213,7 @@ def reset_page():
             return redirect(url_for('main.index'))
         email = request.form.get('email')
         email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        if not (re.fullmatch(email_regex, email)) or len(str(email)) > 200:
+        if not (re.fullmatch(email_regex, email)) or len(str(email)) > 250:
             flash('Email structure not valid!')
             return redirect(url_for('auth.reset_page'))
         else:
@@ -254,7 +254,7 @@ def reset_password(token):
             if pass_complexity['length_error_min'] == True:
                 error_to_return = error_to_return + "\nPassword must contain at least 8 characters. "
             if pass_complexity['length_error_max'] == True:
-                error_to_return = error_to_return + "\nPassword must contain less than 201 characters. "
+                error_to_return = error_to_return + "\nPassword must contain less than 31 characters. "
             if pass_complexity['digit_error'] == True:
                 error_to_return = error_to_return + "\nPassword must contain at least 1 digit. "
             if pass_complexity['uppercase_error'] == True:
