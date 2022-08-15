@@ -1,9 +1,6 @@
 import os
 import psycopg2
 
-DB_USERNAME = "sammy"
-DB_PASSWORD = "test"  
-
 DBFILES = [
         "flask_db_public_users.sql",
         "flask_db_public_accountcontrol.sql",
@@ -48,8 +45,8 @@ def main():
         conn = psycopg2.connect(
                 host="localhost",
                 database="flask_db",
-                user=DB_USERNAME,
-                password=DB_PASSWORD)
+                user=os.getenv('DB_USERNAME'),
+                password=os.getenv('DB_PASSWORD'))
 
         # Open a cursor to perform database operations
         cur = conn.cursor()
