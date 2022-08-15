@@ -1,14 +1,19 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_login import LoginManager
 import os
 import psycopg2
 from models import User
 from dotenv import load_dotenv, find_dotenv
 
-
-
 #import for time filter
 from datetime import datetime
+
+####ERROR MANAGEMENT
+def page_not_found(e):
+    return render_template('404.html'), 404
+def internal_server_error(e):
+    return render_template('500.html'), 500
+
 
 #sammy-test
 def get_db_connection():
@@ -42,6 +47,10 @@ def create_app():
     app.config['S3_LOCATION'] = 'http://{}.s3.amazonaws.com/'.format(app.config['S3_BUCKET'])
 
     app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 # 500 Kb limit
+
+    app.register_error_handler(404, page_not_found)
+    app.register_error_handler(500, internal_server_error)
+
 
     # The login manager contains the code that lets your application and Flask-Login work together
     login_manager = LoginManager() 
