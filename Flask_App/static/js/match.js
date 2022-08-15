@@ -197,10 +197,10 @@ $( function() {
 function toggle_display_like(i, outter_loop){
   var moveOutWidth = document.body.clientWidth;
   add_match_like(i);
-  pass_match(i);
+  pass_match(i, outter_loop);
   el = document.getElementById(i);
   if (outter_loop == 3) {
-    location = '/match';
+    //location = '/match';
   }
   else {
     el.className += ' remove-card';
@@ -210,10 +210,11 @@ function toggle_display_like(i, outter_loop){
 
 function toggle_display_pass(i, outter_loop){
   var moveOutWidth = document.body.clientWidth;
-  pass_match(i);
+
+  pass_match(i, outter_loop);
   el = document.getElementById(i);
   if (outter_loop == 3) {
-    location = '/match';
+    //location = '/match';
   }
   else {
     el.className += ' remove-card';
@@ -222,7 +223,7 @@ function toggle_display_pass(i, outter_loop){
 }
 
 //Pass a match
-function pass_match(user_id) {
+function pass_match(user_id, outter_loop) {
   $.ajax({
           type: 'POST',
           url: '/matchpass',
@@ -232,6 +233,9 @@ function pass_match(user_id) {
                 //console.log('Une erreur est survenue');
               }
               else {
+                if (outter_loop == 3) {
+                  location = '/match';
+                }
                   //console.log("Match is passed");
               }
           },
