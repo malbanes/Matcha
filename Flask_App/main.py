@@ -1291,6 +1291,7 @@ def account():
             current_user.id, blocked_string
         )
     )
+    like_users = cur.fetchall()
     cur.execute(
         "SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND (notif_type=0);".format(
         current_user.id
@@ -1303,7 +1304,6 @@ def account():
         )
     )
     nbr_view = cur.fetchone()[0]
-    like_users = cur.fetchall()
     for i in like_users:
         cur.execute(
             "SELECT users.id, username, age, city, i.path FROM users INNER JOIN profil ON users.id = profil.user_id AND users.id=%(id)s LEFT JOIN location ON  profil.location_id = location.id LEFT JOIN images as i on i.id=profil.image_profil_id LIMIT 1;",
