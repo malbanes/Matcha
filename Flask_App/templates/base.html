@@ -183,6 +183,25 @@ function add_notification(receiver, notif_type, content) {
         });
 } 
 
+function read_visit() {
+    var visit_counter = document.getElementById("default-alert-visit");
+    if (visit_counter != null){
+        visit_counter.classList.remove("d-none");
+        visit_counter.classList.add("d-none");
+    }
+    read_notification(1, 0)
+}
+
+function read_like() {
+    var like_counter = document.getElementById("default-alert-like");
+    if (like_counter !=null ){
+        like_counter.classList.remove("d-none");
+        like_counter.classList.add("d-none");
+    }
+    read_notification(0, 0)
+}
+
+
 function add_match(receiver, notif_type, content) {
     $.ajax({
             type: 'POST',

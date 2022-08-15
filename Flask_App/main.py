@@ -1291,6 +1291,18 @@ def account():
             current_user.id, blocked_string
         )
     )
+    cur.execute(
+        "SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND (notif_type=0);".format(
+        current_user.id
+        )
+    )
+    nbr_like = cur.fetchone()[0]
+    cur.execute(
+        "SELECT COUNT(*) FROM notifications WHERE receiver_id='{0}' AND is_read=false AND notif_type=1;".format(
+            current_user.id
+        )
+    )
+    nbr_view = cur.fetchone()[0]
     like_users = cur.fetchall()
     for i in like_users:
         cur.execute(
@@ -1395,6 +1407,8 @@ def account():
             is_bio=is_bio,
             birthdate=birthdate,
             now=nowstr,
+            nbr_like = nbr_like,
+            nbr_view = nbr_view
         )
     else:
         if "deletemyaccount" in request.form:
