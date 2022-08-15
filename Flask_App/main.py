@@ -182,6 +182,9 @@ def showprofile(username):
         {"username": username},
     )
     showuser_details = cur.fetchone()
+    if not showuser_details:
+        flash("No user found")
+        return redirect(url_for("main.index"))
     user_id = showuser_details[0]
     user_name = str(showuser_details[4]) + " " + str(showuser_details[5])
     user_username = str(showuser_details[1])
@@ -450,7 +453,14 @@ def addlike():
                     {"sid": current_user.id, "rid": user_id},
                 )
                 conn.commit()
-                error = "sucess"
+                error = str(current_user.id)
+                cur.execute(
+                    "SELECT COUNT(id) FROM likes WHERE sender_id=%(sid)s AND receiver_id=%(rid)s;",
+                    {"rid": current_user.id, "sid": user_id},
+                )
+                is_exist = cur.fetchone()[0]
+                if is_exist != 0:
+                    error= "match"
             cur.close()
             conn.close()
             return error
@@ -651,14 +661,18 @@ def dellike():
                     {"tid": current_user.id, "fid": user_id},
                 )
                 ami_blocked = cur.fetchone()[0]
+                notif_date = float(datetime.now().timestamp())
                 if is_notif == 0 and is_blocked == 0 and ami_blocked == 0:
-                    notif_date = float(datetime.now().timestamp())
                     cur.execute(
                         "INSERT INTO notifications (notif_type, sender_id, receiver_id, date_added) VALUES (3, %(sid)s, %(rid)s, %(dat)s)",
                         {"sid": current_user.id, "rid": user_id, "dat": notif_date},
                     )
                     error = "Match"
                 else:
+                    cur.execute(
+                        "UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s AND notif_type=%(tid)s AND is_read=false",
+                        {"from": current_user.id, "to": user_id, "d": notif_date, "tid": 3},
+                    )
                     error = "Old"
             else:
                 cur.execute(
@@ -1960,15 +1974,15 @@ def notification():
                 )
                 is_like = cur.fetchone()[0]
                 message = "like you"
-                if is_like == 1:
-                    message = message + " This is a match !"
         # view
         if notif_type == 1:
             message = "looked at your profil"
-        # messages
+        # Message de match
         if notif_type == 2:
-            message = "send you a message"
-
+            if content == 2 :
+                message = "This is a match !"
+            else:
+                message = "send you a message"
         elem = [notif_id, notif_type, date, username, message, is_read]
         notifList.append(elem)
     cur.close()
@@ -2821,6 +2835,7 @@ def addnotif():
         content = request.form["content"]
         notif_date = float(datetime.now().timestamp())
         return_str = "KO"
+        match_return_str = "KO"
         if receiver_id:
             conn = get_db_connection()
             cur = conn.cursor()
@@ -2856,16 +2871,43 @@ def addnotif():
                 return_str = NOTIF_TYPE[int(request.form["notif_type"])]
             else:
                 cur.execute(
-                    "UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s",
-                    {"from": current_user.id, "to": receiver_id, "d": notif_date},
+                    "UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s AND notif_type=%(tid)s AND is_read=false",
+                    {"from": current_user.id, "to": receiver_id, "d": notif_date, "tid": notif_type},
                 )
                 conn.commit()
                 return_str = "Old"
+            #Si c'est un match
+            if notif_type ==2 and content =="2":
+                cur.execute(
+                    "SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=%(tid)s AND is_read=false AND sender_id = %(from)s LIMIT 1",
+                    {"from": receiver_id, "tid": notif_type, "id": current_user.id},
+                )
+                if cur.fetchone()[0] == 0:
+                    cur.execute(
+                        "INSERT INTO notifications (sender_id, receiver_id, notif_type, content, date_added) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');".format(
+                            receiver_id, current_user.id, notif_type, content, notif_date
+                        )
+                    )
+                    conn.commit()
+                    match_return_str = "success"
+                else:
+                    cur.execute(
+                        "UPDATE notifications SET date_added=%(d)s WHERE sender_id=%(from)s AND receiver_id=%(to)s AND notif_type=%(tid)s AND is_read=false",
+                        {"to": current_user.id, "from": receiver_id, "d": notif_date, "tid": notif_type},
+                    )
+                    conn.commit()
+                    match_return_str = "Old"
             cur.close()
             conn.close()
-            return return_str
+            return {
+                "retour": return_str,
+                "matchretour": match_return_str
+            }
         else:
-            return return_str
+            return {
+                "retour": return_str,
+                "matchretour": match_return_str
+            }
 
 
 @main.route("/readnotification", methods=["POST"])

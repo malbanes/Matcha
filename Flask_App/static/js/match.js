@@ -251,6 +251,9 @@ function add_match_like(user_id) {
               else {
                   add_notification(user_id , 0, 1);
               }
+              if (data == "match") {
+                add_notification(user_id , 2, 2);
+              }
           },
       });
   }

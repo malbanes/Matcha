@@ -166,6 +166,29 @@ function add_notification(receiver, notif_type, content) {
             url: '/addnotification',
             data: {"receiver":receiver, "notif_type":notif_type, "content":content},
             success: function(data) {
+                //Call notif dynamique
+                if (notif_type==2 && content=="2" && data.matchretour=="success") {
+                    var messagecounter = document.getElementById('messagecounter');
+                    messagecounter.innerHTML = parseInt(messagecounter.innerHTML) +1 ;
+                    messagecounter.classList.remove('d-none');
+                    var totalcounter = document.getElementById('globalcounter');
+                    totalcounter.innerHTML = parseInt(totalcounter.innerHTML) + 1;
+                    totalcounter.classList.remove('d-none');
+                }
+                if (data.retour != 'KO' && data.retour!="Old"){
+                var socket = io();
+                socket.emit('new_notif', {'content': content, 'receiver' : receiver, 'notif_type': notif_type});
+                }
+            },
+        });
+} 
+
+function add_match(receiver, notif_type, content) {
+    $.ajax({
+            type: 'POST',
+            url: '/addnotification',
+            data: {"receiver":receiver, "notif_type":notif_type, "content":content},
+            success: function(data) {
                 if (data == 'KO') {
                   //console.log('Une erreur est survenue');
                 }
@@ -270,10 +293,10 @@ function add_notification(receiver, notif_type, content) {
                             }
                         else {
                             notif_counter.classList.add('d-none');
-                            notif_counter.innerHTML = data.value;
+                            notif_counter.innerHTML = "0";
                         }
                         if (data.total > 0) {
-                            global_counter.innerHTML = "0";
+                            global_counter.innerHTML = data.total;
                             global_counter.classList.remove('d-none');
                         }
                         else {
@@ -329,6 +352,7 @@ function add_notification(receiver, notif_type, content) {
                 {
                     icon_message.classList.remove('d-none');
                 }
+                data.content = 1;
             }
             var notif_counter = document.getElementById(notif_counter_id);
             if ( notif_counter != null) {

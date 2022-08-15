@@ -31,6 +31,10 @@ $.ajax({
                     like_message.style.display = "none";
                 }
                 add_notification(user_id , 0, 1);
+                //If match : send match notif
+                if (data == "match") {
+                    add_notification(user_id , 2, 2);
+                }
             }
         },
     });
