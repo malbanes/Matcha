@@ -1,5 +1,6 @@
 import re
 
+
 def password_check(password):
     """
     Verify the strength of 'password'
@@ -29,14 +30,21 @@ def password_check(password):
     symbol_error = re.search(r"\W", password) is None
 
     # overall result
-    password_ok = not ( length_error_min or length_error_max or digit_error or uppercase_error or lowercase_error or symbol_error )
+    password_ok = not (
+        length_error_min
+        or length_error_max
+        or digit_error
+        or uppercase_error
+        or lowercase_error
+        or symbol_error
+    )
 
     return {
-        'password_ok' : password_ok,
-        'length_error_min' : length_error_min,
-        'length_error_max' : length_error_max,
-        'digit_error' : digit_error,
-        'uppercase_error' : uppercase_error,
-        'lowercase_error' : lowercase_error,
-        'symbol_error' : symbol_error,
+        "password_ok": password_ok,
+        "length_error_min": length_error_min,
+        "length_error_max": length_error_max,
+        "digit_error": digit_error,
+        "uppercase_error": uppercase_error,
+        "lowercase_error": lowercase_error,
+        "symbol_error": symbol_error,
     }

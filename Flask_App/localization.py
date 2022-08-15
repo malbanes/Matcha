@@ -5,28 +5,32 @@ import os
 
 
 def localize_user():
-    r = requests.get('https://api.ipgeolocation.io/ipgeo?apiKey=' + str(os.getenv('GEO_API')))
+    r = requests.get(
+        "https://api.ipgeolocation.io/ipgeo?apiKey=" + str(os.getenv("GEO_API"))
+    )
     result = r.json()
     localisation = str(result["city"]) + " - " + str(result["zipcode"])
     latitude = result["latitude"]
     longitude = result["longitude"]
-    return(localisation, latitude, longitude)
+    return (localisation, latitude, longitude)
+
 
 def localize_text(loc):
     try:
         geolocator = Nominatim(user_agent="Matcha 42 school project app")
         new_loc = geolocator.geocode(str(loc)).raw
-        if ", " in new_loc['display_name']:
-            city_name = new_loc['display_name'].split(", ")[0].strip()
+        if ", " in new_loc["display_name"]:
+            city_name = new_loc["display_name"].split(", ")[0].strip()
         else:
-            city_name = new_loc['display_name'].strip()
-        return float(new_loc['lat']), float(new_loc['lon']), str(city_name)
+            city_name = new_loc["display_name"].strip()
+        return float(new_loc["lat"]), float(new_loc["lon"]), str(city_name)
     except:
         return 0.0, 0.0, "ERROR - WRONG LOCALISATION"
 
+
 def distance(lat1, lon1, lat2, lon2):
     R = 6373
-    #radius of the Earth
+    # radius of the Earth
 
     lat1 = math.radians(lat1)
     lon1 = math.radians(lon1)
@@ -36,9 +40,12 @@ def distance(lat1, lon1, lat2, lon2):
     dlon = lon2 - lon1
     dlat = lat2 - lat1
 
-    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
-    #Haversine formula
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
+    # Haversine formula
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     distance = R * c
 
-    return(distance)
+    return distance
