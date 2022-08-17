@@ -80,7 +80,7 @@
             <!-- Row Header -->
                 <!-- Small Info (img, age, loc) -->
                 <h1 class="title d-inline" style="font-size: 2.75rem; line-height: 1;">{{username}}</h1>
-                <svg class="gray-color {{ 'green-color' if profil[9]==true}} ml-2 mb-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
+                <svg class="{{ 'green-color' if profil[9]==true else 'red-color'}} ml-2 mb-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
                     <circle cx="8" cy="8" r="8"/>
                 </svg>
             </br><span id="{{ profil[1] }}" class="profil_info"> {{age}} ans, {{localisation}} </span>

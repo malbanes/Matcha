@@ -219,6 +219,7 @@ def showprofile(username):
         {"sid": user_id, "rid": current_user.id},
     )
     is_like = cur.fetchone()[0]
+    print(is_like, like_send)
     if like_send == 1 and is_like == 1:
         like_message = "This is a match !"
     elif is_like == 1:
