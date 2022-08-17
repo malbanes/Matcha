@@ -2399,9 +2399,14 @@ def filtresearch():
                 {"image_id": user_details[4]},
             )
             user_image = cur.fetchone()
-            user_image = create_presigned_url(
-                current_app.config["S3_BUCKET"], str(user_image[0])
-            )
+            try:
+                user_image = create_presigned_url(
+                    current_app.config["S3_BUCKET"], str(user_image[0])
+                )
+            except:
+                user_image = create_presigned_url(
+                current_app.config["S3_BUCKET"], "test/no-photo.png"
+                )
         else:
             user_image = create_presigned_url(
                 current_app.config["S3_BUCKET"], "test/no-photo.png"

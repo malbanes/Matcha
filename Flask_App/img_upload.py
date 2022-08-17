@@ -23,7 +23,7 @@ def upload_file_to_s3(file, bucket_name, path):
             },
         )
     except Exception as e:
-        print("Something Happened: ", e)
+        #print("Something Happened: ", e)
         return e
     return (
         "{}{}".format(current_app.config["S3_LOCATION"], file.filename),

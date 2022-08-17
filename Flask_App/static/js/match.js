@@ -271,6 +271,9 @@ $(function() {
           type: 'POST',
           url: '/trisearch',
           data: form_data,
+          contentType: false,
+          cache: false,
+          processData: false,
           success: function(data) {
               if (data.error == 1) {
                 //console.log("Tri KO");
@@ -292,6 +295,9 @@ $(function() {
           type: 'POST',
           url: '/filtresearch',
           data: form_data,
+          contentType: false,
+          cache: false,
+          processData: false,
           success: function(data) {
               if (data == 'KO') {
                 //console.log("Tri KO");
@@ -362,6 +368,9 @@ $(function() {
             type: 'POST',
             url: '/trisearch',
             data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
             success: function(data) {
                 if (data.error == 1) {
                   //location.reload();
@@ -445,6 +454,9 @@ $(function() {
           type: 'POST',
           url: '/filtresearch',
           data: form_data,
+          contentType: false,
+          cache: false,
+          processData: false,
           success: function(data) {
               if (data.error == 1) {
                 //location.reload();
@@ -498,6 +510,9 @@ function filtredynamique(page) {
       type: 'POST',
       url: '/filtresearch',
       data: form_data,
+      contentType: false,
+      cache: false,
+      processData: false,
       success: function(data) {
           if (data == 'KO') {
             //location.reload();
