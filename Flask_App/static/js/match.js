@@ -227,7 +227,7 @@ function pass_match(user_id, outter_loop) {
   $.ajax({
           type: 'POST',
           url: '/matchpass',
-          data: {"data":user_id},
+          data: {"data":user_id, "csrf_token":crsfToken},
           success: function(data) {
               if (data == "KO") {
                 //console.log('Une erreur est survenue');
@@ -247,7 +247,7 @@ function add_match_like(user_id) {
   $.ajax({
           type: 'POST',
           url: '/addlike',
-          data: {"data":user_id},
+          data: {"data":user_id, "csrf_token":crsfToken},
           success: function(data) {
               if (data == "KO") {
                 //console.log('Une erreur est survenue');
@@ -271,9 +271,6 @@ $(function() {
           type: 'POST',
           url: '/trisearch',
           data: form_data,
-          contentType: false,
-          cache: false,
-          processData: false,
           success: function(data) {
               if (data.error == 1) {
                 //console.log("Tri KO");
@@ -295,9 +292,6 @@ $(function() {
           type: 'POST',
           url: '/filtresearch',
           data: form_data,
-          contentType: false,
-          cache: false,
-          processData: false,
           success: function(data) {
               if (data == 'KO') {
                 //console.log("Tri KO");
@@ -317,10 +311,7 @@ $(function() {
       $.ajax({
           type: 'POST',
           url: '/filtreresetmatch',
-          data: 0,
-          contentType: false,
-          cache: false,
-          processData: false,
+          data: {"data":0, "csrf_token":crsfToken},
           success: function(data) {
               if (data == "KO") {
                 //console.log("RESET filtre SEARCH KO");
@@ -341,10 +332,7 @@ $(function() {
       $.ajax({
           type: 'POST',
           url: '/triresetsearch',
-          data: 0,
-          contentType: false,
-          cache: false,
-          processData: false,
+          data: {"data":0, "csrf_token":crsfToken},
           success: function(data) {
               if (data == "KO") {
                 //console.log("RESET Tri SEARCH KO");
@@ -374,9 +362,6 @@ $(function() {
             type: 'POST',
             url: '/trisearch',
             data: form_data,
-            contentType: false,
-            cache: false,
-            processData: false,
             success: function(data) {
                 if (data.error == 1) {
                   //location.reload();
@@ -415,10 +400,7 @@ $(function() {
       $.ajax({
           type: 'POST',
           url: '/triresetsearch',
-          data: 0,
-          contentType: false,
-          cache: false,
-          processData: false,
+          data: {"data":0, "csrf_token":crsfToken},
           success: function(data) {
               if (data == "KO") {
                 //console.log("RESET Tri SEARCH KO");
@@ -439,10 +421,7 @@ $(function() {
       $.ajax({
           type: 'POST',
           url: '/filtreresetsearch',
-          data: 0,
-          contentType: false,
-          cache: false,
-          processData: false,
+          data: {"data":0, "csrf_token":crsfToken},
           success: function(data) {
               if (data == "KO") {
                 //console.log("RESET FILTRE SEARCH KO");
@@ -466,9 +445,6 @@ $(function() {
           type: 'POST',
           url: '/filtresearch',
           data: form_data,
-          contentType: false,
-          cache: false,
-          processData: false,
           success: function(data) {
               if (data.error == 1) {
                 //location.reload();
@@ -522,9 +498,6 @@ function filtredynamique(page) {
       type: 'POST',
       url: '/filtresearch',
       data: form_data,
-      contentType: false,
-      cache: false,
-      processData: false,
       success: function(data) {
           if (data == 'KO') {
             //location.reload();

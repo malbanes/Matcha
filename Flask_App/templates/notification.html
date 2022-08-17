@@ -65,7 +65,7 @@ function delnotif(u) {
   $.ajax({
             type: 'POST',
             url: '/delnotif',
-            data: {"notif":u},
+            data: {"notif":u, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";

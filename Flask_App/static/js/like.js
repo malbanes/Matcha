@@ -16,7 +16,7 @@ function add_like(user_id) {
 $.ajax({
         type: 'POST',
         url: '/addlike',
-        data: {"data":user_id},
+        data: {"data":user_id, "csrf_token":crsfToken},
         success: function(data) {
             if (data == "KO") {
               data="KO";
@@ -44,7 +44,7 @@ function delete_like(user_id) {
 $.ajax({
         type: 'POST',
         url: '/dellike',
-        data: {"data":user_id},
+        data: {"data":user_id, "csrf_token":crsfToken},
         success: function(data) {
             if (data == 'KO') {
               //console.log('Une erreur est survenue');
@@ -77,7 +77,7 @@ function report(user_id) {
 $.ajax({
         type: 'POST',
         url: '/report',
-        data: {"data":user_id},
+        data: {"data":user_id, "csrf_token":crsfToken},
         success: function(data) {
           location.reload();
         },
@@ -89,7 +89,7 @@ function block(user_id) {
 $.ajax({
         type: 'POST',
         url: '/block',
-        data: {"data":user_id},
+        data: {"data":user_id, "csrf_token":crsfToken},
         success: function(data) {
             if (data == 'KO') {
               //console.log('Une erreur est survenue');
@@ -109,7 +109,7 @@ function unblock(user_id) {
 $.ajax({
         type: 'POST',
         url: '/unblock',
-        data: {"data":user_id},
+        data: {"data":user_id, "csrf_token":crsfToken},
         success: function(data) {
             if (data == 'KO') {
               //console.log('Une erreur est survenue');

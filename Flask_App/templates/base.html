@@ -157,6 +157,7 @@
 
     <script type="text/javascript" charset="utf-8">
 
+var crsfToken = "{{csrf_token()}}";
 
 //This fuction Save notification on BDD and sent dynamic notification to the nav
         //Receiver = user_id; notif_type = [0,1,2]; content= [1, -1, msg_id] 
@@ -164,7 +165,7 @@ function add_notification(receiver, notif_type, content) {
     $.ajax({
             type: 'POST',
             url: '/addnotification',
-            data: {"receiver":receiver, "notif_type":notif_type, "content":content},
+            data: {"receiver":receiver, "notif_type":notif_type, "content":content, "csrf_token":crsfToken},
             success: function(data) {
                 //Call notif dynamique
                 if (notif_type==2 && content=="2" && data.matchretour=="success") {
@@ -206,7 +207,7 @@ function add_match(receiver, notif_type, content) {
     $.ajax({
             type: 'POST',
             url: '/addnotification',
-            data: {"receiver":receiver, "notif_type":notif_type, "content":content},
+            data: {"receiver":receiver, "notif_type":notif_type, "content":content, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                   //console.log('Une erreur est survenue');
@@ -231,7 +232,7 @@ function add_match(receiver, notif_type, content) {
                 $.ajax({
                 type: 'POST',
                 url: '/getnavnotification',
-                data: {"data":"get"},
+                data: {"data":"get", "csrf_token":crsfToken},
                 success: function(data) {
                     if (data == "KO") {
                     //console.log('Une erreur est survenue');
@@ -294,7 +295,7 @@ function add_match(receiver, notif_type, content) {
     $.ajax({
             type: 'POST',
             url: '/readnotification',
-            data: {"notif_type":notif_type, "sender_id":username},
+            data: {"notif_type":notif_type, "sender_id":username, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                   //console.log('Une erreur est survenue');

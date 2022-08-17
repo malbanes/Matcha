@@ -22,6 +22,9 @@
 
   <row class="row justify-content-start">
   <!--Select Section-->
+  <div id="error-msg" class="invalid-feedback notification" style="display:none;">
+    An error occur, reload page
+  </div>
     <div id="messagelist" class="col-xs mb-4 bg-white messagelistresponsive" style="max-width:270px;">
       <div class="h4 ml-4 text-deepblue">
         <strong>Messages</strong>
@@ -251,10 +254,14 @@ $(document).ready(function() {
     $.ajax({
             type: 'POST',
             url: '/sendmessage',
-            data: {"msg":values[0].value, "receiver":values[0].name},
+            data: {"msg":values[0].value, "receiver":values[0].name, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
+                }
+                //TODO
+                if (data=="nouser") {
+                  document.getElementById("error-msg").style.display = "block";
                 }
                 else {
                   document.getElementById("currentMessage").value="";
@@ -276,7 +283,7 @@ function block(u) {
   $.ajax({
             type: 'POST',
             url: '/block',
-            data: {"data":u},
+            data: {"data":u, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
@@ -292,7 +299,7 @@ function unblock(u) {
   $.ajax({
             type: 'POST',
             url: '/unblock',
-            data: {"data":u},
+            data: {"data":u, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
@@ -309,7 +316,7 @@ function delconv(u) {
   $.ajax({
             type: 'POST',
             url: '/delmessages',
-            data: {"data":u},
+            data: {"data":u, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";
@@ -328,7 +335,7 @@ function report(u) {
   $.ajax({
             type: 'POST',
             url: '/report',
-            data: {"data":u},
+            data: {"data":u, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     //document.getElementById("block-error").style.display = "block";

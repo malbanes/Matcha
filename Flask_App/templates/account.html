@@ -464,8 +464,8 @@
 function unblock_card(user_id) {
     $.ajax({
             type: 'POST',
-            url: '/unblock',
-            data: {"data":user_id},
+            url: '/unblock', 
+            data: {"data":user_id, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                   //console.log('Une erreur est survenue');

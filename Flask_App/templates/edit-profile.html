@@ -449,9 +449,6 @@
             type: 'POST',
             url: '/uploadajax',
             data: form_data,
-            contentType: false,
-            cache: false,
-            processData: false,
             success: function(data) {
                 if (data == 'OK') {
                     document.getElementById("upload-error").style.display = "none";
@@ -475,9 +472,6 @@ $(function() {
             type: 'POST',
             url: '/updatebio',
             data: form_data,
-            contentType: false,
-            cache: false,
-            processData: false,
             success: function(data) {
                 if (data == 'KO') {
                     document.getElementById("bio-error").style.display = "block";
@@ -498,7 +492,7 @@ function set_image_profil(img_id) {
     $.ajax({
             type: 'POST',
             url: '/setimageprofil',
-            data: {"data":img_id},
+            data: {"data":img_id, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     data = 'KO';
@@ -525,7 +519,7 @@ function delete_image(img_id) {
     $.ajax({
             type: 'POST',
             url: '/deleteimage',
-            data: {"data":img_id},
+            data: {"data":img_id, "csrf_token":crsfToken},
             success: function(data) {
                 if (data == 'KO') {
                     document.getElementById("action-image--error").style.display = "block";                    
@@ -571,9 +565,6 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
             type: 'POST',
             url: '/addhashtag',
             data: form_data,
-            contentType: false,
-            cache: false,
-            processData: false,
             success: function(data) {
                 if (data == 'KO') {
                     document.getElementById("interest-error").style.display = "block";
@@ -613,9 +604,6 @@ $(document).on('hidden.bs.modal', '#modal-fullscreen-xl', function (event) {
             type: 'POST',
             url: '/updatehashtag',
             data: form_data,
-            contentType: false,
-            cache: false,
-            processData: false,
             success: function(data) {
                 if (data == 'KO') {
                     document.getElementById("interest-error").style.display = "block";
@@ -656,7 +644,7 @@ function delhashtag(hash_id) {
         $.ajax({
           type: 'POST',
           url: '/delhashtag',
-          data: {'data':hash_secure_id},
+          data: {'data':hash_secure_id, "csrf_token":crsfToken},
           success: function(data) {
               if (data == 'KO') {
                   data = "KO";
@@ -682,9 +670,6 @@ function delhashtag(hash_id) {
             type: 'POST',
             url: '/updateprimary',
             data: form_data,
-            contentType: false,
-            cache: false,
-            processData: false,
             success: function(data) {
                 if (data == 'KO') {
                     document.getElementById("primary-error").style.display = "block";

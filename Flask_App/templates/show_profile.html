@@ -211,7 +211,7 @@
       $.ajax({
         type: 'POST',
         url: '/addvisite',
-        data: {"data":receiver_id},
+        data: {"data":receiver_id, "csrf_token":crsfToken},
         success: function(data) {
             if (data == "KO") {
               //console.log('Une erreur est survenue');

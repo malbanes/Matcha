@@ -540,7 +540,10 @@ def sendmessage():
             cur.execute(
                 "SELECT id FROM users WHERE username=%(usr)s;", {"usr": receiver}
             )
-            receiver_id = cur.fetchone()[0]
+            receiver_id = cur.fetchone()
+            if not receiver_id:
+                return "nouser"
+            receiver_id = receiver_id[0]
             # Si je l'ai bloqué
             cur.execute(
                 "SELECT COUNT(id) FROM accountcontrol WHERE to_user_id=%(tid)s AND from_user_id=%(fid)s AND blocked='true';",
