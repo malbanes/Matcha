@@ -298,6 +298,7 @@
                 <p class="small">Your entire profile and your data will be deleted.  No possible recovery!<br>If you want to process, fill the below field with the sentence: Delete my account now</p>
               </div>
               <form method="POST" action="/account">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                         <input class="form-control" type="deletemyaccount" name="deletemyaccount" placeholder="Delete my account now" autofocus="">
                 </div>
@@ -326,6 +327,7 @@
       </div>
       <div class="modal-body">
         <form method="POST" action="/account">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
           <div class="form-group">
             <small class="form-text text-muted">Your Username :</small>
@@ -379,6 +381,7 @@
       </div>
       <div class="modal-body">
         <form method="POST" action="/account">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="form-group">
             <small class="form-text text-muted">Your new email :</small>
             <input class="form-control" type="text" name="email" placeholder="New email" maxlength="250" pattern="[a-z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
@@ -407,6 +410,7 @@
       </div>
       <div class="modal-body">
         <form method="POST" action="/account">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
           <div class="form-group">
             <input class="form-control" type="text" name="oldpassword" placeholder="Old password" autofocus="">

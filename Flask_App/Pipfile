@@ -23,6 +23,7 @@ python-dotenv = "*"
 pillow = "*"
 eventlet = "*"
 certifi = "*"
+flask-wtf = "*"
 
 [dev-packages]
 

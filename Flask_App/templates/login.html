@@ -17,6 +17,8 @@
             {% endif %}
         {% endwith %}
         <form method="POST" action="/login">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                     <input class="form-control" type="username" name="username" placeholder="Your Username" autofocus="" maxlength="64" required>
             </div>

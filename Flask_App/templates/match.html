@@ -139,6 +139,7 @@
       <div class="modal-body">
         <!-- Filtre Form-->
         <form method="POST" id="filtre-search-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" id="targetform" name="targetform" value="match" />
           <!-- Age -->
           <div class="form-check d-inline">
@@ -223,6 +224,7 @@
       <div class="modal-body">
         <!-- Tri Form-->
         <form method="POST" id="tri-search-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" id="targetform" name="targetform" value="match" />
           <!-- Age -->
           <div class="h5 text-deepblue">Sort by: </div>

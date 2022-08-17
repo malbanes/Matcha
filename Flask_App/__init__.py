@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 import os
 import psycopg2
 from models import User
@@ -62,6 +63,9 @@ def create_app():
     # define the redirection path when login required and we attempt to access without being logged in
     login_manager.init_app(app)
     # configure it for login
+    #CSRF Protection
+    csrf = CSRFProtect()
+    csrf.init_app(app)
 
     # By Malbanes : time filter for message gesture
     @app.template_filter("strftime")

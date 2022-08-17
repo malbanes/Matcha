@@ -246,6 +246,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <form method="post" id="upload-file" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-body center">
             <span class="text-small">Add a picture to get attention from the community</span>
                 <!-- Modal image-->
@@ -320,6 +321,7 @@
         </div>
         <div class="modal-body">
             <form method="POST" id="interest-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <div class="form-group">
                 <div class="input-group mb-3">
                     <input type="text" class="live-search-box form-control" placeholder="search here"/>
@@ -365,6 +367,7 @@
         </div>
         <div class="modal-body">
             <form method="POST" id="primary-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <div class="form-group">
                 <bold class="form-text text-muted">Your gender :</bold>
                 <select class="form-select form-select-sm mb-3" name="newGender" aria-label="gender select">
