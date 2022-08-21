@@ -729,7 +729,7 @@ def block():
                 )
                 conn.commit()
             cur.execute(
-                "DELETE FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s AND notif_type=0",
+                "DELETE FROM notifications WHERE sender_id=%(sid)s AND receiver_id=%(rid)s",
                 {"sid": user_id, "rid": current_user.id},
             )
             conn.commit()
@@ -2876,10 +2876,13 @@ def addnotif():
                 )
             )
             ami_blocked = cur.fetchone()[0]
-            if ami_blocked > 0 or is_blocked > 0:
+            if ami_blocked != 0 or is_blocked != 0:
                 cur.close()
                 conn.close()
-                return "KO"
+                return {
+                    "retour": return_str,
+                    "matchretour": match_return_str
+                }
             cur.execute(
                 "SELECT COUNT(id) FROM notifications WHERE receiver_id=%(id)s AND notif_type=%(tid)s AND is_read=false AND sender_id = %(from)s LIMIT 1",
                 {"id": receiver_id, "tid": notif_type, "from": current_user.id},

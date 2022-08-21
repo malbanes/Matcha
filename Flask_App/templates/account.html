@@ -474,6 +474,7 @@ function unblock_card(user_id) {
                     var elem_id = user_id+"block";
                     var elem = document.getElementById(elem_id);
                     elem.classList.add("d-none");
+                    location.reload();
                 }
             },
         });

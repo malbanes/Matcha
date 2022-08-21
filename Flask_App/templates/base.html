@@ -176,9 +176,9 @@ function add_notification(receiver, notif_type, content) {
                     totalcounter.innerHTML = parseInt(totalcounter.innerHTML) + 1;
                     totalcounter.classList.remove('d-none');
                 }
-                if (data.retour != 'KO' && data.retour!="Old"){
-                var socket = io();
-                socket.emit('new_notif', {'content': content, 'receiver' : receiver, 'notif_type': notif_type});
+                if (data.retour != "KO" && data.retour!="Old"){
+                    var socket = io();
+                    socket.emit('new_notif', {'content': content, 'receiver' : receiver, 'notif_type': notif_type});
                 }
             },
         });

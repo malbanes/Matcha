@@ -86,7 +86,7 @@
       <div id="chat{{ roomsList[loop.index0] }}" class="col d-none">
         <div class="row align-items-end pb-4 pt-4">
           <div class="col">
-              <p class="no-margin d-inline"><a class="text-decoration-none" href="{{ url_for('main.showprofile', username=user) }}"><strong class="text-deepblue">{{user}}</strong></a></p>
+              <p class="no-margin d-inline"><a class="text-decoration-none" style="word-break: break-all;" href="{{ url_for('main.showprofile', username=user) }}"><strong class="text-deepblue">{{user}}</strong></a></p>
               {% if onlineList[loop.index0] == true %}
                 <div class="d-inline green-color">
                   Online
@@ -291,6 +291,7 @@ function block(u) {
                 else {
                   document.getElementById("block"+u).classList.add("d-none");
                   document.getElementById("unblock"+u).classList.remove("d-none");
+                  location.reload();
                 }
             },
         });
@@ -307,6 +308,7 @@ function unblock(u) {
                 else {
                   document.getElementById("block"+u).classList.remove("d-none");
                   document.getElementById("unblock"+u).classList.add("d-none");
+                  location.reload();
                 }
             },
         });

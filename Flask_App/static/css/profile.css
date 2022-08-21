@@ -7,10 +7,12 @@
   position: absolute;
   right: 10%;
   z-index: 2;
+  top: 70px;
 }
 
 .title {
     color: #1f2f49;
+    word-break: break-all;
   }
   
   .rounded-square-picture {
