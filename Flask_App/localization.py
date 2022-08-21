@@ -5,11 +5,13 @@ import os
 
 
 def localize_user():
-    r = requests.get(
-        "https://api.ipgeolocation.io/ipgeo?apiKey=" + str(os.getenv("GEO_API"))
-    )
+    #r = requests.get(
+    #    "https://api.ipgeolocation.io/ipgeo?apiKey=" + str(os.getenv("GEO_API"))
+    #)
+    r = requests.get("https://ipapi.co/json/")
     result = r.json()
-    localisation = str(result["city"]) + " - " + str(result["zipcode"])
+    #localisation = str(result["city"]) + " - " + str(result["zipcode"])
+    localisation = str(result["city"]) + " - " + str(result["postal"])
     latitude = result["latitude"]
     longitude = result["longitude"]
     return (localisation, latitude, longitude)
